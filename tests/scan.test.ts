@@ -10,7 +10,7 @@ import {
 import { BODY_CHAR_BUDGET, truncateBody } from "@/lib/scan/evidence";
 import { decide, judge, routeLead } from "@/lib/scan/gates";
 import type { Assessment, ScorableItem, TriageItem } from "@/lib/scan/judgement";
-import { itemState, spans } from "@/lib/scan/spans";
+import { itemState, ownSpans, spans } from "@/lib/scan/spans";
 import { retentionCutoff } from "@/lib/retention";
 import { TIERS } from "@/lib/tiers";
 import { judgeAnswers, product, triageAnswers } from "./jevAnswers";
@@ -361,7 +361,8 @@ describe("judging a batch", () => {
   });
 
   it("never offers a commenter the words of the post they are answering", () => {
-    const sentences = Object.values(spans(commenter.title, commenter.body));
+    const sentences = Object.values(ownSpans(commenter));
+    expect(sentences).not.toContain(commenter.title);
     expect(sentences.some((one) => one.includes("it has to take payments"))).toBe(false);
     expect(itemState(commenter).parent_post_replied_to).toContain("it has to take payments");
   });

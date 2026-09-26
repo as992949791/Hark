@@ -190,7 +190,9 @@ async function seedProject(row: SeedRow, stale: boolean, reseeded: boolean): Pro
     await enqueueOnce("brief", new Date(Date.now() + BRIEF_START_MS + briefsQueued * BRIEF_GAP_MS), row.id);
     briefsQueued += 1;
   } else if (stale) {
-    await enqueueOnce("rescore", new Date(), row.id);
+    // After the outgoing revision is gone too: its scorer would judge the
+    // verdicts the old way and mark them current.
+    await enqueueOnce("rescore", new Date(Date.now() + BRIEF_START_MS), row.id);
   }
   if (row.url && row.createdAt < PROFILES_READ_WHOLE_SINCE && !reseeded) {
     await enqueueOnce("profile_reseed", new Date(Date.now() + reseedsQueued * RESEED_GAP_MS), row.id);

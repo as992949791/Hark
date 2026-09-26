@@ -7,7 +7,7 @@ import { isSentinel } from "./evidence";
 import { judge } from "./gates";
 import type { Judgement, ScorableItem, TriageCandidate, TriageItem } from "./judgement";
 import { briefQuestions, judgeQuestions, keyed, readingQuestions, signalQuestions, triageQuestions } from "./questions";
-import { itemState, spans } from "./spans";
+import { itemState, ownSpans } from "./spans";
 import { withCheckedEvidence } from "./validate";
 
 /** A candidate the triage returned no verdict for is unread, never rejected. */
@@ -123,7 +123,7 @@ export function judgeRequest(
       questions = { ...questions, ...keyed(key, briefQuestions(path, product.brief)) };
     }
     if (!readings.has(item.id)) {
-      const ids = Object.keys(spans(item.title, item.body));
+      const ids = Object.keys(ownSpans(item));
       questions = { ...questions, ...keyed(key, readingQuestions(path, ids)) };
     }
   });
@@ -144,7 +144,7 @@ async function judgeBatch(
   });
   return batch.map((item, index) => {
     const key = `p${index}`;
-    const reading = readings.get(item.id) ?? readingFrom(answers, key, spans(item.title, item.body));
+    const reading = readings.get(item.id) ?? readingFrom(answers, key, ownSpans(item));
     const assessment = assessmentFrom(item.id, reading, answers, key, Boolean(product.brief));
     return withCheckedEvidence(judge(assessment, item), item);
   });

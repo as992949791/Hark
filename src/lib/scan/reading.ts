@@ -10,7 +10,7 @@ import { isSentinel } from "./evidence";
 import { judge } from "./gates";
 import type { Assessment, Judgement, ScorableItem } from "./judgement";
 import { keyed, readingQuestions } from "./questions";
-import { itemState, spans } from "./spans";
+import { itemState, ownSpans } from "./spans";
 
 /**
  * The shared reading: who is speaking, what state their own need is in, and
@@ -106,7 +106,7 @@ async function readBatch(
   batch.forEach((item, index) => {
     const key = `p${index}`;
     posts[key] = itemState(item);
-    questions = { ...questions, ...keyed(key, readingQuestions(`posts.${key}`, Object.keys(spans(item.title, item.body)))) };
+    questions = { ...questions, ...keyed(key, readingQuestions(`posts.${key}`, Object.keys(ownSpans(item)))) };
   });
   const answers = await askJev({
     purpose: "reading",
@@ -117,7 +117,7 @@ async function readBatch(
   });
   const readings = batch.map((item, index): [string, Reading] => [
     item.id,
-    readingFrom(answers, `p${index}`, spans(item.title, item.body)),
+    readingFrom(answers, `p${index}`, ownSpans(item)),
   ]);
   // A reading that could not be stored is still a reading: the answer is paid
   // for and serves this scan, and the next one buys it again.

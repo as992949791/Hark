@@ -211,6 +211,13 @@
       "when": 1790177420275,
       "tag": "0029_project_brief",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1790466555930,
+      "tag": "0030_rescore_replies_quoting_title",
+      "breakpoints": true
     }
   ]
 }

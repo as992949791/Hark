@@ -15,9 +15,13 @@ export type Spans = Record<string, string>;
  */
 const SPAN_LIMIT = 254;
 
-/** The title first, then the body at sentence ends and line breaks, ids in reading order. */
-export function spans(title: string, body: string): Spans {
-  let parts = [plainTypography(title).trim()];
+/**
+ * The title first, then the body at sentence ends and line breaks, ids in
+ * reading order. A comment has no title of its own: the thread's title is the
+ * original poster's words, so it goes in with the parent post, never here.
+ */
+export function spans(title: string | null, body: string): Spans {
+  let parts = title === null ? [] : [plainTypography(title).trim()];
   for (const paragraph of plainTypography(truncateBody(body)).split(/\n+/)) {
     for (const sentence of paragraph.trim().split(/(?<=[.!?])\s+/)) {
       if (sentence.trim()) {
@@ -35,6 +39,11 @@ export function spans(title: string, body: string): Spans {
   return Object.fromEntries(parts.map((text, index) => [`s${index}`, text]));
 }
 
+/** The sentences a candidate may be quoted from: a commenter's own, never the thread's title. */
+export function ownSpans(item: ScorableItem): Spans {
+  return spans(item.parentBody === null ? item.title : null, item.body);
+}
+
 /**
  * One candidate as the `posts.<id>` object of a Jev request. The parent post
  * a comment replies to is sent as one block, not as spans: a quote from it is
@@ -47,9 +56,10 @@ export function itemState(item: ScorableItem): Record<string, unknown> {
     age_hours: Math.round(item.ageHours),
     upvotes: item.upvotes ?? 0,
     comments_on_thread: item.numComments ?? 0,
-    sentences: spans(item.title, item.body),
+    sentences: ownSpans(item),
   };
   if (item.parentBody !== null) {
+    state.thread_title = plainTypography(item.title);
     state.parent_post_replied_to = plainTypography(truncateBody(item.parentBody, PARENT_CHAR_BUDGET));
   }
   return state;
