@@ -29,7 +29,7 @@ describe("cutting a candidate into sentences", () => {
     expect(joined).toContain("Sentence 1.");
   });
 
-  it("offers a commenter only their own words, and the parent post as one block", () => {
+  it("offers a commenter only their own words, with the thread's title and post as context", () => {
     const state = itemState({
       id: "c1",
       title: "Need a form tool",
@@ -41,10 +41,9 @@ describe("cutting a candidate into sentences", () => {
       numComments: 3,
       parentBody: "Ours cannot branch and it has to take payments.",
     });
-    expect(Object.values(state.sentences as Record<string, string>)).toEqual([
-      "Need a form tool",
-      "Same here.",
-    ]);
+    // The thread's title is the original poster's words, not the commenter's.
+    expect(Object.values(state.sentences as Record<string, string>)).toEqual(["Same here."]);
+    expect(state.thread_title).toBe("Need a form tool");
     expect(state.parent_post_replied_to).toBe("Ours cannot branch and it has to take payments.");
   });
 });

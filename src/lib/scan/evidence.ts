@@ -57,7 +57,8 @@ export function truncateBody(body: string, budget = BODY_CHAR_BUDGET): string {
  * parent has produced evidence of somebody else's need, not their own.
  */
 export function ownTexts(item: ScorableItem): string[] {
-  return [item.title, truncateBody(item.body), item.body].map(plainTypography);
+  const title = item.parentBody === null ? [item.title] : [];
+  return [...title, truncateBody(item.body), item.body].map(plainTypography);
 }
 
 /** Reddit's own markers for a body or an author it has taken away. */
