@@ -68,6 +68,20 @@ export type SelectableLead = Omit<DigestLead, "excerpt"> & {
   foundAt: Date;
 };
 
+export function sameWords(a: string, b: string): boolean {
+  const words = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  return words(a) === words(b);
+}
+
+/**
+ * A reply whose only evidence is the thread's own title was judged on the
+ * question it answers, not on what it says: in practice it is someone
+ * recommending a tool, not someone asking for one.
+ */
+function borrowsTheQuestion(row: SelectableLead): boolean {
+  return row.isComment && row.matchedPhrase != null && sameWords(row.matchedPhrase, row.title);
+}
+
 /**
  * Every lead worth a message, best first: a buyer the user has not touched,
  * first found inside the window, at or over the floor, on a post or comment
@@ -82,6 +96,7 @@ export function alertable(rows: SelectableLead[], since: Date): SelectableLead[]
         row.status === "new" &&
         row.kind === "buyer" &&
         row.score >= ALERT_SCORE_FLOOR &&
+        !borrowsTheQuestion(row) &&
         row.foundAt.getTime() >= since.getTime() &&
         row.createdAt.getTime() >= freshFrom,
     )
@@ -106,6 +121,7 @@ export function digestLead(row: SelectableLead): DigestLead {
     matchedPhrase: row.matchedPhrase,
     excerpt: excerptOf(row.body, row.matchedPhrase),
     isComment: row.isComment,
+    threadId: row.postId,
     numComments: row.numComments,
     createdAt: row.createdAt,
   };

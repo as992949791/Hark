@@ -11,6 +11,7 @@ import {
   startOfDay,
 } from "./tokens";
 import { ANYAPI_PLUG, ANYAPI_PLUG_CTA, anyapiAlertUrl } from "./plug";
+import { sameWords } from "./select";
 import type { Digest, DigestLead } from "./types";
 
 const WIDTH = 600;
@@ -47,7 +48,7 @@ function headerRow(digest: Digest): string {
 function headlineRow(digest: Digest): string {
   const count = totalOf(digest);
   const noun = count === 1 ? "new lead" : "new leads";
-  return `<tr><td style="padding:24px 24px 8px;font-family:${EMAIL_FONT};font-size:20px;line-height:1.3;font-weight:500;color:${C.fg}">${count} ${noun} for ${escapeHtml(digest.projectName)} ${windowPhrase(digest)}.</td></tr>`;
+  return `<tr><td style="padding:24px 24px 8px;font-family:${EMAIL_FONT};font-size:20px;line-height:1.3;font-weight:500;color:${C.fg}">${count} ${noun} for ${escapeHtml(digest.projectName)}, found ${windowPhrase(digest)}.</td></tr>`;
 }
 
 function earlierPills(leads: DigestLead[], today: number): string {
@@ -96,45 +97,92 @@ ${avatarHtml(lead.author, lead.avatarUrl, 28)}
 <img src="${escapeHtml(appUrl)}/email/reddit.png" width="14" height="14" alt="Reddit" style="display:block;margin:-8px 0 0 16px;border-radius:7px" /></td>`;
 }
 
-function sameWords(a: string, b: string): boolean {
-  const words = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  return words(a) === words(b);
+/**
+ * How long ago, in hours until two days: a card saying "2d" under a headline
+ * about the last 24 hours reads as a contradiction when it means 37 hours.
+ */
+export function leadAge(date: Date, now: Date): string {
+  const hours = (now.getTime() - date.getTime()) / 3_600_000;
+  return hours >= 1 && hours < 48 ? `${Math.round(hours)}h` : shortAge(date, now);
 }
 
-/** One lead as a card. The invite shows the same cards, so it is shared. */
-export function leadRow(lead: DigestLead, digest: Pick<Digest, "appUrl" | "generatedAt">): string {
-  const meta = [
-    `u/${lead.author ?? "unknown"}`,
-    `r/${lead.subreddit}`,
-    shortAge(lead.createdAt, digest.generatedAt),
-    ...(lead.numComments == null
-      ? []
-      : [`${lead.numComments} ${lead.numComments === 1 ? "comment" : "comments"}`]),
-  ]
+function commentsPhrase(count: number | null): string[] {
+  return count == null ? [] : [`${count} ${count === 1 ? "comment" : "comments"}`];
+}
+
+/** What the person wrote: the line that made it a lead, or the start of it. */
+function wordsOf(lead: DigestLead, size: number): string {
+  // The quote stands in for the excerpt, unless it only repeats the title.
+  const quote =
+    lead.matchedPhrase && !sameWords(lead.matchedPhrase, lead.title)
+      ? lead.matchedPhrase
+      : null;
+  if (quote) {
+    return `<div style="margin-top:6px;padding:6px 10px;border-radius:${EMAIL_RADIUS.control};background:${C.surface2};font-family:${EMAIL_FONT};font-size:${size}px;color:${C.fg}">&ldquo;${escapeHtml(quote)}&rdquo;</div>`;
+  }
+  return lead.excerpt
+    ? `<div style="margin-top:6px;font-family:${EMAIL_FONT};font-size:${size}px;line-height:1.5;color:${C.fgMuted}">${escapeHtml(lead.excerpt)}</div>`
+    : "";
+}
+
+/** A comment that is a lead, set under the thread it replies to. */
+function replyBlock(lead: DigestLead, digest: Pick<Digest, "generatedAt">): string {
+  const meta = [`u/${lead.author ?? "unknown"} replied`, leadAge(lead.createdAt, digest.generatedAt)]
     .map(escapeHtml)
     .join(" &middot; ");
-  // The quote is the line that made it a lead, so it stands in for the excerpt,
-  // unless it only repeats the title.
-  const quote =
-    lead.matchedPhrase && !sameWords(lead.matchedPhrase, lead.title) ? lead.matchedPhrase : null;
-  const excerpt =
-    !quote && lead.excerpt
-      ? `<div style="margin-top:6px;font-family:${EMAIL_FONT};font-size:13px;line-height:1.5;color:${C.fgMuted}">${escapeHtml(lead.excerpt)}</div>`
-      : "";
-  const phrase = quote
-    ? `<div style="margin-top:6px;padding:6px 10px;border-radius:${EMAIL_RADIUS.control};background:${C.surface2};font-family:${EMAIL_FONT};font-size:13px;color:${C.fg}">&ldquo;${escapeHtml(quote)}&rdquo;</div>`
-    : "";
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px"><tr>
+<td valign="top" width="26" style="padding:2px 0 0 10px;border-left:2px solid ${C.border}">${avatarHtml(lead.author, lead.avatarUrl, 20)}</td>
+<td valign="top" style="padding:0 0 0 8px">
+<div style="font-family:${EMAIL_FONT};font-size:12px;color:${C.fgMuted}">${meta} &middot; <span style="font-weight:500;color:${scoreColor(lead.score)}">${lead.score}</span> &middot; <a href="${escapeHtml(lead.url)}" style="color:${C.fgMuted};text-decoration:underline">Source</a></div>
+${wordsOf(lead, 13)}</td></tr></table>`;
+}
+
+/**
+ * One thread as a card: the post when it is a lead itself, and every reply
+ * that is a lead beneath it, so a busy thread reads as one conversation. The
+ * invite shows the same cards, so it is shared.
+ */
+export function threadRow(group: DigestLead[], digest: Pick<Digest, "appUrl" | "generatedAt">): string {
+  const post = group.find((lead) => !lead.isComment) ?? null;
+  const replies = group.filter((lead) => lead.isComment);
+  const first = post ?? replies[0];
+  const best = Math.max(...group.map((lead) => lead.score));
+  const meta = (
+    post
+      ? [`u/${post.author ?? "unknown"}`, `r/${post.subreddit}`, leadAge(post.createdAt, digest.generatedAt), ...commentsPhrase(post.numComments)]
+      : [`Thread in r/${first.subreddit}`, ...commentsPhrase(first.numComments)]
+  )
+    .map(escapeHtml)
+    .join(" &middot; ");
+  const face = post
+    ? authorCell(post, digest.appUrl)
+    : `<td valign="top" width="44" style="padding:16px 0 16px 16px"><img src="${escapeHtml(digest.appUrl)}/email/reddit.png" width="28" height="28" alt="Reddit" style="display:block;border-radius:14px" /></td>`;
   return `<tr><td style="padding:0 24px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.surface};border:1px solid ${C.border};border-radius:${EMAIL_RADIUS.card}"><tr>
-${authorCell(lead, digest.appUrl)}
+${face}
 <td valign="top" style="padding:16px 12px">
 <div style="font-family:${EMAIL_FONT};font-size:12px;color:${C.fgMuted}">${meta}</div>
-<div style="margin-top:4px;font-family:${EMAIL_FONT};font-size:15px;line-height:1.4;color:${C.fg}">${escapeHtml(lead.title)}</div>
-${excerpt}${phrase}</td>
+<div style="margin-top:4px;font-family:${EMAIL_FONT};font-size:15px;line-height:1.4;color:${C.fg}">${escapeHtml(first.title)}</div>
+${post ? wordsOf(post, 13) : ""}${replies.map((reply) => replyBlock(reply, digest)).join("")}</td>
 <td valign="top" align="right" width="72" style="padding:16px 16px 16px 0">
-<div style="font-family:${EMAIL_FONT};font-size:15px;font-weight:500;color:${scoreColor(lead.score)}">${lead.score}</div>
-<a href="${escapeHtml(lead.url)}" style="display:inline-block;margin-top:8px;font-family:${EMAIL_FONT};font-size:13px;color:${C.fgMuted};text-decoration:underline">Source</a></td>
+<div style="font-family:${EMAIL_FONT};font-size:15px;font-weight:500;color:${scoreColor(best)}">${best}</div>
+<a href="${escapeHtml(first.url)}" style="display:inline-block;margin-top:8px;font-family:${EMAIL_FONT};font-size:13px;color:${C.fgMuted};text-decoration:underline">Source</a></td>
 </tr></table></td></tr>`;
+}
+
+/** One lead on its own card. */
+export function leadRow(lead: DigestLead, digest: Pick<Digest, "appUrl" | "generatedAt">): string {
+  return threadRow([lead], digest);
+}
+
+/** Leads grouped by thread, in the order each thread's best lead came. */
+export function byThread(leads: DigestLead[]): DigestLead[][] {
+  const groups = new Map<string, DigestLead[]>();
+  for (const lead of leads) {
+    const key = lead.threadId ?? lead.id;
+    groups.set(key, [...(groups.get(key) ?? []), lead]);
+  }
+  return [...groups.values()];
 }
 
 function anyapiRow(): string {
@@ -166,7 +214,7 @@ function emptyRow(digest: Digest): string {
 /** The whole email: table layout, inline styles, no stylesheet to strip. */
 export function renderDigestHtml(digest: Digest): string {
   const body = digest.leads.length
-    ? `${timelineRow(digest)}${digest.leads.map((lead) => leadRow(lead, digest)).join("")}${moreRow(digest)}`
+    ? `${timelineRow(digest)}${byThread(digest.leads).map((group) => threadRow(group, digest)).join("")}${moreRow(digest)}`
     : emptyRow(digest);
   return `<!doctype html>
 <html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>${escapeHtml(digestSubject(digest))}</title></head>
@@ -182,10 +230,10 @@ ${headerRow(digest)}${headlineRow(digest)}${body}${anyapiRow()}${footerRow(diges
 export function renderDigestText(digest: Digest): string {
   const lines = digest.leads.map(
     (lead) =>
-      `${lead.score} - ${lead.title} (r/${lead.subreddit}, u/${lead.author ?? "unknown"}, ${shortAge(lead.createdAt, digest.generatedAt)})\n${lead.excerpt ?? lead.matchedPhrase ?? ""}\n${lead.url}`,
+      `${lead.score} - ${lead.isComment ? "Reply in: " : ""}${lead.title} (r/${lead.subreddit}, u/${lead.author ?? "unknown"}, ${leadAge(lead.createdAt, digest.generatedAt)})\n${lead.excerpt ?? lead.matchedPhrase ?? ""}\n${lead.url}`,
   );
   return [
-    `${totalOf(digest)} new leads for ${digest.projectName} ${windowPhrase(digest)}.`,
+    `${totalOf(digest)} new leads for ${digest.projectName}, found ${windowPhrase(digest)}.`,
     ...lines,
     ...(digest.more ? [`And ${digest.more} more in the feed.`] : []),
     `${digest.appUrl}/app/leads`,
