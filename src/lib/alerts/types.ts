@@ -34,6 +34,8 @@ export type DigestLead = {
   excerpt: string | null;
   /** True when the lead is a comment inside the thread rather than the post. */
   isComment: boolean;
+  /** The post the lead is in, so replies can sit under their thread. */
+  threadId?: string;
   numComments: number | null;
   createdAt: Date;
 };

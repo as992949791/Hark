@@ -19,7 +19,7 @@ vi.mock("nodemailer", () => ({
     return { sendMail: smtpSend };
   },
 }));
-import { digestSubject, renderDigestHtml, renderDigestText } from "@/lib/alerts/digest";
+import { digestSubject, leadAge, renderDigestHtml, renderDigestText } from "@/lib/alerts/digest";
 import { payloadFor, sendToChannel } from "@/lib/alerts/send";
 import { emailSender, slackApp } from "@/lib/alerts/config";
 import {
@@ -309,7 +309,7 @@ describe("the digest email", () => {
   });
 
   it("carries the headline, the author, the phrase and a source link", () => {
-    expect(html).toContain("1 new lead for Acme in the last 24 hours.");
+    expect(html).toContain("1 new lead for Acme, found in the last 24 hours.");
     expect(html).toContain("u/ella_builds");
     expect(html).toContain("r/SaaS");
     expect(html).toContain("paying too much");
@@ -334,6 +334,32 @@ describe("the digest email", () => {
     );
     expect(echo).toContain("Intro text.");
     expect(echo).not.toContain("&ldquo;");
+  });
+
+  it("sets replies under their thread, one card per thread", () => {
+    const rows = [
+      lead({ id: "post", postId: "t1", score: 80 }),
+      lead({ id: "r1", postId: "t1", isComment: true, author: "replier_one", matchedPhrase: "anyone have a cheaper one", score: 75 }),
+      lead({ id: "r2", postId: "t2", isComment: true, author: "replier_two", title: "Other thread", score: 70 }),
+    ];
+    const grouped = renderDigestHtml(digestOf(selectLeads(rows, SINCE, EMAIL_LEAD_CAP)));
+    expect(grouped.match(/Paying too much for a scraper/g)).toHaveLength(1);
+    expect(grouped).toContain("u/replier_one replied");
+    expect(grouped).toContain("Thread in r/SaaS");
+    expect(grouped).toContain("u/replier_two replied");
+  });
+
+  it("leaves out a reply whose only evidence is the thread's title", () => {
+    const rows = [
+      lead({ id: "echo", isComment: true, matchedPhrase: "Paying too much for a scraper?" }),
+      lead({ id: "own", isComment: true, matchedPhrase: "we need one by Friday" }),
+    ];
+    expect(selectLeads(rows, SINCE, EMAIL_LEAD_CAP).map((one) => one.id)).toEqual(["own"]);
+  });
+
+  it("gives ages under two days in hours", () => {
+    expect(leadAge(new Date(NOW.getTime() - 37 * 3_600_000), NOW)).toBe("37h");
+    expect(leadAge(new Date(NOW.getTime() - 50 * 3_600_000), NOW)).toBe("2d");
   });
 
   it("stays email safe: tables, inline styles, no stylesheet or class", () => {
@@ -498,7 +524,7 @@ describe("delivery", () => {
       recipients: { to: [{ address: "you@company.com" }] },
       content: { subject: "1 new lead for Acme" },
     });
-    expect(message.content.html).toContain("1 new lead for Acme in the last 24 hours.");
+    expect(message.content.html).toContain("1 new lead for Acme, found in the last 24 hours.");
     expect(message.content.plainText).toContain("Paying too much for a scraper");
   });
 
