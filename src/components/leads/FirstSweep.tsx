@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sweepAction } from "@/app/app/leads/actions";
+import { ScanDone } from "@/components/leads/ScanBanner";
 import type { SweepStatus } from "@/lib/sweep";
 
 /** A second is as often as the sweep has anything new to say. */
@@ -98,18 +99,24 @@ function SweepSetup({ lines }: { lines: SetupLine[] }) {
   );
 }
 
-/** The sweep in one line, while it reads and once it is over. */
+/** The sweep in one line while it reads, and a banner once it is over. */
 function SweepLine({ status }: { status: SweepStatus }) {
   const leads = `${status.feedLeads.toLocaleString()} ${status.feedLeads === 1 ? "lead" : "leads"}`;
   const threads = `${status.found.toLocaleString()} threads`;
+  if (status.state === "done") {
+    return (
+      <ScanDone
+        title={status.feedLeads === 0 ? "Scan done. No leads in the past year yet." : `Scan done. Found ${leads}.`}
+        line={`Read ${threads} from the past year. New ones arrive with each scan.`}
+      />
+    );
+  }
   const text =
-    status.state === "done"
-      ? `Found ${leads} in ${threads} from the past year. New ones arrive with each scan.`
-      : status.state === "stopped"
-        ? `The sweep stopped early with ${leads} found. It picks up where it left off on its own.`
-        : status.found === 0
-          ? "Searching a year of Reddit for your first lead"
-          : status.feedLeads === 0
+    status.state === "stopped"
+      ? `The sweep stopped early with ${leads} found. It picks up where it left off on its own.`
+      : status.found === 0
+        ? "Searching a year of Reddit for your first lead"
+        : status.feedLeads === 0
           ? `Read ${threads} from the past year, looking for your first lead`
           : `${leads} so far, from ${threads}. More are added below as they are found`;
   return (

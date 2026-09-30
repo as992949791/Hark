@@ -39,18 +39,28 @@ function ReadArt() {
   );
 }
 
-/** Threads going past, and the one that is a buyer kept. */
-function ThreadsArt() {
-  const rows: [string, boolean][] = [
-    ["Show off your weekend project", false],
-    ["Is there a tool that does this?", true],
-    ["Weekly discussion thread", false],
+/** X's mark in the text colour: the brand file is black, which vanishes on the dark card. */
+function XGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" width={12} height={12} aria-hidden="true" className="mx-px shrink-0">
+      <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Threads and posts going past, and the ones that are buyers kept. */
+function ThreadsArt({ x }: { x: boolean }) {
+  const rows: [string, "reddit" | "x", boolean][] = [
+    ["Show off your weekend project", "reddit", false],
+    ["Is there a tool that does this?", "reddit", true],
+    ...(x ? [["Anyone know a cheaper alternative?", "x", true] as [string, "x", boolean]] : []),
+    ["Weekly discussion thread", "reddit", false],
   ];
   return (
     <div className="how-card">
-      {rows.map(([title, lead], index) => (
+      {rows.map(([title, platform, lead], index) => (
         <div key={title} className={`how-in flex items-center gap-2 ${lead ? "" : "how-fade"}`} style={{ ...at(index), opacity: lead ? 1 : 0.4 }}>
-          <Mark src="/brands/reddit.svg" alt="" size={14} />
+          {platform === "x" ? <XGlyph /> : <Mark src="/brands/reddit.svg" alt="" size={14} />}
           <span className="min-w-0 flex-1 truncate">{title}</span>
           {lead ? (
             <span className="how-pop rounded-full px-2 py-0.5 font-mono text-[10px] text-white" style={{ ...at(5), background: "var(--score-hot)" }}>
@@ -97,26 +107,35 @@ function CitedArt() {
   );
 }
 
-const STEPS: { tone: string; title: string; line: string; art: React.ReactNode }[] = [
+/** The four steps; `x` adds X wherever Reddit is named, for accounts that get X leads. */
+const stepsFor = (x: boolean): { tone: string; title: string; line: string; art: React.ReactNode }[] => [
   { tone: "how-pink", title: "We read your site.", line: "What you sell and who buys it, worked out from the page.", art: <ReadArt /> },
-  { tone: "how-teal", title: "We find the threads.", line: "A year of Reddit, kept only where someone is asking for it.", art: <ThreadsArt /> },
-  { tone: "how-mint", title: "You reply or DM.", line: "Each lead opens on Reddit, with why it fits.", art: <ReplyArt /> },
+  {
+    tone: "how-teal",
+    title: "We find the threads.",
+    line: x
+      ? "A year of Reddit and the last month of X, kept only where someone is asking for it."
+      : "A year of Reddit, kept only where someone is asking for it.",
+    art: <ThreadsArt x={x} />,
+  },
+  { tone: "how-mint", title: "You reply or DM.", line: `Each lead opens on ${x ? "Reddit or X" : "Reddit"}, with why it fits.`, art: <ReplyArt /> },
   { tone: "how-peach", title: "AI starts citing you.", line: "Assistants answer from Reddit threads, so your replies become their sources.", art: <CitedArt /> },
 ];
 
-export function HowItWorks() {
+export function HowItWorks({ x }: { x: boolean }) {
+  const steps = stepsFor(x);
   // The step now playing; one past the last is the finished picture, held.
   const [step, setStep] = useState(0);
   useEffect(() => {
     const timer = setTimeout(
-      () => setStep((now) => (now >= STEPS.length ? 0 : now + 1)),
-      step >= STEPS.length ? HOLD_MS : STEP_MS,
+      () => setStep((now) => (now >= steps.length ? 0 : now + 1)),
+      step >= steps.length ? HOLD_MS : STEP_MS,
     );
     return () => clearTimeout(timer);
-  }, [step]);
+  }, [step, steps.length]);
   return (
     <div className="how-steps">
-      {STEPS.map((item, index) => (
+      {steps.map((item, index) => (
         <figure
           key={item.title}
           className="how-step"

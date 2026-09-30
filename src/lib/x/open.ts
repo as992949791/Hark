@@ -4,11 +4,10 @@ import { jobs, xProjects } from "@/db/schema";
 import { enqueueOnce } from "@/jobs/enqueue";
 
 /**
- * The X tab was opened. X is never part of onboarding, so Reddit's first lead
- * does not wait on it and the house pays only for people who look at X: the
- * first open queues the first check, and every open after keeps the recurring
- * scan alive (a scan stops booking itself after a week unopened, unless an
- * alert channel carries the project's X asks).
+ * The X tab was opened, or a new project's setup finished: the first call
+ * queues the first check, beside Reddit's sweep rather than in front of it, and
+ * every open after keeps the recurring scan alive (a scan stops booking itself
+ * after a week unopened, unless an alert channel carries the project's X asks).
  *
  * The caller has already checked the project is the user's and X is on for
  * them. Returns whether a scan was queued.

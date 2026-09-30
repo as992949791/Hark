@@ -9,6 +9,8 @@ import { productFacts } from "@/lib/product";
 import { smallSweep } from "@/lib/sweepScale";
 import { cadenceFor } from "@/lib/settings";
 import { tierForUser } from "@/lib/tier";
+import { openX } from "@/lib/x/open";
+import { xEnabledFor } from "@/lib/x/enabled";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -131,5 +133,12 @@ export async function runInitialDiscovery(
   // The sweep is already booked. The job stays open until the full reading
   // is written rather than leave it to a promise nothing waits for.
   await fullReading;
+  // X's first look starts beside the sweep, not when the X tab is first
+  // opened, so its leads are there by the time the person looks. It waits for
+  // the full reading, which names the competitors its rival searches are built
+  // from; the sweep has been running since the plan was published.
+  if (queuedChildren && xEnabledFor(project.userId)) {
+    await openX(projectId);
+  }
   return { queuedChildren };
 }

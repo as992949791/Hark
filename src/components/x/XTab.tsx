@@ -7,6 +7,7 @@ import { VerdictBadge } from "@/components/VerdictBadge";
 import { LeadWorkspace } from "@/components/leads/LeadWorkspace";
 import { OpeningProvider } from "@/components/leads/opening";
 import { PeopleStrip } from "@/components/leads/PeopleStrip";
+import { ScanDone, ScanRunning } from "@/components/leads/ScanBanner";
 import { entryHref } from "@/components/leads/workspace";
 import { XFilters } from "@/components/x/XFilters";
 import { XLeftOutSection, XMaybeSection, XSearches } from "@/components/x/XGroups";
@@ -58,6 +59,32 @@ function rowMeta(lead: XLeadCard): string | null {
   const views = lead.viewCount !== null && lead.viewCount > 0 ? `${compactCount(lead.viewCount)} views` : null;
   const via = lead.via && !lead.foundBy ? `via @${lead.via.author}'s reply` : null;
   return [lead.kind === "reply" && lead.fresh ? "reply now" : null, views, via].filter(Boolean).join(" · ") || null;
+}
+
+/** How long a finished check keeps its banner: long enough to be seen by someone who looked away. */
+const DONE_BANNER_MS = 30 * 60_000;
+
+/**
+ * The check's own word over the list: a card while X is being searched, a
+ * banner once a check has just ended, and nothing after that, when the status
+ * line alone says when X was checked.
+ */
+function ScanState({ status, now }: { status: XStatus; now: Date }) {
+  if (status.running) {
+    return <ScanRunning text={`${statusLine(status)} Leads appear below as they are found.`} />;
+  }
+  const run = status.lastRun;
+  if (!run?.finishedAt || status.lastFailure || now.getTime() - run.finishedAt.getTime() > DONE_BANNER_MS) {
+    return null;
+  }
+  const found = run.leads + run.replies;
+  const next = status.nextScanAt ? ` Next check ${relativeUntil(status.nextScanAt)}.` : "";
+  return (
+    <ScanDone
+      title={found === 0 ? "X scan done. No leads this time." : `X scan done. Found ${found} ${found === 1 ? "lead" : "leads"}.`}
+      line={`Read ${run.postsNew.toLocaleString()} new ${run.postsNew === 1 ? "post" : "posts"} on X.${next}`}
+    />
+  );
 }
 
 /** What X did last and does next, as one line, where the Leads tab puts its scan status. */
@@ -294,8 +321,9 @@ export async function XTab({ userId, project, params }: { userId: string; projec
       </div>
 
       <div className="flex flex-col gap-3 lg:min-h-0 lg:flex-1">
+        <ScanState status={status} now={new Date()} />
         <div className="flex flex-wrap items-baseline gap-x-1.5">
-          <p className="text-small text-fg-muted">{statusLine(status)}</p>
+          {status.running ? null : <p className="text-small text-fg-muted">{statusLine(status)}</p>}
           {tier.name === "free" && tier.limits && !firstCheck && activeLanes.length > 0 && !status.quiet.quiet ? (
             <p className="text-small text-fg-muted">
               Free checks X once a day; a connected wallet checks every search hourly,
