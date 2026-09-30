@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { requireLocalUser } from "@/lib/auth";
 import { ALERT_SCORE_FLOOR, parseLeadFilters } from "@/lib/leadFilters";
 import { wordsHidden } from "@/lib/leads";
+import { listMutes } from "@/lib/mutes";
 import { activeProject } from "@/lib/projects";
 import { DEFAULT_SCORE_THRESHOLD } from "@/lib/scan/constants";
 import { scoringPreview } from "@/lib/scoring/apply";
@@ -40,7 +41,11 @@ export default async function FiltersPage({ searchParams }: FiltersPageProps) {
     );
   }
 
-  const [preview, hidden] = await Promise.all([scoringPreview(project.id), wordsHidden(project.id)]);
+  const [preview, hidden, mutes] = await Promise.all([
+    scoringPreview(project.id),
+    wordsHidden(project.id),
+    listMutes(project.id),
+  ]);
   const filters = parseLeadFilters(project.leadFilters);
 
   // Both forms hold what was typed in them, so switching projects draws them afresh.
@@ -67,7 +72,8 @@ export default async function FiltersPage({ searchParams }: FiltersPageProps) {
           alertMinScore: filters.alertMinScore,
           xMinScore: xEnabledFor(user.id) ? filters.xMinScore : undefined,
           mustMention: filters.mustMention,
-          skipIfMentions: filters.skipIfMentions,
+          muted: mutes.filter((mute) => mute.kind === "keyword").map((mute) => mute.value),
+          mutedSubreddits: mutes.filter((mute) => mute.kind === "subreddit").length,
           defaultAlertScore: ALERT_SCORE_FLOOR,
         }}
         hidden={hidden}

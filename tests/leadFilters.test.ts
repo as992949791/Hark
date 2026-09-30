@@ -12,7 +12,7 @@ import { mentions, passesWords, termsOf, wordsOf, type LeadFilters } from "@/lib
 const hasDatabase = !!process.env.DATABASE_URL;
 const HOUR_MS = 3_600_000;
 
-const none: LeadFilters = { mustMention: [], skipIfMentions: [], alertMinScore: null, xMinScore: null };
+const none: LeadFilters = { mustMention: [], alertMinScore: null, xMinScore: null };
 
 describe("word matching", () => {
   it("matches whole words in any case and any punctuation", () => {
@@ -35,16 +35,20 @@ describe("word matching", () => {
   });
 
   it("drops a skipped word first, then asks for one of the required ones", () => {
-    const filters = { ...none, mustMention: ["invoice"], skipIfMentions: ["hiring"] };
+    const filters = { mustMention: ["invoice"], muted: ["hiring"] };
     expect(passesWords("Any invoice tool?", filters)).toBe(true);
     expect(passesWords("Hiring: invoice clerk", filters)).toBe(false);
     expect(passesWords("Any CRM?", filters)).toBe(false);
-    expect(passesWords("Any CRM?", none)).toBe(true);
+    expect(passesWords("Any CRM?", { mustMention: [], muted: [] })).toBe(true);
   });
 });
 
 describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => {
-  async function fixture(leadFilters: Partial<LeadFilters> | null, scoreThreshold: number | null = null) {
+  /** A project with these filters, and `muted` as its keyword mutes. */
+  async function fixture(
+    { muted = [], ...leadFilters }: Partial<LeadFilters> & { muted?: string[] },
+    scoreThreshold: number | null = null,
+  ) {
     process.env.APP_ENCRYPTION_KEY ??= Buffer.alloc(32).toString("base64");
     const { db } = await import("@/db");
     const schema = await import("@/db/schema");
@@ -55,9 +59,13 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
         userId: user.id,
         name: "Invoicer",
         scoreThreshold,
-        leadFilters: leadFilters ? { ...none, ...leadFilters } : null,
+        leadFilters: Object.keys(leadFilters).length > 0 ? { ...none, ...leadFilters } : null,
       })
       .returning();
+    if (muted.length > 0) {
+      const { setKeywordMutes } = await import("@/lib/mutes");
+      await setKeywordMutes(project.id, muted);
+    }
     return { db, schema, user, project };
   }
 
@@ -99,7 +107,7 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
   }
 
   it("keeps the unrelated thread that shares the product's word out of the feed and the digest", async () => {
-    const owned = await fixture({ skipIfMentions: ["hiring"] });
+    const owned = await fixture({ muted: ["hiring"] });
     const { wanted } = await seedRepro(owned);
     const { listLeads, countLeads, newLeadCount, wordsHidden } = await import("@/lib/leads");
     const { newLeadsSince } = await import("@/lib/alerts/leads");
@@ -110,13 +118,13 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
     expect(await newLeadCount(owned.project.id)).toBe(1);
     const hidden = await wordsHidden(owned.project.id);
     expect(hidden).toMatchObject({ hidden: 1, total: 2 });
-    expect(hidden.leads.map((row) => [row.title, row.skippedFor])).toEqual([["Hiring: invoice clerk, remote", "hiring"]]);
+    expect(hidden.leads.map((row) => [row.title, row.because])).toEqual([["Hiring: invoice clerk, remote", "mentions “hiring”"]]);
     const since = new Date(Date.now() - 2 * HOUR_MS);
     expect(alertable(await newLeadsSince(owned.project.id, since), since).map((row) => row.id)).toEqual([wanted]);
   });
 
   it("with no filters shows and alerts both, which is the complaint", async () => {
-    const owned = await fixture(null);
+    const owned = await fixture({});
     await seedRepro(owned);
     const { listLeads } = await import("@/lib/leads");
     const { newLeadsSince } = await import("@/lib/alerts/leads");
@@ -137,7 +145,7 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
   });
 
   it("checks a reply lead against its thread as well as its own words", async () => {
-    const owned = await fixture({ skipIfMentions: ["hiring"] });
+    const owned = await fixture({ muted: ["hiring"] });
     const { db, schema, project } = owned;
     const [post] = await db()
       .insert(schema.redditPosts)
@@ -185,7 +193,7 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
   });
 
   it("holds X asks to the same words and to the project's X floor", async () => {
-    const owned = await fixture({ skipIfMentions: ["hiring"], xMinScore: 40 });
+    const owned = await fixture({ muted: ["hiring"], xMinScore: 40 });
     const wanted = await xAsk(owned, "Anyone know a good invoice app for freelancers?", 60);
     await xAsk(owned, "We're hiring an invoice specialist", 60);
     await xAsk(owned, "invoice app suggestions?", 30);
@@ -201,7 +209,7 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
   });
 
   it("works on the scores the owner's ranking weights give, and keeps skipped leads out of their preview", async () => {
-    const owned = await fixture({ skipIfMentions: ["hiring"], alertMinScore: 80 });
+    const owned = await fixture({ muted: ["hiring"], alertMinScore: 80 });
     const { db, schema, project } = owned;
     const { eq } = await import("drizzle-orm");
     const { wanted, unrelated } = await seedRepro(owned);
@@ -223,8 +231,33 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
     expect((await scoringPreview(project.id)).leads.map((row) => row.id)).toEqual([wanted]);
   });
 
+  it("keeps one list of muted words: an alert's mute shows up here, and saving here leaves muted subreddits alone", async () => {
+    const owned = await fixture({});
+    const { addMute, listMutes, setKeywordMutes } = await import("@/lib/mutes");
+    await addMute(owned.project.id, "subreddit", "r/forhire");
+    await addMute(owned.project.id, "keyword", "Hiring");
+    const plural = await redditLead(owned, "Best proxies for invoices?", "", 80);
+    const kept = await redditLead(owned, "Which invoice software?", "", 80);
+    const { listLeads } = await import("@/lib/leads");
+
+    await setKeywordMutes(owned.project.id, ["hiring", "proxy"]);
+    expect((await listMutes(owned.project.id)).map((mute) => `${mute.kind}:${mute.value}`)).toEqual([
+      "keyword:hiring",
+      "keyword:proxy",
+      "subreddit:forhire",
+    ]);
+    // A mute matches plurals, as a required word does.
+    expect((await listLeads(owned.project.id, { status: "new", days: 30 })).map((row) => row.id)).toEqual([kept]);
+
+    await setKeywordMutes(owned.project.id, []);
+    expect((await listMutes(owned.project.id)).map((mute) => mute.value)).toEqual(["forhire"]);
+    expect(new Set((await listLeads(owned.project.id, { status: "new", days: 30 })).map((row) => row.id))).toEqual(
+      new Set([plural, kept]),
+    );
+  });
+
   it("matches in SQL exactly as it does in TypeScript", async () => {
-    const filters = { mustMention: ["open source", "C#"], skipIfMentions: ["job", "proxy"] };
+    const filters = { mustMention: ["open source", "C#"], muted: ["job", "proxy"] };
     const owned = await fixture(filters);
     const texts = [
       "Open-source CRM anyone?",
@@ -245,7 +278,7 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
     }
     const { listLeads } = await import("@/lib/leads");
     const shown = (await listLeads(owned.project.id, { status: "new", days: 30 })).map((row) => ids.get(row.id));
-    const expected = texts.filter((text) => passesWords(text, { ...none, ...filters }));
+    const expected = texts.filter((text) => passesWords(text, filters));
 
     expect(new Set(shown)).toEqual(new Set(expected));
     // "job" also skips "jobs", as "open source" also keeps "open sources".

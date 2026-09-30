@@ -99,7 +99,12 @@ export default async function AlertsPage({ searchParams }: AlertsPageProps) {
         </h2>
         <p className="text-body text-fg-muted">
           Leads that mention a muted word, or sit in a muted subreddit, stay out of the feed and
-          every channel. A thread you mark replied stops coming back on its own.
+          every channel. A thread you mark replied stops coming back on its own. Muted words are
+          also the &ldquo;never&rdquo; list in{" "}
+          <Link href={`/app/filters?project=${project.id}#lead-filters`} className="underline">
+            Filters
+          </Link>
+          .
         </p>
       </div>
       <MuteList projectId={project.id} mutes={mutes} />

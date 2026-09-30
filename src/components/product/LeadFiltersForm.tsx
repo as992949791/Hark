@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { TermInput } from "@/components/product/TermInput";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,10 @@ export type LeadFiltersFields = {
   /** Undefined when X is not on for this owner, who is not asked about X. */
   xMinScore: number | null | undefined;
   mustMention: string[];
-  skipIfMentions: string[];
+  /** The project's keyword mutes, which an alert's one-click links add to as well. */
+  muted: string[];
+  /** How many subreddits are muted, which the Alerts page lists. */
+  mutedSubreddits: number;
   /** The house floors, shown as placeholders so an empty box says what it means. */
   defaultAlertScore: number;
 };
@@ -71,8 +75,8 @@ function HiddenLeads({ hidden }: { hidden: NonNullable<LeadFiltersFormProps["hid
   return (
     <div className="flex flex-col gap-2 rounded-control bg-surface-2 p-3">
       <p className="text-small text-fg-muted">
-        Right now they keep {hidden.hidden} of this month&apos;s {hidden.total} new Reddit leads
-        out. If one of these is someone you want, loosen the word that hides it.
+        Right now these and your mutes keep {hidden.hidden} of this month&apos;s {hidden.total} new
+        Reddit leads out. If one of these is someone you want, loosen what hides it.
       </p>
       <ul className="flex flex-col gap-1.5">
         {hidden.leads.map((lead) => (
@@ -82,7 +86,7 @@ function HiddenLeads({ hidden }: { hidden: NonNullable<LeadFiltersFormProps["hid
               {lead.title}
             </a>
             <span className="shrink-0 text-fg-muted">
-              {lead.skippedFor ? `mentions “${lead.skippedFor}”` : "mentions none of the required words"}
+              {lead.because}
             </span>
           </li>
         ))}
@@ -123,18 +127,25 @@ export function LeadFiltersForm({ filters, hidden }: LeadFiltersFormProps) {
           tone="keep"
         />
         <TermInput
-          name="skipIfMentions"
-          label="Never leads that mention"
-          initial={filters.skipIfMentions}
+          name="muted"
+          label="Never leads that mention (muted words)"
+          initial={filters.muted}
           placeholder="hiring, homework"
           tone="skip"
         />
       </div>
       <p className="text-small text-fg-muted">
         Press Enter or type a comma after each word or phrase. Each matches
-        as whole words in any case, plurals included, in the post&apos;s title and text and the
-        reply itself when a lead is one. Leave the first empty to allow every
-        topic.
+        as whole words in any case, plurals included, in the thread&apos;s title and the
+        lead&apos;s own words. Leave the first empty to allow every topic. Muted words are the
+        same list as the mutes under{" "}
+        <Link href={`/app/settings/alerts?project=${filters.projectId}`} className="underline">
+          Alerts
+        </Link>
+        {filters.mutedSubreddits > 0
+          ? `, where your ${filters.mutedSubreddits} muted ${filters.mutedSubreddits === 1 ? "subreddit is" : "subreddits are"} listed too`
+          : ""}
+        .
       </p>
       {hidden && hidden.hidden > 0 ? <HiddenLeads hidden={hidden} /> : null}
       <div className="flex flex-wrap gap-6">

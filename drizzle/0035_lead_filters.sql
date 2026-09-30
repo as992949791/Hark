@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "lead_filters" jsonb;

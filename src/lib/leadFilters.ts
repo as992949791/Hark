@@ -12,13 +12,13 @@ export { FILTER_TERM_CAP, termsOf, wordsOf };
  * cares, so a thread that shares the product's words without wanting it can be
  * kept out by name. Like the minimum score they are applied when leads are
  * read, never when they are scored: changing one changes the next page load
- * and the next alert, with no rescan and nothing deleted.
+ * and the next alert, with no rescan and nothing deleted. The words a lead
+ * must not mention are the project's keyword mutes (lib/mutes.ts), which an
+ * alert's one-click links add to as well, so there is one such list.
  */
 export type LeadFilters = {
   /** A lead must mention one of these, when there are any. */
   mustMention: string[];
-  /** A lead that mentions any of these is left out. */
-  skipIfMentions: string[];
   /** The least score a Reddit lead needs to be alerted; null is the house floor. */
   alertMinScore: number | null;
   /** The least score an X ask needs to show or be alerted; null is none. */
@@ -27,7 +27,6 @@ export type LeadFilters = {
 
 export const NO_FILTERS: LeadFilters = {
   mustMention: [],
-  skipIfMentions: [],
   alertMinScore: null,
   xMinScore: null,
 };
@@ -39,7 +38,6 @@ const score = z.number().int().min(0).max(100).nullable();
 
 export const leadFiltersSchema = z.object({
   mustMention: z.array(z.string()).max(FILTER_TERM_CAP).default([]),
-  skipIfMentions: z.array(z.string()).max(FILTER_TERM_CAP).default([]),
   alertMinScore: score.default(null),
   xMinScore: score.default(null),
 });
@@ -54,10 +52,15 @@ export function parseLeadFilters(stored: unknown): LeadFilters {
  * The forms of a normalised term that still count as it: the term, and its
  * last word with a plural ending, so "invoice" finds "invoices", "fix" finds
  * "fixes" and "proxy" finds "proxies". A possessive needs none: "invoice's" is
- * already "invoice s". Postgres builds the same list in `anyTermSql`.
+ * already "invoice s". `formsSql` is the same list in Postgres.
  */
 function formsOf(key: string): string[] {
   return [key, `${key}s`, `${key}es`, key.replace(/y$/, "ies")];
+}
+
+/** `formsOf` in Postgres, over a term already folded to words. */
+export function formsSql(key: SQL): SQL {
+  return sql`unnest(array[${key}, ${key} || 's', ${key} || 'es', regexp_replace(${key}, 'y$', 'ies')])`;
 }
 
 /** Whether `text` mentions `term` as whole words. The SQL below is this, in Postgres. */
@@ -67,12 +70,12 @@ export function mentions(text: string, term: string): boolean {
   return key !== "" && formsOf(key).some((form) => haystack.includes(` ${form} `));
 }
 
-/** Whether a lead's text passes a project's word lists. */
-export function passesWords(text: string, filters: LeadFilters): boolean {
-  if (filters.skipIfMentions.some((term) => mentions(text, term))) {
+/** Whether a lead's text passes the words it must mention and the muted ones. */
+export function passesWords(text: string, lists: { mustMention: string[]; muted: string[] }): boolean {
+  if (lists.muted.some((term) => mentions(text, term))) {
     return false;
   }
-  return filters.mustMention.length === 0 || filters.mustMention.some((term) => mentions(text, term));
+  return lists.mustMention.length === 0 || lists.mustMention.some((term) => mentions(text, term));
 }
 
 /**
@@ -84,40 +87,34 @@ function wordsSql(text: SQL): SQL {
   return sql`btrim(regexp_replace(lower(${text}), '[^[:alnum:]]+', ' ', 'g'))`;
 }
 
-function anyTermSql(list: "mustMention" | "skipIfMentions", haystack: SQL): SQL {
-  return sql`exists (
-    select 1 from jsonb_array_elements_text(coalesce(${projects.leadFilters} -> ${sql.raw(`'${list}'`)}, '[]'::jsonb)) as term
-    cross join lateral (select ${wordsSql(sql`term`)} as key) as normalised
-    cross join lateral unnest(array[key, key || 's', key || 'es', regexp_replace(key, 'y$', 'ies')]) as form
-    where key <> ''
-      and ${haystack} like '% ' || form || ' %'
-  )`;
-}
-
 /**
- * The project's word lists as a condition on a query that joins `projects`.
- * They are read off the row itself, so the feed, the X tab and the digest all
- * ask the same question without loading the filters first.
+ * The words a lead must mention as a condition on a query that joins
+ * `projects`. They are read off the row itself, so the feed, the X tab and
+ * the digest all ask the same question without loading the filters first.
  */
 export function wordsWhere(text: SQL): SQL {
   const haystack = sql`(' ' || ${wordsSql(text)} || ' ')`;
-  return sql`(${projects.leadFilters} is null or (
-    not ${anyTermSql("skipIfMentions", haystack)}
-    and (jsonb_array_length(coalesce(${projects.leadFilters} -> 'mustMention', '[]'::jsonb)) = 0
-      or ${anyTermSql("mustMention", haystack)})
+  const required = sql`coalesce(${projects.leadFilters} -> 'mustMention', '[]'::jsonb)`;
+  return sql`(jsonb_array_length(${required}) = 0 or exists (
+    select 1 from jsonb_array_elements_text(${required}) as term
+    cross join lateral (select ${wordsSql(sql`term`)} as key) as normalised
+    cross join lateral ${formsSql(sql`key`)} as form
+    where key <> ''
+      and ${haystack} like '% ' || form || ' %'
   ))`;
 }
 
 /**
- * What a Reddit lead is checked against: the thread's title and opening post,
- * and the reply itself when the lead is one. A reply in a thread about
- * something the owner excluded is in that thread. Needs `reddit_posts` and a
- * left-joined `reddit_comments`.
+ * What a Reddit lead is checked against: the thread's title and what the
+ * lead's own author wrote, the same words a mute is checked against
+ * (lib/mutes.ts). Needs `reddit_posts` and a left-joined `reddit_comments`.
  */
+export function redditLeadWords(): SQL {
+  return sql`${redditPosts.title} || ' ' || coalesce(${redditComments.body}, ${redditPosts.body}, '')`;
+}
+
 export function redditWordsWhere(): SQL {
-  return wordsWhere(
-    sql`concat_ws(' ', ${redditPosts.title}, ${redditPosts.body}, ${redditComments.body})`,
-  );
+  return wordsWhere(redditLeadWords());
 }
 
 /** What an X lead is checked against: the post's own text. */

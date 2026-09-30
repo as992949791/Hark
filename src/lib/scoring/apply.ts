@@ -2,6 +2,7 @@ import { and, count, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm"
 import { db } from "@/db";
 import { leads, projectSubreddits, projects, redditComments, redditPosts, xLeads } from "@/db/schema";
 import { redditWordsWhere } from "@/lib/leadFilters";
+import { redditLeadNotMuted } from "@/lib/mutes";
 import { forgetProjectFeed } from "@/lib/projectFeedCache";
 import { foldScore } from "@/lib/x/gates";
 import { communityKey, parseScoring, redditScore, xAskScore, type LeadFactors, type ScoringSettings } from "./weights";
@@ -113,6 +114,7 @@ export async function scoringPreview(projectId: string) {
         gte(leads.quality, 0.5),
         // A lead the owner's word lists keep out of the feed is not one to re-rank in front of them.
         redditWordsWhere(),
+        redditLeadNotMuted(),
       ),
     )
     .orderBy(desc(leads.score))

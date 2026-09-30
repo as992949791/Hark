@@ -262,11 +262,7 @@ export async function listXLeads(
   now = new Date(),
 ): Promise<XLeadCard[]> {
   const rows = await leadRows()
-<<<<<<< HEAD
-    .where(and(eq(xLeads.projectId, projectId), eq(xLeads.status, filter.status), isNull(xPosts.unavailableAt), whenWhere(filter), xLeadNotMuted()))
-=======
-    .where(and(eq(xLeads.projectId, projectId), eq(xLeads.status, filter.status), isNull(xPosts.unavailableAt), whenWhere(filter), xShownWhere()))
->>>>>>> 9eb9616 (Let each project filter which leads it sees and is alerted about)
+    .where(and(eq(xLeads.projectId, projectId), eq(xLeads.status, filter.status), isNull(xPosts.unavailableAt), whenWhere(filter), xShownWhere(), xLeadNotMuted()))
     .orderBy(desc(xPosts.createdAt), desc(xLeads.score))
     .limit(200);
   const cards = rows.map((row) => leadCard(row, now));
@@ -554,11 +550,8 @@ export async function listXFaces(projectId: string, filter: XFeedFilter): Promis
         eq(xLeads.status, filter.status),
         isNull(xPosts.unavailableAt),
         whenWhere(filter),
-<<<<<<< HEAD
-        xLeadNotMuted(),
-=======
         xShownWhere(),
->>>>>>> 9eb9616 (Let each project filter which leads it sees and is alerted about)
+        xLeadNotMuted(),
       ),
     )
     .orderBy(desc(xLeads.score))
@@ -589,11 +582,8 @@ export async function newXLeadCount(projectId: string): Promise<number> {
         eq(xLeads.status, "new"),
         isNull(xPosts.unavailableAt),
         gte(xPosts.createdAt, windowStart(FEED_WINDOW_DAYS)),
-<<<<<<< HEAD
-        xLeadNotMuted(),
-=======
         xShownWhere(),
->>>>>>> 9eb9616 (Let each project filter which leads it sees and is alerted about)
+        xLeadNotMuted(),
       ),
     );
   return row?.count ?? 0;

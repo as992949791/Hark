@@ -1,6 +1,7 @@
-import { and, asc, eq, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, notInArray, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { leadMutes, leads, redditComments, redditPosts, xLeads, xPosts } from "@/db/schema";
+import { leadMutes, leads, redditPosts, xLeads, xPosts } from "@/db/schema";
+import { formsSql, redditLeadWords } from "@/lib/leadFilters";
 import { forgetProjectFeed } from "@/lib/projectFeedCache";
 
 export type MuteKind = "keyword" | "subreddit";
@@ -18,7 +19,8 @@ const MAX_KEYWORD_LENGTH = 80;
  * A keyword as whole words: lowercase, every run of anything but letters and
  * digits one space. The text it is matched against is folded the same way in
  * SQL (`WORDS_OF`), so "Zapier" mutes "zapier's" and "zapier," but not
- * "zapierlike", and "no code" mutes "no-code".
+ * "zapierlike", and "no code" mutes "no-code". A plural is the same word, so
+ * "proxy" mutes "proxies" (lib/leadFilters.ts `formsOf`).
  */
 export function keywordWords(text: string): string {
   return text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -68,6 +70,36 @@ export async function removeMute(projectId: string, muteId: string): Promise<voi
   forgetProjectFeed(projectId);
 }
 
+/**
+ * Makes the project's keyword mutes exactly these words, as the Filters page
+ * saves its whole list at once; subreddit mutes are left alone.
+ */
+export async function setKeywordMutes(projectId: string, texts: string[]): Promise<void> {
+  const values = [...new Set(texts.map((one) => muteValue("keyword", one)))];
+  if (values.some((value) => value === null)) {
+    throw new Error("Type a word or a phrase to mute");
+  }
+  const wanted = values as string[];
+  await db().transaction(async (tx) => {
+    await tx
+      .delete(leadMutes)
+      .where(
+        and(
+          eq(leadMutes.projectId, projectId),
+          eq(leadMutes.kind, "keyword"),
+          wanted.length > 0 ? notInArray(leadMutes.value, wanted) : undefined,
+        ),
+      );
+    if (wanted.length > 0) {
+      await tx
+        .insert(leadMutes)
+        .values(wanted.map((value) => ({ projectId, kind: "keyword", value })))
+        .onConflictDoNothing();
+    }
+  });
+  forgetProjectFeed(projectId);
+}
+
 /** Removes a mute by what it mutes, for the undo on the page an alert's link opens. */
 export async function removeMuteValue(projectId: string, kind: MuteKind, value: string): Promise<void> {
   await db()
@@ -95,7 +127,10 @@ export function notMuted(projectId: SQL, words: SQL, subreddit: SQL | null): SQL
     select 1 from ${leadMutes} m
     where m.project_id = ${projectId}
       and (${bySubreddit}
-        or (m.kind = 'keyword' and strpos(${wordsOf(words)}, ' ' || m.value || ' ') > 0))
+        or (m.kind = 'keyword' and exists (
+          select 1 from ${formsSql(sql`m.value`)} as form
+          where strpos(${wordsOf(words)}, ' ' || form || ' ') > 0
+        )))
   )`;
 }
 
@@ -107,7 +142,7 @@ export function notMuted(projectId: SQL, words: SQL, subreddit: SQL | null): SQL
 export function redditLeadNotMuted(): SQL {
   return notMuted(
     sql`${leads.projectId}`,
-    sql`${redditPosts.title} || ' ' || coalesce(${redditComments.body}, ${redditPosts.body}, '')`,
+    redditLeadWords(),
     sql`${redditPosts.subreddit}`,
   );
 }

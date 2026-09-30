@@ -18,6 +18,7 @@ import type { Destination } from "@/lib/discovery/queries";
 import { parseDestinations, parseTextList } from "@/lib/discovery/store";
 import { FILTER_TERM_CAP, parseLeadFilters, termsOf, type LeadFilters } from "@/lib/leadFilters";
 import { buildProfile } from "@/lib/profile";
+import { setKeywordMutes } from "@/lib/mutes";
 import { forgetProjectFeed } from "@/lib/projectFeedCache";
 import { rerankProject } from "@/lib/scoring/apply";
 import { parseScoring, scoringSchema, type ScoringSettings } from "@/lib/scoring/weights";
@@ -128,7 +129,7 @@ function terms(formData: FormData, field: string): string[] {
 
 /**
  * Saves which judged leads this project wants: the minimum score, the words a
- * lead must or must not mention, and the floors for an alert and an X ask.
+ * lead must mention, the keyword mutes, and the floors for an alert and an X ask.
  * None is a fact the judge reads, so nothing is judged again; the feed and the
  * digest apply them when they read.
  */
@@ -141,13 +142,13 @@ export async function saveLeadFiltersAction(
     const current = parseLeadFilters(project.leadFilters);
     const filters: LeadFilters = {
       mustMention: terms(formData, "mustMention"),
-      skipIfMentions: terms(formData, "skipIfMentions"),
       alertMinScore: threshold(text(formData, "alertMinScore"), "The alert score"),
       // Asked only of an owner X is on for. One that is not asked keeps what it had.
       xMinScore: formData.has("xMinScore")
         ? threshold(text(formData, "xMinScore"), "The X score")
         : current.xMinScore,
     };
+    const muted = terms(formData, "muted");
     await db()
       .update(projects)
       .set({
@@ -155,6 +156,8 @@ export async function saveLeadFiltersAction(
         leadFilters: filters,
       })
       .where(eq(projects.id, project.id));
+    // The words a lead must not mention are the project's keyword mutes.
+    await setKeywordMutes(project.id, muted);
     // The feed applies these when it is read, so the read it is holding was
     // made against the old ones.
     forgetProjectFeed(project.id);
