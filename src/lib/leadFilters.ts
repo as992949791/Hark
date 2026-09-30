@@ -2,6 +2,9 @@ import { sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { projects, redditComments, redditPosts, xLeads, xPosts } from "@/db/schema";
 import { DEFAULT_SCORE_THRESHOLD } from "@/lib/scan/constants";
+import { FILTER_TERM_CAP, termsOf, wordsOf } from "./filterWords";
+
+export { FILTER_TERM_CAP, termsOf, wordsOf };
 
 /**
  * A project's own rules for which judged leads it wants, on top of the judge.
@@ -32,18 +35,6 @@ export const NO_FILTERS: LeadFilters = {
 /** Below this a Reddit lead is in the feed and not worth a message, unless the project says otherwise. */
 export const ALERT_SCORE_FLOOR = 55;
 
-/** How many words each list may hold; past this it is a search plan, not a filter. */
-export const FILTER_TERM_CAP = 50;
-
-/**
- * A term the way both it and the text it is looked for in are compared:
- * lower case, every run of anything but letters and digits one space. So
- * "Open-source" finds "open source", and "form" does not find "formula".
- */
-export function wordsOf(text: string): string {
-  return text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-}
-
 const score = z.number().int().min(0).max(100).nullable();
 
 export const leadFiltersSchema = z.object({
@@ -60,28 +51,17 @@ export function parseLeadFilters(stored: unknown): LeadFilters {
 }
 
 /**
- * One list as typed: a word or phrase per line or between commas, each kept
- * as written for the form, duplicates and ones with no letters or digits
- * dropped, since those would match every space.
+ * The endings a term's last word may carry and still be the same word, so
+ * "invoice" finds "invoices" and "fix" finds "fixes". A possessive needs none:
+ * "invoice's" is already "invoice s".
  */
-export function termsOf(raw: string): string[] {
-  const seen = new Set<string>();
-  const terms: string[] = [];
-  for (const piece of raw.split(/[\n,]/)) {
-    const term = piece.trim();
-    const key = wordsOf(term);
-    if (key && !seen.has(key)) {
-      seen.add(key);
-      terms.push(term);
-    }
-  }
-  return terms;
-}
+const PLURALS = ["", "s", "es"] as const;
 
 /** Whether `text` mentions `term` as whole words. The SQL below is this, in Postgres. */
 export function mentions(text: string, term: string): boolean {
   const key = wordsOf(term);
-  return key !== "" && ` ${wordsOf(text)} `.includes(` ${key} `);
+  const haystack = ` ${wordsOf(text)} `;
+  return key !== "" && PLURALS.some((ending) => haystack.includes(` ${key}${ending} `));
 }
 
 /** Whether a lead's text passes a project's word lists. */
@@ -104,8 +84,9 @@ function wordsSql(text: SQL): SQL {
 function anyTermSql(list: "mustMention" | "skipIfMentions", haystack: SQL): SQL {
   return sql`exists (
     select 1 from jsonb_array_elements_text(coalesce(${projects.leadFilters} -> ${sql.raw(`'${list}'`)}, '[]'::jsonb)) as term
+    cross join unnest(array[${sql.raw(PLURALS.map((e) => `'${e}'`).join(", "))}]) as ending
     where ${wordsSql(sql`term`)} <> ''
-      and ${haystack} like '% ' || ${wordsSql(sql`term`)} || ' %'
+      and ${haystack} like '% ' || ${wordsSql(sql`term`)} || ending || ' %'
   )`;
 }
 

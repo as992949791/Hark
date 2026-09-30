@@ -117,8 +117,9 @@ export async function saveProfileAction(
   }
 }
 
+/** One chip list as the form posts it: a field per term. */
 function terms(formData: FormData, field: string): string[] {
-  const list = termsOf(text(formData, field));
+  const list = termsOf(formData.getAll(field).map(String).join("\n"));
   if (list.length > FILTER_TERM_CAP) {
     throw new Error(`A list holds up to ${FILTER_TERM_CAP} words or phrases.`);
   }

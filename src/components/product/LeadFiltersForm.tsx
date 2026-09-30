@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { TermInput } from "@/components/product/TermInput";
 import { Button } from "@/components/ui/button";
 import {
   saveLeadFiltersAction,
@@ -27,7 +28,6 @@ type LeadFiltersFormProps = {
 
 const INITIAL: ProfileState = { error: null, saved: false };
 const INPUT = "h-10 rounded-control border bg-surface px-2 text-body text-fg";
-const AREA = "rounded-control border bg-surface p-2 text-body text-fg";
 
 function Line({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -70,42 +70,40 @@ export function LeadFiltersForm({ filters, hidden }: LeadFiltersFormProps) {
   const [state, formAction, pending] = useActionState(saveLeadFiltersAction, INITIAL);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4 rounded-card border bg-surface p-6">
+    <form id="lead-filters" action={formAction} className="flex scroll-mt-24 flex-col gap-4 rounded-card border bg-surface p-6">
       <input type="hidden" name="projectId" value={filters.projectId} />
       <div className="flex flex-col gap-1">
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           Lead filters
         </h2>
         <p className="text-small text-fg-muted">
-          Which leads you see and get alerts for. They apply to Reddit and X,
-          take effect at once, and never delete a lead: loosen one and what it
-          held back comes back.
+          Which leads you see and get alerts for. Unlike Keep out on the Product
+          page, which the scorer weighs as a hint, these are exact rules. They apply to
+          Reddit and X, take effect at once, and never delete a lead: loosen
+          one and what it held back comes back.
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <Line label="Only leads that mention one of">
-          <textarea
-            name="mustMention"
-            rows={4}
-            defaultValue={filters.mustMention.join("\n")}
-            placeholder={"invoice\nbilling software"}
-            className={AREA}
-          />
-        </Line>
-        <Line label="Never leads that mention">
-          <textarea
-            name="skipIfMentions"
-            rows={4}
-            defaultValue={filters.skipIfMentions.join("\n")}
-            placeholder={"hiring\nhomework"}
-            className={AREA}
-          />
-        </Line>
+        <TermInput
+          name="mustMention"
+          label="Only leads that mention one of"
+          initial={filters.mustMention}
+          placeholder="invoice, billing software"
+          tone="keep"
+        />
+        <TermInput
+          name="skipIfMentions"
+          label="Never leads that mention"
+          initial={filters.skipIfMentions}
+          placeholder="hiring, homework"
+          tone="skip"
+        />
       </div>
       <p className="text-small text-fg-muted">
-        One word or phrase per line, matched as whole words in any case: the
-        post&apos;s title and text, and the reply itself when a lead is one.
-        Leave the first box empty to allow every topic.
+        Press Enter or type a comma after each word or phrase. Each matches
+        as whole words in any case, plurals included, in the post&apos;s title and text and the
+        reply itself when a lead is one. Leave the first empty to allow every
+        topic.
         {hidden && hidden.hidden > 0
           ? ` Right now they keep ${hidden.hidden} of this month's ${hidden.total} new Reddit leads out.`
           : null}

@@ -20,6 +20,10 @@ describe("word matching", () => {
     expect(mentions("A formula question", "form")).toBe(false);
     expect(mentions("Need a form builder", "FORM")).toBe(true);
     expect(mentions("anything", "++")).toBe(false);
+    expect(mentions("How do you send invoices?", "invoice")).toBe(true);
+    expect(mentions("Two quick fixes", "fix")).toBe(true);
+    expect(mentions("The invoice's due date", "invoice")).toBe(true);
+    expect(mentions("Invoicing is dull", "invoice")).toBe(false);
   });
 
   it("reads a typed list one per line or between commas, once each", () => {
@@ -225,6 +229,8 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
       "Job: open source dev",
       "jobs board for open source",
       "Café open source ünïcode",
+      "Open sources and C#s",
+      "jobsite for sources",
     ];
     const ids = new Map<string, string>();
     for (const text of texts) {
@@ -235,7 +241,9 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
     const expected = texts.filter((text) => passesWords(text, { ...none, ...filters }));
 
     expect(new Set(shown)).toEqual(new Set(expected));
-    expect(expected).toContain("jobs board for open source");
+    // "job" also skips "jobs", as "open source" also keeps "open sources".
+    expect(expected).not.toContain("jobs board for open source");
+    expect(expected).toContain("Open sources and C#s");
     expect(expected).not.toContain("opensource tools");
   });
 });

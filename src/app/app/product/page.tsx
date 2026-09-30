@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { EmptyState } from "@/components/EmptyState";
 import { ListEditor } from "@/components/product/ListEditor";
-import { LeadFiltersForm } from "@/components/product/LeadFiltersForm";
 import { ProfileForm } from "@/components/product/ProfileForm";
-import { ScoringPanel } from "@/components/product/ScoringPanel";
 import { PaidButton } from "@/components/PaidButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,13 +12,7 @@ import { requireLocalUser } from "@/lib/auth";
 import { parseDestinations, parseTextList } from "@/lib/discovery/store";
 import { activeProject } from "@/lib/projects";
 import { activitySentence, isOnboarding, projectActivity } from "@/lib/projectActivity";
-import { ALERT_SCORE_FLOOR, parseLeadFilters } from "@/lib/leadFilters";
-import { wordsHideCount } from "@/lib/leads";
-import { DEFAULT_SCORE_THRESHOLD } from "@/lib/scan/constants";
-import { scoringPreview } from "@/lib/scoring/apply";
-import { parseScoring } from "@/lib/scoring/weights";
 import { allowanceFor } from "@/lib/throttle";
-import { xEnabledFor } from "@/lib/x/enabled";
 
 type ProductPageProps = { searchParams: Promise<{ project?: string }> };
 
@@ -45,14 +37,11 @@ export default async function ProductPage({ searchParams }: ProductPageProps) {
     );
   }
 
-  const [activity, scanNow, rebuild, preview, hidden] = await Promise.all([
+  const [activity, scanNow, rebuild] = await Promise.all([
     projectActivity(project.id),
     allowanceFor(user.id, "scan_now"),
     allowanceFor(user.id, "rebuild_profile"),
-    scoringPreview(project.id),
-    wordsHideCount(project.id),
   ]);
-  const filters = parseLeadFilters(project.leadFilters);
   const places = parseDestinations(project.destinations).map((place) => ({
     value: place.name,
     sourceText: place.sourceText,
@@ -72,6 +61,10 @@ export default async function ProductPage({ searchParams }: ProductPageProps) {
           <Link href={`/app/sources?project=${project.id}`} className="underline">
             Sources
           </Link>
+          , and which of its leads you get under{" "}
+          <Link href={`/app/filters?project=${project.id}`} className="underline">
+            Filters
+          </Link>
           .
         </p>
         <p className="text-small text-fg-muted">{activitySentence(activity)}</p>
@@ -87,26 +80,6 @@ export default async function ProductPage({ searchParams }: ProductPageProps) {
           targetUsers: project.targetUsers ?? "",
           geography: places.length > 0 || project.geography ? (project.geography ?? "") : null,
         }}
-      />
-
-      <ScoringPanel
-        projectId={project.id}
-        saved={parseScoring(project.scoring)}
-        communities={preview.communities}
-        leads={preview.leads}
-      />
-
-      <LeadFiltersForm
-        filters={{
-          projectId: project.id,
-          scoreThreshold: project.scoreThreshold ?? DEFAULT_SCORE_THRESHOLD,
-          alertMinScore: filters.alertMinScore,
-          xMinScore: xEnabledFor(user.id) ? filters.xMinScore : undefined,
-          mustMention: filters.mustMention,
-          skipIfMentions: filters.skipIfMentions,
-          defaultAlertScore: ALERT_SCORE_FLOOR,
-        }}
-        hidden={hidden}
       />
 
       {/* A product sold everywhere has no places, and an empty list of them only asks a question it has no use for. */}

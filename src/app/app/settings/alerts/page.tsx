@@ -61,7 +61,12 @@ export default async function AlertsPage({ searchParams }: AlertsPageProps) {
         <p className="text-body text-fg-muted">
           Where new leads for {project.name} go. Email carries the whole digest; Slack, Discord and
           a plain webhook carry the top five. Without a channel, scans pause a day after your last
-          visit and catch up when you come back.{" "}
+          visit and catch up when you come back. Which leads are sent, and the least score they
+          need, are the project&apos;s{" "}
+          <Link href={`/app/filters?project=${project.id}#lead-filters`} className="underline">
+            lead filters
+          </Link>
+          .{" "}
           <Link href="/app/settings" className="underline">
             Back to settings
           </Link>
