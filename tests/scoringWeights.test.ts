@@ -80,8 +80,20 @@ describe("ranking weights", () => {
     expect(xAskScore(ask, { weights: { match: "normal", intent: "normal", fresh: "low", community: "off" }, communities: [] })).toBe(
       xFoldScore(3, 4, 1),
     );
-    // Only a factor X cannot read is on, so the judge's fold stands.
-    expect(xAskScore(ask, { weights: { match: "off", intent: "off", fresh: "off", community: "high" }, communities: ["x"] })).toBeNull();
+    // Match and freshness off, so an ask ranks on intent alone.
+    expect(xAskScore(ask, { weights: { match: "off", intent: "normal", fresh: "off", community: "high" }, communities: ["x"] })).toBe(100);
+  });
+
+  it("keep X's own intent weight when the owner only changed what X cannot read", () => {
+    const favoured = { weights: { ...DEFAULT_SCORING.weights, community: "high" as const }, communities: ["saas"] };
+    for (const [fit, intent, engagement] of [[3, 4, 2], [3, 1, 2], [2, 4, 0], [4, 1, 4]]) {
+      expect(xAskScore({ fit, intent, engagement }, favoured)).toBeNull();
+    }
+    // Raising freshness alone keeps intent counting as X counts it.
+    const fresher = { weights: { ...DEFAULT_SCORING.weights, fresh: "high" as const }, communities: [] };
+    expect(xAskScore({ fit: 2, intent: 4, engagement: 0 }, fresher)).toBeGreaterThan(
+      xAskScore({ fit: 2, intent: 1, engagement: 0 }, fresher)!,
+    );
   });
 
   it("refuse every factor off, and store communities one way", () => {

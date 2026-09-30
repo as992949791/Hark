@@ -1,6 +1,7 @@
 import { and, count, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { leads, projectSubreddits, projects, redditPosts, xLeads } from "@/db/schema";
+import { leads, projectSubreddits, projects, redditComments, redditPosts, xLeads } from "@/db/schema";
+import { redditWordsWhere } from "@/lib/leadFilters";
 import { forgetProjectFeed } from "@/lib/projectFeedCache";
 import { foldScore } from "@/lib/x/gates";
 import { communityKey, parseScoring, redditScore, xAskScore, type LeadFactors, type ScoringSettings } from "./weights";
@@ -101,6 +102,8 @@ export async function scoringPreview(projectId: string) {
     })
     .from(leads)
     .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
+    .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
+    .innerJoin(projects, eq(projects.id, leads.projectId))
     .where(
       and(
         eq(leads.projectId, projectId),
@@ -108,6 +111,8 @@ export async function scoringPreview(projectId: string) {
         eq(leads.status, "new"),
         isNotNull(leads.quality),
         gte(leads.quality, 0.5),
+        // A lead the owner's word lists keep out of the feed is not one to re-rank in front of them.
+        redditWordsWhere(),
       ),
     )
     .orderBy(desc(leads.score))

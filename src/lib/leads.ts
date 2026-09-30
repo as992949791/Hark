@@ -14,7 +14,7 @@ import {
 } from "@/db/schema";
 import { redditLeadNotMuted } from "./mutes";
 import { forgetProjectFeed } from "./projectFeedCache";
-import { DEFAULT_SCORE_THRESHOLD } from "./scan/constants";
+import { FEED_FLOOR_SQL, redditWordsWhere } from "./leadFilters";
 import { atBounds } from "./feed";
 
 import type {
@@ -128,9 +128,10 @@ export function onAt(at: string | undefined) {
 }
 
 /**
- * The project's own minimum score, applied when the feed is read. Moving it on
- * the Product page changes the next page load, with no rescan and nothing
- * deleted, because the judgement and the user's floor are different facts.
+ * The project's own minimum score and word lists, applied when the feed is
+ * read. Moving either on the Product page changes the next page load, with no
+ * rescan and nothing deleted, because the judgement and the user's filters are
+ * different facts.
  *
  * A new `context` thread is not shown: the scan stopped routing to that lane on
  * 2026-09-23, and one left from before is hidden rather than deleted. One the
@@ -138,7 +139,7 @@ export function onAt(at: string | undefined) {
  * against the floor, since its score is the intent of someone who is not the
  * buyer and would always fall short.
  */
-const OVER_THRESHOLD = sql`((${leads.kind} = 'buyer' AND ${leads.score} >= coalesce(${projects.scoreThreshold}, ${DEFAULT_SCORE_THRESHOLD})) OR (${leads.kind} = 'context' AND ${leads.status} <> 'new'))`;
+const OVER_THRESHOLD = sql`((${leads.kind} = 'buyer' AND ${leads.score} >= ${FEED_FLOOR_SQL} AND ${redditWordsWhere()}) OR (${leads.kind} = 'context' AND ${leads.status} <> 'new'))`;
 
 /**
  * The lead ids one Insights theme holds. The theme owns the list, so narrowing
@@ -341,13 +342,45 @@ export async function feedFacets(projectId: string): Promise<FeedFacets> {
   };
 }
 
+/**
+ * Of the month's new buyer leads over the minimum score, how many the word
+ * lists keep out, so the owner can see what a list is doing before trusting it.
+ */
+export async function wordsHideCount(projectId: string): Promise<{ hidden: number; total: number }> {
+  const [row] = await db()
+    .select({
+      total: count(),
+      kept: sql<number>`count(*) filter (where ${redditWordsWhere()})`.mapWith(Number),
+    })
+    .from(leads)
+    .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
+    .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
+    .innerJoin(projects, eq(projects.id, leads.projectId))
+    .where(
+      and(
+        eq(leads.projectId, projectId),
+        eq(leads.status, "new"),
+        eq(leads.kind, "buyer"),
+        sql`${leads.score} >= ${FEED_FLOOR_SQL}`,
+        newerThan(30),
+      ),
+    );
+  return { hidden: (row?.total ?? 0) - (row?.kept ?? 0), total: row?.total ?? 0 };
+}
+
+/** New leads the feed would show, whatever their age, for the rail's badge. */
 export async function newLeadCount(projectId: string): Promise<number> {
   const rows = await db()
     .select({ total: count() })
     .from(leads)
     .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
     .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
+<<<<<<< HEAD
     .where(and(eq(leads.projectId, projectId), eq(leads.status, "new"), redditLeadNotMuted()));
+=======
+    .innerJoin(projects, eq(projects.id, leads.projectId))
+    .where(and(eq(leads.projectId, projectId), eq(leads.status, "new"), OVER_THRESHOLD));
+>>>>>>> 9eb9616 (Let each project filter which leads it sees and is alerted about)
   return rows[0]?.total ?? 0;
 }
 

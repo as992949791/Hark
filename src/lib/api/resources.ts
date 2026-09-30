@@ -10,6 +10,7 @@ import {
   redditPosts,
   seoOpportunities,
 } from "@/db/schema";
+import { parseLeadFilters, type LeadFilters } from "@/lib/leadFilters";
 import { projectForUser, type Project } from "@/lib/projects";
 import { usageToday } from "@/lib/usage";
 import { ApiError } from "./responses";
@@ -24,6 +25,8 @@ export type ApiProject = {
   geography: string | null;
   budgetFit: string | null;
   scoreThreshold: number | null;
+  /** The owner's word lists and alert floors. Like the minimum score, the app's feed and alerts apply them and the leads endpoint does not. */
+  leadFilters: LeadFilters;
   createdAt: string;
   newLeads: number;
 };
@@ -39,6 +42,7 @@ function base(project: Project, newLeads: number): ApiProject {
     geography: project.geography,
     budgetFit: project.budgetFit,
     scoreThreshold: project.scoreThreshold,
+    leadFilters: parseLeadFilters(project.leadFilters),
     createdAt: project.createdAt.toISOString(),
     newLeads,
   };
