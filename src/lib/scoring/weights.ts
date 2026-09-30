@@ -144,15 +144,41 @@ export function redditScore(lead: LeadFactors, scoring: ScoringSettings | null):
 const X_FACTORS: readonly ScoringFactor[] = ["match", "intent", "fresh"];
 
 /**
+ * The X judge's own fold (x/gates.ts foldScore) as levels: fit and intent
+ * twice freshness. Reddit's default leaves intent off because its lead model
+ * already reads it; X's fit does not, so X counts it outright.
+ */
+const X_DEFAULT_WEIGHTS: ScoringWeights = { match: "normal", intent: "normal", fresh: "low", community: "off" };
+
+/**
+ * The weights an X ask is ranked by. A factor still at the panel's default is
+ * one the owner did not touch, so it keeps X's own level: favouring a
+ * community, which X cannot read, must not quietly drop intent from X's order.
+ * Null when every X factor is untouched, so the judge's fold stands.
+ */
+function xWeights(scoring: ScoringSettings): ScoringWeights | null {
+  const touched = X_FACTORS.filter((factor) => scoring.weights[factor] !== DEFAULT_SCORING.weights[factor]);
+  if (touched.length === 0) {
+    return null;
+  }
+  const weights = { ...X_DEFAULT_WEIGHTS };
+  for (const factor of touched) {
+    weights[factor] = scoring.weights[factor];
+  }
+  return weights;
+}
+
+/**
  * An X ask's 0-100 score under the owner's weights, or null when they never
- * set any (or turned on only a factor X cannot read), so the X judge's own
- * fold stands.
+ * set any, touched only a factor X cannot read, or turned every X factor off,
+ * so the X judge's own fold stands.
  */
 export function xAskScore(
   lead: { fit: number | null; intent: number | null; engagement: number | null },
   scoring: ScoringSettings | null,
 ): number | null {
-  if (!scoring) {
+  const weights = scoring ? xWeights(scoring) : null;
+  if (!weights) {
     return null;
   }
   const values: Record<ScoringFactor, number> = {
@@ -161,7 +187,7 @@ export function xAskScore(
     fresh: clamp01((lead.engagement ?? 0) / 4),
     community: 0,
   };
-  const mean = weightedMean(values, scoring.weights, X_FACTORS);
+  const mean = weightedMean(values, weights, X_FACTORS);
   return mean === null ? null : Math.round(100 * mean);
 }
 

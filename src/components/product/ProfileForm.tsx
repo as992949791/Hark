@@ -16,7 +16,6 @@ export type ProfileFields = {
   targetUsers: string;
   /** Null for a product with no places, which is not asked where it works. */
   geography: string | null;
-  scoreThreshold: number;
 };
 
 type ProfileFormProps = { project: ProfileFields };
@@ -100,21 +99,6 @@ export function ProfileForm({ project }: ProfileFormProps) {
           <input name="geography" defaultValue={project.geography} className={INPUT} />
         </Line>
       )}
-      <Line label="Minimum score to show a lead (0 to 100)">
-        <input
-          name="scoreThreshold"
-          type="number"
-          min={0}
-          max={100}
-          step={1}
-          defaultValue={project.scoreThreshold}
-          className={`${INPUT} w-32 tabular-nums`}
-        />
-      </Line>
-      <p className="text-small text-fg-muted">
-        A post scoring below this is left out of your leads. Lower it to see
-        more, raise it to see only the closest matches.
-      </p>
       <div className="flex items-center gap-3">
         <Button type="submit" size="lg" disabled={pending}>
           {pending ? "Saving" : "Save profile"}

@@ -1,3 +1,4 @@
+import { ALERT_SCORE_FLOOR } from "@/lib/leadFilters";
 import type { TierLimits } from "@/lib/tiers";
 import { excerptOf } from "./excerpt";
 import {
@@ -19,17 +20,17 @@ export const CHAT_LEAD_CAP = 5;
 /** The email lists this many and counts the rest, so a big day stays readable. */
 export const EMAIL_LEAD_CAP = 20;
 
-/** Below this a lead is in the feed and not worth a message. */
-export const ALERT_SCORE_FLOOR = 55;
+export { ALERT_SCORE_FLOOR };
 
 /**
- * The floor is on the Reddit lead model's scale. An X ask has already passed
- * X's own gates (src/lib/x/gates.ts `decide`), and its score only orders asks:
- * a qualified ask with fit 1 and intent 2 folds to 30, so Reddit's floor would
- * silently drop real asks. X asks have none.
+ * The house floor is on the Reddit lead model's scale. An X ask has already
+ * passed X's own gates (src/lib/x/gates.ts `decide`), and its score only orders
+ * asks: a qualified ask with fit 1 and intent 2 folds to 30, so Reddit's floor
+ * would silently drop real asks. X asks have none. A project that set its own
+ * (lib/leadFilters.ts) has it on the row, read with the lead.
  */
 function floorFor(row: SelectableLead): number {
-  return row.platform === "x" ? 0 : ALERT_SCORE_FLOOR;
+  return row.floor ?? (row.platform === "x" ? 0 : ALERT_SCORE_FLOOR);
 }
 
 /**
@@ -76,6 +77,8 @@ export type SelectableLead = Omit<DigestLead, "excerpt"> & {
   status: string;
   kind: string;
   foundAt: Date;
+  /** The least score this project alerts at on this platform, when the query read it. */
+  floor?: number;
 };
 
 export function sameWords(a: string, b: string): boolean {

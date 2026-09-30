@@ -76,6 +76,12 @@ export const projects = pgTable("projects", {
    */
   scoring: jsonb("scoring"),
   /**
+   * The owner's own rules on top of the judge: words a lead must or must not
+   * mention, and the least score an alert or an X ask needs. Read when leads
+   * are read, never when they are scored (lib/leadFilters.ts).
+   */
+  leadFilters: jsonb("lead_filters"),
+  /**
    * Bumped on every edit to the facts a judgement is made against. A stored
    * evaluation is only reusable for the version it was made under, so editing
    * the product makes the next scan judge everything again.

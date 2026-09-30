@@ -2,7 +2,6 @@ import Link from "next/link";
 import { EmptyState } from "@/components/EmptyState";
 import { ListEditor } from "@/components/product/ListEditor";
 import { ProfileForm } from "@/components/product/ProfileForm";
-import { ScoringPanel } from "@/components/product/ScoringPanel";
 import { PaidButton } from "@/components/PaidButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +12,6 @@ import { requireLocalUser } from "@/lib/auth";
 import { parseDestinations, parseTextList } from "@/lib/discovery/store";
 import { activeProject } from "@/lib/projects";
 import { activitySentence, isOnboarding, projectActivity } from "@/lib/projectActivity";
-import { DEFAULT_SCORE_THRESHOLD } from "@/lib/scan/constants";
-import { scoringPreview } from "@/lib/scoring/apply";
-import { parseScoring } from "@/lib/scoring/weights";
 import { allowanceFor } from "@/lib/throttle";
 
 type ProductPageProps = { searchParams: Promise<{ project?: string }> };
@@ -41,11 +37,10 @@ export default async function ProductPage({ searchParams }: ProductPageProps) {
     );
   }
 
-  const [activity, scanNow, rebuild, preview] = await Promise.all([
+  const [activity, scanNow, rebuild] = await Promise.all([
     projectActivity(project.id),
     allowanceFor(user.id, "scan_now"),
     allowanceFor(user.id, "rebuild_profile"),
-    scoringPreview(project.id),
   ]);
   const places = parseDestinations(project.destinations).map((place) => ({
     value: place.name,
@@ -66,6 +61,10 @@ export default async function ProductPage({ searchParams }: ProductPageProps) {
           <Link href={`/app/sources?project=${project.id}`} className="underline">
             Sources
           </Link>
+          , and which of its leads you get under{" "}
+          <Link href={`/app/filters?project=${project.id}`} className="underline">
+            Filters
+          </Link>
           .
         </p>
         <p className="text-small text-fg-muted">{activitySentence(activity)}</p>
@@ -80,15 +79,7 @@ export default async function ProductPage({ searchParams }: ProductPageProps) {
           solution: project.solution ?? "",
           targetUsers: project.targetUsers ?? "",
           geography: places.length > 0 || project.geography ? (project.geography ?? "") : null,
-          scoreThreshold: project.scoreThreshold ?? DEFAULT_SCORE_THRESHOLD,
         }}
-      />
-
-      <ScoringPanel
-        projectId={project.id}
-        saved={parseScoring(project.scoring)}
-        communities={preview.communities}
-        leads={preview.leads}
       />
 
       {/* A product sold everywhere has no places, and an empty list of them only asks a question it has no use for. */}

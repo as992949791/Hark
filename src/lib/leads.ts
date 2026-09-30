@@ -12,9 +12,9 @@ import {
   subreddits,
   usageLedger,
 } from "@/db/schema";
-import { redditLeadNotMuted } from "./mutes";
+import { listMutes, redditLeadNotMuted } from "./mutes";
 import { forgetProjectFeed } from "./projectFeedCache";
-import { DEFAULT_SCORE_THRESHOLD } from "./scan/constants";
+import { FEED_FLOOR_SQL, mentions, redditWordsWhere } from "./leadFilters";
 import { atBounds } from "./feed";
 
 import type {
@@ -128,9 +128,10 @@ export function onAt(at: string | undefined) {
 }
 
 /**
- * The project's own minimum score, applied when the feed is read. Moving it on
- * the Product page changes the next page load, with no rescan and nothing
- * deleted, because the judgement and the user's floor are different facts.
+ * The project's own minimum score and word lists, applied when the feed is
+ * read. Moving either on the Product page changes the next page load, with no
+ * rescan and nothing deleted, because the judgement and the user's filters are
+ * different facts.
  *
  * A new `context` thread is not shown: the scan stopped routing to that lane on
  * 2026-09-23, and one left from before is hidden rather than deleted. One the
@@ -138,7 +139,7 @@ export function onAt(at: string | undefined) {
  * against the floor, since its score is the intent of someone who is not the
  * buyer and would always fall short.
  */
-const OVER_THRESHOLD = sql`((${leads.kind} = 'buyer' AND ${leads.score} >= coalesce(${projects.scoreThreshold}, ${DEFAULT_SCORE_THRESHOLD})) OR (${leads.kind} = 'context' AND ${leads.status} <> 'new'))`;
+const OVER_THRESHOLD = sql`((${leads.kind} = 'buyer' AND ${leads.score} >= ${FEED_FLOOR_SQL} AND ${redditWordsWhere()}) OR (${leads.kind} = 'context' AND ${leads.status} <> 'new'))`;
 
 /**
  * The lead ids one Insights theme holds. The theme owns the list, so narrowing
@@ -341,13 +342,98 @@ export async function feedFacets(projectId: string): Promise<FeedFacets> {
   };
 }
 
+/** A lead the word lists keep out, with the rule that does it. */
+export type HiddenLead = {
+  id: string;
+  title: string;
+  url: string;
+  score: number;
+  /** Why: "mentions “hiring”", "in muted r/forhire", or "mentions none of the required words". */
+  because: string;
+};
+
+/** How many hidden leads the Filters page names; past this it only counts them. */
+const HIDDEN_SHOWN = 8;
+
+/**
+ * Of the month's new buyer leads over the minimum score, how many the words
+ * and mutes keep out, and the best of them by name with what does it, so an
+ * owner can see a list catching a real buyer before trusting it: a muted word
+ * a buyer mentions in passing hides them as surely as an unrelated thread.
+ */
+export async function wordsHidden(
+  projectId: string,
+): Promise<{ hidden: number; total: number; leads: HiddenLead[] }> {
+  const month = and(
+    eq(leads.projectId, projectId),
+    eq(leads.status, "new"),
+    eq(leads.kind, "buyer"),
+    sql`${leads.score} >= ${FEED_FLOOR_SQL}`,
+    newerThan(30),
+  );
+  const kept = sql`(${redditWordsWhere()} and ${redditLeadNotMuted()})`;
+  const [counts, rows, mutes] = await Promise.all([
+    db()
+      .select({
+        total: count(),
+        kept: sql<number>`count(*) filter (where ${kept})`.mapWith(Number),
+      })
+      .from(leads)
+      .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
+      .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
+      .innerJoin(projects, eq(projects.id, leads.projectId))
+      .where(month),
+    db()
+      .select({
+        id: leads.id,
+        title: redditPosts.title,
+        postBody: redditPosts.body,
+        commentBody: redditComments.body,
+        url: redditPosts.url,
+        score: leads.score,
+        subreddit: redditPosts.subreddit,
+      })
+      .from(leads)
+      .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
+      .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
+      .innerJoin(projects, eq(projects.id, leads.projectId))
+      .where(and(month, sql`not ${kept}`))
+      .orderBy(desc(leads.score), desc(leads.foundAt))
+      .limit(HIDDEN_SHOWN),
+    listMutes(projectId),
+  ]);
+  const total = counts[0]?.total ?? 0;
+  return {
+    hidden: total - (counts[0]?.kept ?? 0),
+    total,
+    leads: rows.map((row) => {
+      const text = `${row.title} ${row.commentBody ?? row.postBody ?? ""}`;
+      const word = mutes.find((mute) => mute.kind === "keyword" && mentions(text, mute.value));
+      const community = mutes.find((mute) => mute.kind === "subreddit" && mute.value === row.subreddit.toLowerCase());
+      return {
+        id: row.id,
+        title: row.title,
+        url: row.url,
+        score: row.score,
+        because: word
+          ? `mentions “${word.value}”`
+          : community
+            ? `in muted r/${community.value}`
+            : "mentions none of the required words",
+      };
+    }),
+  };
+}
+
+/** New leads the feed would show, whatever their age, for the rail's badge. */
 export async function newLeadCount(projectId: string): Promise<number> {
   const rows = await db()
     .select({ total: count() })
     .from(leads)
     .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
     .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
-    .where(and(eq(leads.projectId, projectId), eq(leads.status, "new"), redditLeadNotMuted()));
+    .innerJoin(projects, eq(projects.id, leads.projectId))
+    .where(and(eq(leads.projectId, projectId), eq(leads.status, "new"), OVER_THRESHOLD, redditLeadNotMuted()));
   return rows[0]?.total ?? 0;
 }
 

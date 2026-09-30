@@ -61,7 +61,12 @@ export default async function AlertsPage({ searchParams }: AlertsPageProps) {
         <p className="text-body text-fg-muted">
           Where new leads for {project.name} go. Email carries the whole digest; Slack, Discord and
           a plain webhook carry the top five. Without a channel, scans pause a day after your last
-          visit and catch up when you come back.{" "}
+          visit and catch up when you come back. Which leads are sent, and the least score they
+          need, are the project&apos;s{" "}
+          <Link href={`/app/filters?project=${project.id}#lead-filters`} className="underline">
+            lead filters
+          </Link>
+          .{" "}
           <Link href="/app/settings" className="underline">
             Back to settings
           </Link>
@@ -94,7 +99,12 @@ export default async function AlertsPage({ searchParams }: AlertsPageProps) {
         </h2>
         <p className="text-body text-fg-muted">
           Leads that mention a muted word, or sit in a muted subreddit, stay out of the feed and
-          every channel. A thread you mark replied stops coming back on its own.
+          every channel. A thread you mark replied stops coming back on its own. Muted words are
+          also the &ldquo;never&rdquo; list in{" "}
+          <Link href={`/app/filters?project=${project.id}#lead-filters`} className="underline">
+            Filters
+          </Link>
+          .
         </p>
       </div>
       <MuteList projectId={project.id} mutes={mutes} />

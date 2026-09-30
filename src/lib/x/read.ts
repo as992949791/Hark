@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { jobs, xAuthors, xEvaluations, xLanes, xLeads, xPosts, xProjects, xRuns } from "@/db/schema";
+import { jobs, projects, xAuthors, xEvaluations, xLanes, xLeads, xPosts, xProjects, xRuns } from "@/db/schema";
+import { xShownWhere } from "@/lib/leadFilters";
 import { atBounds, grainOf, type LeadFace } from "@/lib/feed";
 import { nextQueuedJob } from "@/jobs/enqueue";
 import {
@@ -18,7 +19,7 @@ import { xQuiet, type XQuiet } from "./quiet";
 import { reachScore, replyWindowOpen } from "./reach";
 import type { XVia } from "./store";
 
-/** What the X tab reads. Nothing here joins a Reddit table. */
+/** What the X tab reads. Nothing here joins a Reddit table. The project's own filters (lib/leadFilters.ts) hold here as on Reddit. */
 
 const DAY_MS = 24 * 3_600_000;
 
@@ -229,6 +230,7 @@ function leadRows() {
     .select({ lead: xLeads, post: xPosts, author: xAuthors, context: xEvaluations.context, foundBy: xEvaluations.matchedPhrase })
     .from(xLeads)
     .innerJoin(xPosts, eq(xPosts.id, xLeads.tweetId))
+    .innerJoin(projects, eq(projects.id, xLeads.projectId))
     .leftJoin(xAuthors, authorJoin)
     .leftJoin(xEvaluations, and(eq(xEvaluations.projectId, xLeads.projectId), eq(xEvaluations.tweetId, xLeads.tweetId)));
 }
@@ -260,7 +262,7 @@ export async function listXLeads(
   now = new Date(),
 ): Promise<XLeadCard[]> {
   const rows = await leadRows()
-    .where(and(eq(xLeads.projectId, projectId), eq(xLeads.status, filter.status), isNull(xPosts.unavailableAt), whenWhere(filter), xLeadNotMuted()))
+    .where(and(eq(xLeads.projectId, projectId), eq(xLeads.status, filter.status), isNull(xPosts.unavailableAt), whenWhere(filter), xShownWhere(), xLeadNotMuted()))
     .orderBy(desc(xPosts.createdAt), desc(xLeads.score))
     .limit(200);
   const cards = rows.map((row) => leadCard(row, now));
@@ -539,6 +541,7 @@ export async function listXFaces(projectId: string, filter: XFeedFilter): Promis
     .select({ id: xLeads.id, at: xPosts.createdAt, score: xLeads.score, author: xPosts.authorUsername, avatarUrl: xPosts.authorImage })
     .from(xLeads)
     .innerJoin(xPosts, eq(xPosts.id, xLeads.tweetId))
+    .innerJoin(projects, eq(projects.id, xLeads.projectId))
     .where(
       and(
         eq(xLeads.projectId, projectId),
@@ -547,6 +550,7 @@ export async function listXFaces(projectId: string, filter: XFeedFilter): Promis
         eq(xLeads.status, filter.status),
         isNull(xPosts.unavailableAt),
         whenWhere(filter),
+        xShownWhere(),
         xLeadNotMuted(),
       ),
     )
@@ -570,6 +574,7 @@ export async function newXLeadCount(projectId: string): Promise<number> {
     .select({ count: sql<number>`count(*)::int` })
     .from(xLeads)
     .innerJoin(xPosts, eq(xPosts.id, xLeads.tweetId))
+    .innerJoin(projects, eq(projects.id, xLeads.projectId))
     .where(
       and(
         eq(xLeads.projectId, projectId),
@@ -577,6 +582,7 @@ export async function newXLeadCount(projectId: string): Promise<number> {
         eq(xLeads.status, "new"),
         isNull(xPosts.unavailableAt),
         gte(xPosts.createdAt, windowStart(FEED_WINDOW_DAYS)),
+        xShownWhere(),
         xLeadNotMuted(),
       ),
     );

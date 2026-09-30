@@ -1,15 +1,17 @@
 import { and, eq, gte, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { leads, redditAuthors, redditComments, redditPosts, xLeads, xPosts, xProjects } from "@/db/schema";
+import { leads, projects, redditAuthors, redditComments, redditPosts, xLeads, xPosts, xProjects } from "@/db/schema";
+import { ALERT_FLOOR_SQL, redditWordsWhere, X_FLOOR_SQL, xWordsWhere } from "@/lib/leadFilters";
 import { redditLeadNotMuted, xLeadNotMuted } from "@/lib/mutes";
 import { canonicalUrl, ownWords } from "@/lib/x/map";
 import { headlineOf } from "@/lib/x/read";
 import type { SelectableLead } from "./select";
 
 /**
- * Leads a project first found since a moment, with the author's face attached. The
- * ordering and the cap are `selectLeads`, so the same rules cover a live send
- * and a test.
+ * Leads a project first found since a moment, with the author's face attached,
+ * that pass the project's own word lists and carry its alert floor. The
+ * ordering, the floor and the cap are `selectLeads`, so the same rules cover a
+ * live send and a test.
  */
 export async function newLeadsSince(projectId: string, since: Date): Promise<SelectableLead[]> {
   const rows = await db()
@@ -31,8 +33,10 @@ export async function newLeadsSince(projectId: string, since: Date): Promise<Sel
       author: sql<string | null>`coalesce(${redditComments.author}, ${redditPosts.author})`,
       avatarUrl: redditAuthors.avatarUrl,
       createdAt: sql<Date>`coalesce(${redditComments.createdAt}, ${redditPosts.createdAt})`,
+      floor: ALERT_FLOOR_SQL.mapWith(Number),
     })
     .from(leads)
+    .innerJoin(projects, eq(projects.id, leads.projectId))
     .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
     .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
     .leftJoin(
@@ -48,6 +52,7 @@ export async function newLeadsSince(projectId: string, since: Date): Promise<Sel
         eq(leads.status, "new"),
         gte(leads.foundAt, since),
         redditLeadNotMuted(),
+        redditWordsWhere(),
       ),
     );
   return rows.map((row) => ({
@@ -65,6 +70,7 @@ export async function newLeadsSince(projectId: string, since: Date): Promise<Sel
 export function xAskLead(
   lead: typeof xLeads.$inferSelect,
   post: typeof xPosts.$inferSelect,
+  floor?: number,
 ): SelectableLead {
   return {
     id: lead.id,
@@ -86,6 +92,7 @@ export function xAskLead(
     // `alertable` sends buyers only, and an ask is X's buyer.
     kind: "buyer",
     foundAt: lead.foundAt,
+    floor,
   };
 }
 
@@ -96,8 +103,9 @@ export function xAskLead(
  */
 export async function newXLeadsSince(projectId: string, since: Date): Promise<SelectableLead[]> {
   const rows = await db()
-    .select({ lead: xLeads, post: xPosts })
+    .select({ lead: xLeads, post: xPosts, floor: X_FLOOR_SQL.mapWith(Number) })
     .from(xLeads)
+    .innerJoin(projects, eq(projects.id, xLeads.projectId))
     .innerJoin(xPosts, eq(xPosts.id, xLeads.tweetId))
     // The owner can keep X asks out of the project's channels (Settings, X).
     .leftJoin(xProjects, eq(xProjects.projectId, xLeads.projectId))
@@ -110,7 +118,8 @@ export async function newXLeadsSince(projectId: string, since: Date): Promise<Se
         gte(xLeads.foundAt, since),
         isNull(xPosts.unavailableAt),
         xLeadNotMuted(),
+        xWordsWhere(),
       ),
     );
-  return rows.map(({ lead, post }) => xAskLead(lead, post));
+  return rows.map(({ lead, post, floor }) => xAskLead(lead, post, floor));
 }

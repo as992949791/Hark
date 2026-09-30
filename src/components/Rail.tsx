@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bell, Box, Lightbulb, Menu, Radar, Receipt, Search, Settings, Swords, Telescope, X } from "lucide-react";
+import { Bell, Box, Lightbulb, Menu, Radar, Receipt, Search, Settings, SlidersHorizontal, Swords, Telescope, X } from "lucide-react";
 import { ChannelMark } from "@/components/alerts/ChannelMark";
 import { NEW_PROJECT_PATH } from "@/components/ProjectSwitcher";
 import type { AlertChannel } from "@/lib/alerts/types";
@@ -19,6 +19,7 @@ const ICONS = {
   swords: Swords,
   box: Box,
   telescope: Telescope,
+  filters: SlidersHorizontal,
   bell: Bell,
   receipt: Receipt,
   settings: Settings,

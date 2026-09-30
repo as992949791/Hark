@@ -16,7 +16,9 @@ import { requireLocalUser } from "@/lib/auth";
 import { competitorHost } from "@/lib/competitors/host";
 import type { Destination } from "@/lib/discovery/queries";
 import { parseDestinations, parseTextList } from "@/lib/discovery/store";
+import { FILTER_TERM_CAP, parseLeadFilters, termsOf, type LeadFilters } from "@/lib/leadFilters";
 import { buildProfile } from "@/lib/profile";
+import { setKeywordMutes } from "@/lib/mutes";
 import { forgetProjectFeed } from "@/lib/projectFeedCache";
 import { rerankProject } from "@/lib/scoring/apply";
 import { parseScoring, scoringSchema, type ScoringSettings } from "@/lib/scoring/weights";
@@ -47,15 +49,13 @@ function text(formData: FormData, field: string): string {
   return String(formData.get(field) ?? "").trim();
 }
 
-function threshold(raw: string): number | null {
+function threshold(raw: string, what = "The minimum score"): number | null {
   if (!raw) {
     return null;
   }
   const value = Number(raw);
   if (!Number.isInteger(value) || value < 0 || value > 100) {
-    throw new Error(
-      "The minimum score has to be a whole number between 0 and 100.",
-    );
+    throw new Error(`${what} has to be a whole number between 0 and 100.`);
   }
   return value;
 }
@@ -100,7 +100,6 @@ export async function saveProfileAction(
       .update(projects)
       .set({
         ...facts,
-        scoreThreshold: threshold(text(formData, "scoreThreshold")),
         ...(edited ? { profileVersion: sql`${projects.profileVersion} + 1` } : {}),
       })
       .where(eq(projects.id, project.id));
@@ -109,8 +108,58 @@ export async function saveProfileAction(
     if (edited) {
       await enqueueJob("brief", project.id);
     }
-    // The feed applies this project's own minimum score when it is read, so the
-    // read it is holding was made against the old floor.
+    revalidatePath("/app", "layout");
+    return { error: null, saved: true };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Nothing was saved.",
+      saved: false,
+    };
+  }
+}
+
+/** One chip list as the form posts it: a field per term. */
+function terms(formData: FormData, field: string): string[] {
+  const list = termsOf(formData.getAll(field).map(String).join("\n"));
+  if (list.length > FILTER_TERM_CAP) {
+    throw new Error(`A list holds up to ${FILTER_TERM_CAP} words or phrases.`);
+  }
+  return list;
+}
+
+/**
+ * Saves which judged leads this project wants: the minimum score, the words a
+ * lead must mention, the keyword mutes, and the floors for an alert and an X ask.
+ * None is a fact the judge reads, so nothing is judged again; the feed and the
+ * digest apply them when they read.
+ */
+export async function saveLeadFiltersAction(
+  _previous: ProfileState,
+  formData: FormData,
+): Promise<ProfileState> {
+  try {
+    const { project } = await ownedProject(text(formData, "projectId"));
+    const current = parseLeadFilters(project.leadFilters);
+    const filters: LeadFilters = {
+      mustMention: terms(formData, "mustMention"),
+      alertMinScore: threshold(text(formData, "alertMinScore"), "The alert score"),
+      // Asked only of an owner X is on for. One that is not asked keeps what it had.
+      xMinScore: formData.has("xMinScore")
+        ? threshold(text(formData, "xMinScore"), "The X score")
+        : current.xMinScore,
+    };
+    const muted = terms(formData, "muted");
+    await db()
+      .update(projects)
+      .set({
+        scoreThreshold: threshold(text(formData, "scoreThreshold")),
+        leadFilters: filters,
+      })
+      .where(eq(projects.id, project.id));
+    // The words a lead must not mention are the project's keyword mutes.
+    await setKeywordMutes(project.id, muted);
+    // The feed applies these when it is read, so the read it is holding was
+    // made against the old ones.
     forgetProjectFeed(project.id);
     revalidatePath("/app", "layout");
     return { error: null, saved: true };
