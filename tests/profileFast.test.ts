@@ -141,7 +141,7 @@ describe.skipIf(!process.env.DATABASE_URL)("a new project's fast reading", () =>
     answer(fast, full);
 
     const building = buildProfileFast(project.id, user.id, project.url!);
-    await vi.waitFor(() => expect(generateStructured).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(generateStructured).toHaveBeenCalledTimes(3));
     const fastCall = generateStructured.mock.calls.find(([call]) => call.purpose === "profile_fast")![0];
     expect(fastCall.effort).toBe("minimal");
     fast.release();
@@ -198,7 +198,7 @@ describe.skipIf(!process.env.DATABASE_URL)("a new project's fast reading", () =>
     answer(fast, full);
     fast.release();
     const building = buildProfileFast(project.id, user.id, project.url!);
-    await vi.waitFor(() => expect(generateStructured).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(generateStructured).toHaveBeenCalledTimes(3));
     full.release();
     const built = await building;
 
@@ -206,6 +206,35 @@ describe.skipIf(!process.env.DATABASE_URL)("a new project's fast reading", () =>
     expect(await built.full).toBe(false);
     expect((await row()).geography).toBe("Worldwide");
     expect(await competitors()).toEqual(["Typeform"]);
+  });
+
+  it("names competitors from their own reading, and keeps the page's when that fails", async () => {
+    const { user, project, competitors } = await fixture();
+    const { buildProfileFast } = await import("@/lib/profile");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    let rivals: () => Promise<unknown> = async () => ({
+      job: "build forms that branch",
+      category: "form builder",
+      competitors: [
+        { name: "Jotform", domain: "jotform.com", reason: "conditional forms" },
+        { name: "Tally", domain: "tally.so", reason: "free branching forms" },
+      ],
+    });
+    generateStructured.mockImplementation(async (call: { purpose: string }) =>
+      call.purpose === "profile_fast" ? fastReading : call.purpose === "competitors" ? rivals() : fullReading,
+    );
+    const built = await buildProfileFast(project.id, user.id, project.url!);
+    expect(await built.full).toBe(true);
+    expect((await competitors()).sort()).toEqual(["Jotform", "Tally"]);
+
+    rivals = async () => {
+      throw new Error("No object generated");
+    };
+    const again = await fixture();
+    const second = await buildProfileFast(again.project.id, again.user.id, again.project.url!);
+    expect(await second.full).toBe(true);
+    expect(await again.competitors()).toEqual(["Typeform"]);
+    warn.mockRestore();
   });
 
   it("keeps the fast reading when the full one fails", async () => {

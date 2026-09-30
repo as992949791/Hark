@@ -103,7 +103,8 @@ describe.skipIf(!process.env.DATABASE_URL)("reading an older project's site agai
     const build = buildProfile(project.id, user.id, project.url!, { rejudge: true });
     try {
       await vi.waitFor(() => {
-        expect(generateStructured).toHaveBeenCalledOnce();
+        // The reading and the competitors' own reading, side by side.
+        expect(generateStructured).toHaveBeenCalledTimes(2);
         expect(lookup).toHaveBeenCalledWith(user.id);
       });
       release();

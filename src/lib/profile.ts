@@ -6,7 +6,7 @@ import { clientForUser } from "./anyapi";
 import { competitorHost } from "./competitors/host";
 import { generateStructured } from "./llm";
 import { BRIEF_INSTRUCTIONS, briefSchema, usableBrief, type ProductBrief } from "./brief";
-import { FAST_READING_SYSTEM, PROFILE_SYSTEM, PROMO_POLICY_SYSTEM } from "./prompts";
+import { COMPETITORS_SYSTEM, FAST_READING_SYSTEM, PROFILE_SYSTEM, PROMO_POLICY_SYSTEM } from "./prompts";
 import { normalizeQuery, recordUsage } from "./reddit/fetch";
 import { capped, tierForUser } from "./tier";
 import { fetchSubredditDetails } from "./reddit/skus";
@@ -463,22 +463,55 @@ export async function reseedFromPage(
   };
 }
 
+const competitorsSchema = z.object({
+  job: z.string(),
+  category: z.string(),
+  competitors: z.array(z.object({ name: z.string(), domain: z.string(), reason: z.string() })),
+});
+
+/**
+ * The product's competitors, from the buyer's job and the market rather than
+ * from what the page happens to name (COMPETITORS_SYSTEM). Asked beside the
+ * full reading, so it costs no wait the reading does not already take.
+ */
+export async function competitorsFromPage(
+  projectId: string,
+  page: { url: string; title?: string | null; description?: string | null; markdown?: string | null },
+): Promise<{ name: string; domain: string }[]> {
+  const answer = await generateStructured({
+    purpose: "competitors",
+    projectId,
+    schema: competitorsSchema,
+    system: COMPETITORS_SYSTEM,
+    prompt: [`Website: ${page.url}`, `Title: ${page.title}`, `Description: ${page.description}`, "", page.markdown ?? ""].join("\n"),
+  });
+  return answer.competitors.map(({ name, domain }) => ({ name, domain }));
+}
+
 /** What the site's pages say the product is. Reads them and writes nothing. */
 export async function profileFromPage(
   projectId: string,
   page: { url: string; title?: string | null; description?: string | null; markdown?: string | null },
 ): Promise<SiteReading> {
   const markdown = page.markdown ?? "";
-  const reading = await generateStructured({
-    purpose: "profile",
-    projectId,
-    schema: readingSchema,
-    system: READING_SYSTEM,
-    prompt: [`Website: ${page.url}`, `Title: ${page.title}`, `Description: ${page.description}`, "", markdown].join("\n"),
-  });
+  const [reading, rivals] = await Promise.all([
+    generateStructured({
+      purpose: "profile",
+      projectId,
+      schema: readingSchema,
+      system: READING_SYSTEM,
+      prompt: [`Website: ${page.url}`, `Title: ${page.title}`, `Description: ${page.description}`, "", markdown].join("\n"),
+    }),
+    // The reading still names competitors of its own, kept for when this fails.
+    competitorsFromPage(projectId, page).catch((error: unknown) => {
+      console.warn(`[profile] the competitor reading failed, keeping the page's: ${messageOf(error)}`);
+      return [];
+    }),
+  ]);
   const siteText = `${page.title ?? ""}\n${page.description ?? ""}\n${markdown}`;
   return {
     ...reading,
+    competitors: rivals.length > 0 ? rivals : reading.competitors,
     exclusions: groundedLimits(reading.exclusions, siteText),
     notBuyers: groundedLimits(reading.notBuyers, siteText),
   };
