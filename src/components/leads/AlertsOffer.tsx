@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { Check, Mail } from "lucide-react";
+import { Check, Mail, X } from "lucide-react";
 import { discordAlertsAction, dismissAlertsOfferAction, emailAlertsAction } from "@/app/app/leads/actions";
 import { ChannelMark } from "@/components/alerts/ChannelMark";
 import { PillTabs } from "@/components/PillTabs";
@@ -26,11 +26,13 @@ type Shown = "email" | "slack" | "discord";
 
 /** The email's own width plus the gutter its outer table leaves, so it scales as one picture. */
 const EMAIL_WIDTH = 616;
+/** How long the feed is on screen before the offer opens over it, so the first leads are seen first. */
+const OPEN_AFTER_MS = 2500;
 /** Past this the email is cut with a fade: the header and first cards say enough. */
 const PREVIEW_MAX_HEIGHT = 420;
 
 /** The real digest email, rendered by the sender and shrunk to the column. */
-function EmailPreview({ html }: { html: string }) {
+function EmailBody({ html }: { html: string }) {
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
@@ -46,11 +48,7 @@ function EmailPreview({ html }: { html: string }) {
   const scale = width / EMAIL_WIDTH;
   const shown = height ? Math.min(height * scale, PREVIEW_MAX_HEIGHT) : PREVIEW_MAX_HEIGHT;
   return (
-    <div
-      ref={box}
-      className="relative overflow-hidden rounded-card border"
-      style={{ height: shown, background: EMAIL_COLORS.bg }}
-    >
+    <div ref={box} className="relative overflow-hidden" style={{ height: shown, background: EMAIL_COLORS.bg }}>
       {width ? (
         <iframe
           title="The daily email"
@@ -70,6 +68,51 @@ function EmailPreview({ html }: { html: string }) {
           style={{ background: `linear-gradient(to bottom, transparent, ${EMAIL_COLORS.bg})` }}
         />
       ) : null}
+    </div>
+  );
+}
+
+/** A light mail client's colours, since the email itself is always light. */
+const MAIL = { chrome: "#f3f3f5", line: "#e4e4e7", fg: "#18181b", muted: "#71717a" };
+
+type EmailPreviewProps = { html: string; subject: string; from: string; to: string | null };
+
+/**
+ * The email as it opens in an inbox: the window, the subject, who it is from and
+ * when, above the message, so it reads as an email and not as a web page.
+ */
+function EmailPreview({ html, subject, from, to }: EmailPreviewProps) {
+  return (
+    <div className="overflow-hidden rounded-card border" style={{ background: "#fff", color: MAIL.fg, borderColor: MAIL.line }}>
+      <div className="flex items-center gap-1.5 px-3 py-2" style={{ background: MAIL.chrome, borderBottom: `1px solid ${MAIL.line}` }}>
+        {["#ff5f57", "#febc2e", "#28c840"].map((dot) => (
+          <span key={dot} className="size-2.5 rounded-full" style={{ background: dot }} />
+        ))}
+        <span className="ml-2 text-[11px]" style={{ color: MAIL.muted }}>
+          Inbox
+        </span>
+      </div>
+      <div className="flex flex-col gap-2.5 px-4 py-3" style={{ borderBottom: `1px solid ${MAIL.line}` }}>
+        <span className="text-[15px] leading-5" style={{ fontWeight: 600 }}>
+          {subject}
+        </span>
+        <div className="flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/lurk-mark.svg" alt="" width={32} height={32} className="shrink-0 rounded-full" />
+          <div className="flex min-w-0 flex-1 flex-col text-[12px] leading-4">
+            <span className="truncate">
+              <span style={{ fontWeight: 600 }}>lurk</span> <span style={{ color: MAIL.muted }}>&lt;{from}&gt;</span>
+            </span>
+            <span className="truncate" style={{ color: MAIL.muted }}>
+              to {to ?? "me"}
+            </span>
+          </div>
+          <span className="shrink-0 self-start text-[11px]" style={{ color: MAIL.muted }}>
+            9:00 AM
+          </span>
+        </div>
+      </div>
+      <EmailBody html={html} />
     </div>
   );
 }
@@ -268,6 +311,15 @@ export function AlertsOffer({ projectId, offer, preview, slackInstall, discordIn
   const [discordUrl, setDiscordUrl] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const asking = offer.state === "ask";
+  useEffect(() => {
+    if (!asking) {
+      return;
+    }
+    const timer = setTimeout(() => dialog.current?.showModal(), OPEN_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, [asking]);
   const settingsHref = `/app/settings/alerts?${new URLSearchParams({ project: projectId })}`;
 
   if (offer.state === "dismissed") {
@@ -299,121 +351,148 @@ export function AlertsOffer({ projectId, offer, preview, slackInstall, discordIn
   const connect = new URLSearchParams({ project: projectId, cadence: "daily", back });
   const slackHref = `/connect/slack?${connect}`;
   const discordHref = `/connect/discord?${connect}`;
+  // Closing it any way at all, Esc and the backdrop included, is "Not now".
+  const notNow = () => {
+    dialog.current?.close();
+    run(() => dismissAlertsOfferAction(projectId));
+  };
 
   return (
-    <section className="grid gap-4 rounded-card border bg-surface p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] sm:p-5">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-1.5">
-          <ChannelMark channel="email" size={14} />
-          <ChannelMark channel="slack" size={14} />
-          <ChannelMark channel="discord" size={14} />
-          <span className="text-mono tracking-wide text-fg-muted uppercase">Free alerts</span>
-        </div>
-        <h2 style={{ fontWeight: 500 }}>Hear about new leads while the thread is still open.</h2>
-        <p className="text-small text-fg-muted">
-          Most threads go quiet within a day, and the first useful replies get the clicks. lurk keeps
-          checking after you close this tab and sends only new leads worth a reply, with what each
-          person wrote. It&rsquo;s free, and you can turn it off any time.
-        </p>
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          {offer.email ? (
-            <Button size="lg" disabled={pending} onClick={() => run(() => emailAlertsAction(projectId))} onMouseEnter={() => setShown("email")}>
-              <Mail />
-              Email me daily
-            </Button>
-          ) : null}
-          <a
-            href={slackInstall ? slackHref : settingsHref}
-            className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
-            onMouseEnter={() => setShown("slack")}
-          >
+    <dialog
+      ref={dialog}
+      aria-label="Free alerts"
+      onCancel={notNow}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          notNow();
+        }
+      }}
+      className="m-auto w-[min(56rem,calc(100vw-2rem))] max-w-none rounded-card border bg-surface p-0 text-fg shadow-2xl backdrop:bg-black/60"
+    >
+      <section className="relative grid max-h-[calc(100dvh-4rem)] gap-5 overflow-y-auto p-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] sm:p-7">
+        <button
+          type="button"
+          aria-label="Not now"
+          onClick={notNow}
+          className="absolute top-3 right-3 rounded-control p-1.5 text-fg-muted hover:bg-surface-2 hover:text-fg"
+        >
+          <X size={16} />
+        </button>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-1.5">
+            <ChannelMark channel="email" size={14} />
             <ChannelMark channel="slack" size={14} />
-            {slackInstall ? "Add to Slack" : "Slack"}
-          </a>
-          {discordInstall ? (
+            <ChannelMark channel="discord" size={14} />
+            <span className="text-mono tracking-wide text-fg-muted uppercase">Free alerts</span>
+          </div>
+          <h2 className="text-h3" style={{ fontWeight: 500 }}>Hear about new leads while the thread is still open.</h2>
+          <p className="text-small text-fg-muted">
+            Most threads go quiet within a day, and the first useful replies get the clicks. lurk keeps
+            checking after you close this tab and sends only new leads worth a reply, with what each
+            person wrote. It&rsquo;s free, and you can turn it off any time.
+          </p>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {offer.email ? (
+              <Button size="lg" disabled={pending} onClick={() => run(() => emailAlertsAction(projectId))} onMouseEnter={() => setShown("email")}>
+                <Mail />
+                Email me daily
+              </Button>
+            ) : null}
             <a
-              href={discordHref}
+              href={slackInstall ? slackHref : settingsHref}
               className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
-              onMouseEnter={() => setShown("discord")}
+              onMouseEnter={() => setShown("slack")}
             >
-              <ChannelMark channel="discord" size={14} />
-              Add to Discord
+              <ChannelMark channel="slack" size={14} />
+              {slackInstall ? "Add to Slack" : "Slack"}
             </a>
-          ) : (
+            {discordInstall ? (
+              <a
+                href={discordHref}
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+                onMouseEnter={() => setShown("discord")}
+              >
+                <ChannelMark channel="discord" size={14} />
+                Add to Discord
+              </a>
+            ) : (
+              <Button
+                variant="outline"
+                size="lg"
+                aria-expanded={discordOpen}
+                onMouseEnter={() => setShown("discord")}
+                onClick={() => {
+                  setShown("discord");
+                  setDiscordOpen((open) => !open);
+                }}
+              >
+                <ChannelMark channel="discord" size={14} />
+                Discord
+              </Button>
+            )}
             <Button
-              variant="outline"
+              variant="ghost"
               size="lg"
-              aria-expanded={discordOpen}
-              onMouseEnter={() => setShown("discord")}
-              onClick={() => {
-                setShown("discord");
-                setDiscordOpen((open) => !open);
+              className="text-fg-muted"
+              disabled={pending}
+              onClick={notNow}
+            >
+              Not now
+            </Button>
+          </div>
+          {discordOpen ? (
+            <form
+              className="flex flex-col gap-1.5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                run(() => discordAlertsAction(projectId, discordUrl));
               }}
             >
-              <ChannelMark channel="discord" size={14} />
-              Discord
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="lg"
-            className="text-fg-muted"
-            disabled={pending}
-            onClick={() => run(() => dismissAlertsOfferAction(projectId))}
-          >
-            Not now
-          </Button>
+              <div className="flex gap-2">
+                <input
+                  value={discordUrl}
+                  onChange={(event) => setDiscordUrl(event.target.value)}
+                  required
+                  autoFocus
+                  placeholder="https://discord.com/api/webhooks/..."
+                  aria-label="Discord webhook URL"
+                  className="h-10 min-w-0 flex-1 rounded-control border bg-bg px-3 text-body text-fg"
+                />
+                <Button type="submit" size="lg" disabled={pending}>
+                  Post daily
+                </Button>
+              </div>
+              <p className="text-[12px] text-fg-muted">
+                In Discord: channel settings, Integrations, Webhooks, New Webhook, then Copy Webhook URL.
+              </p>
+            </form>
+          ) : null}
+          {offer.email ? <p className="text-[12px] text-fg-muted">Email goes to {offer.email}.</p> : null}
+          {error ? <p className="text-small text-destructive">{error}</p> : null}
         </div>
-        {discordOpen ? (
-          <form
-            className="flex flex-col gap-1.5"
-            onSubmit={(event) => {
-              event.preventDefault();
-              run(() => discordAlertsAction(projectId, discordUrl));
-            }}
-          >
-            <div className="flex gap-2">
-              <input
-                value={discordUrl}
-                onChange={(event) => setDiscordUrl(event.target.value)}
-                required
-                autoFocus
-                placeholder="https://discord.com/api/webhooks/..."
-                aria-label="Discord webhook URL"
-                className="h-10 min-w-0 flex-1 rounded-control border bg-bg px-3 text-body text-fg"
-              />
-              <Button type="submit" size="lg" disabled={pending}>
-                Post daily
-              </Button>
-            </div>
+        {preview ? (
+          <div className="flex min-w-0 flex-col gap-2">
+            <PillTabs
+              className="self-start"
+              activeId={shown}
+              onSelect={(id) => setShown(id === "slack" || id === "discord" ? id : "email")}
+              tabs={[
+                { id: "email", label: "Email", icon: <ChannelMark channel="email" size={13} /> },
+                { id: "slack", label: "Slack", icon: <ChannelMark channel="slack" size={13} /> },
+                { id: "discord", label: "Discord", icon: <ChannelMark channel="discord" size={13} /> },
+              ]}
+            />
+            {shown === "email" ? (
+              <EmailPreview html={preview.emailHtml} subject={preview.emailSubject} from={preview.emailFrom} to={offer.email} />
+            ) : null}
+            {shown === "slack" ? <SlackPreview payload={preview.slack} /> : null}
+            {shown === "discord" ? <DiscordPreview payload={preview.discord} /> : null}
             <p className="text-[12px] text-fg-muted">
-              In Discord: channel settings, Integrations, Webhooks, New Webhook, then Copy Webhook URL.
+              {preview.sample ? "An example. Your own leads fill in as they are found." : "With your leads so far."}
             </p>
-          </form>
+          </div>
         ) : null}
-        {offer.email ? <p className="text-[12px] text-fg-muted">Email goes to {offer.email}.</p> : null}
-        {error ? <p className="text-small text-destructive">{error}</p> : null}
-      </div>
-      {preview ? (
-        <div className="flex min-w-0 flex-col gap-2">
-          <PillTabs
-            className="self-start"
-            activeId={shown}
-            onSelect={(id) => setShown(id === "slack" || id === "discord" ? id : "email")}
-            tabs={[
-              { id: "email", label: "Email", icon: <ChannelMark channel="email" size={13} /> },
-              { id: "slack", label: "Slack", icon: <ChannelMark channel="slack" size={13} /> },
-              { id: "discord", label: "Discord", icon: <ChannelMark channel="discord" size={13} /> },
-            ]}
-          />
-          {shown === "email" ? <EmailPreview html={preview.emailHtml} /> : null}
-          {shown === "slack" ? <SlackPreview payload={preview.slack} /> : null}
-          {shown === "discord" ? <DiscordPreview payload={preview.discord} /> : null}
-          <p className="text-[12px] text-fg-muted">
-            {preview.sample ? "An example. Your own leads fill in as they are found." : "With your leads so far."}
-          </p>
-        </div>
-      ) : null}
-    </section>
+      </section>
+    </dialog>
   );
 }

@@ -182,9 +182,9 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
     await enqueueOnce("retention", new Date(Date.now() + DAY_MS));
   },
   /**
-   * X leads (src/lib/x). The first scan is queued only by opening the X tab,
-   * and each scan books its own successor, so with X_LEADS off nothing ever
-   * queues one; a job that is somehow queued anyway returns without writing
+   * X leads (src/lib/x). The first scan is queued by a new project's setup or
+   * by opening the X tab, and each scan books its own successor, so with
+   * X_LEADS off nothing ever queues one; a job that is somehow queued anyway returns without writing
    * or booking anything (runXScan checks the switch for the project's owner).
    * The pipeline is loaded on first use, so nothing X imports is on the path
    * every Reddit job loads.

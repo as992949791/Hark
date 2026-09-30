@@ -104,6 +104,43 @@ describe.skipIf(!process.env.DATABASE_URL)("the initial discovery", () => {
     );
   });
 
+  it("starts X's first look beside the sweep when X is on, and not when it is off", async () => {
+    const saved = { on: process.env.X_LEADS, users: process.env.X_LEADS_USERS };
+    try {
+      const { eq, and } = await import("drizzle-orm");
+      const { JOB_HANDLERS } = await import("@/jobs/registry");
+      const xScans = async (projectId: string, db: Awaited<ReturnType<typeof fixture>>["db"], schema: Awaited<ReturnType<typeof fixture>>["schema"]) =>
+        db()
+          .select()
+          .from(schema.jobs)
+          .where(and(eq(schema.jobs.projectId, projectId), eq(schema.jobs.kind, "x_scan")));
+
+      process.env.X_LEADS = "false";
+      const off = await fixture();
+      await JOB_HANDLERS.discovery_initial({ id: undefined, projectId: off.project.id } as never);
+      expect(await xScans(off.project.id, off.db, off.schema)).toHaveLength(0);
+
+      process.env.X_LEADS = "true";
+      process.env.X_LEADS_USERS = "";
+      const on = await fixture();
+      await JOB_HANDLERS.discovery_initial({ id: undefined, projectId: on.project.id } as never);
+      const [scan] = await xScans(on.project.id, on.db, on.schema);
+      expect(scan).toBeDefined();
+      expect(scan.runAt.getTime()).toBeLessThanOrEqual(Date.now());
+      // A second run of the setup queues nothing more.
+      await JOB_HANDLERS.discovery_initial({ id: undefined, projectId: on.project.id } as never);
+      expect(await xScans(on.project.id, on.db, on.schema)).toHaveLength(1);
+    } finally {
+      for (const [key, value] of [["X_LEADS", saved.on], ["X_LEADS_USERS", saved.users]] as const) {
+        if (value === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = value;
+        }
+      }
+    }
+  });
+
   it("reads no community's rules, so the sweep is not kept waiting on them", async () => {
     const { project } = await fixture();
     const { JOB_HANDLERS } = await import("@/jobs/registry");

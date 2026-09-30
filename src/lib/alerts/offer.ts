@@ -4,7 +4,8 @@ import { users, userActions } from "@/db/schema";
 import { enqueueOnce } from "@/jobs/enqueue";
 import { tierForUser } from "@/lib/tier";
 import { addChannel, describeTarget, listChannels } from "./channels";
-import { renderDigestHtml } from "./digest";
+import { config } from "@/lib/config";
+import { digestSubject, renderDigestHtml } from "./digest";
 import { sampleDigest } from "./fixtures";
 import { sampleLeads } from "./invite";
 import { CHAT_LEAD_CAP } from "./select";
@@ -91,6 +92,9 @@ const PREVIEW_LEADS = 2;
 export type OfferPreview = {
   sample: boolean;
   emailHtml: string;
+  /** The subject line and sending address, for the inbox header drawn above the email. */
+  emailSubject: string;
+  emailFrom: string;
   slack: ReturnType<typeof slackPayload>;
   discord: ReturnType<typeof discordPayload>;
 };
@@ -106,6 +110,8 @@ export async function offerPreview(projectId: string, projectName: string, now =
   return {
     sample: own.length === 0,
     emailHtml: renderDigestHtml(digest),
+    emailSubject: digestSubject(digest),
+    emailFrom: config().ALERTS_FROM_EMAIL ?? "alerts@lurk.so",
     slack: slackPayload(chat),
     discord: discordPayload(chat),
   };
