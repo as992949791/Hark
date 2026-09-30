@@ -81,9 +81,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     listProjects(user.id),
     activeProject(user.id, requested),
   ]);
+  const showX = xEnabledFor(user.id);
   const [counts, busy] = project
-    ? await Promise.all([countsFor(project.id, xEnabledFor(user.id)), hasWorkInFlight(project.id)])
-    : [EMPTY_COUNTS, false];
+    ? await Promise.all([countsFor(project.id, showX), hasWorkInFlight(project.id)])
+    : [{ ...EMPTY_COUNTS, newXLeads: showX ? 0 : null }, false];
   return (
     <div className="flex min-h-dvh flex-col">
       <Header />
