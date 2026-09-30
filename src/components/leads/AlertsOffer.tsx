@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Mail, X } from "lucide-react";
 import { discordAlertsAction, dismissAlertsOfferAction, emailAlertsAction } from "@/app/app/leads/actions";
 import { ChannelMark } from "@/components/alerts/ChannelMark";
+import { Fleeting } from "@/components/Fleeting";
 import { PillTabs } from "@/components/PillTabs";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { AlertsOffer as Offer, OfferPreview } from "@/lib/alerts/offer";
@@ -302,8 +303,8 @@ function DiscordPreview({ payload }: { payload: OfferPreview["discord"] }) {
 /**
  * The offer a new project makes while its first leads are found: a daily email,
  * a Slack post or a Discord post, with the message drawn as it will land, so
- * the person sees what they are saying yes to. Once a channel is on it folds to
- * one line naming where leads go.
+ * the person sees what they are saying yes to. Once a channel is on it names
+ * where leads go, in one line shown once for a few seconds.
  */
 export function AlertsOffer({ projectId, offer, preview, slackInstall, discordInstall }: AlertsOfferProps) {
   const [shown, setShown] = useState<Shown>("email");
@@ -327,14 +328,17 @@ export function AlertsOffer({ projectId, offer, preview, slackInstall, discordIn
   }
   if (offer.state === "on") {
     const where = offer.channels.map((one) => one.where).join(", ");
+    // Said once, when a channel is turned on; Settings says it after that.
     return (
-      <div className="text-small flex items-center gap-2.5 rounded-card border bg-surface px-4 py-2.5">
-        <Check size={14} className="shrink-0" style={{ color: "var(--score-hot)" }} />
-        <span className="min-w-0 flex-1">New leads go to {where}.</span>
-        <Link href={settingsHref} className="shrink-0 text-fg-muted underline">
-          Change
-        </Link>
-      </div>
+      <Fleeting id={`alerts-on:${projectId}:${where}`}>
+        <div className="text-small flex items-center gap-2.5 rounded-card border bg-surface px-4 py-2.5">
+          <Check size={14} className="shrink-0" style={{ color: "var(--score-hot)" }} />
+          <span className="min-w-0 flex-1">New leads go to {where}.</span>
+          <Link href={settingsHref} className="shrink-0 text-fg-muted underline">
+            Change
+          </Link>
+        </div>
+      </Fleeting>
     );
   }
 

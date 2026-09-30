@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sweepAction } from "@/app/app/leads/actions";
+import { Fleeting } from "@/components/Fleeting";
 import { ScanDone } from "@/components/leads/ScanBanner";
 import type { SweepStatus } from "@/lib/sweep";
 
@@ -100,15 +101,17 @@ function SweepSetup({ lines }: { lines: SetupLine[] }) {
 }
 
 /** The sweep in one line while it reads, and a banner once it is over. */
-function SweepLine({ status }: { status: SweepStatus }) {
+function SweepLine({ projectId, status }: { projectId: string; status: SweepStatus }) {
   const leads = `${status.feedLeads.toLocaleString()} ${status.feedLeads === 1 ? "lead" : "leads"}`;
   const threads = `${status.found.toLocaleString()} threads`;
   if (status.state === "done") {
     return (
-      <ScanDone
-        title={status.feedLeads === 0 ? "Scan done. No leads in the past year yet." : `Scan done. Found ${leads}.`}
-        line={`Read ${threads} from the past year. New ones arrive with each scan.`}
-      />
+      <Fleeting id={`sweep-done:${projectId}`}>
+        <ScanDone
+          title={status.feedLeads === 0 ? "Scan done. No leads in the past year yet." : `Scan done. Found ${leads}.`}
+          line={`Read ${threads} from the past year. New ones arrive with each scan.`}
+        />
+      </Fleeting>
     );
   }
   const text =
@@ -201,7 +204,7 @@ export function FirstSweep({ projectId, first }: { projectId: string; first: Swe
 
   return (
     <>
-      {setup ? <SweepSetup lines={lines} /> : <SweepLine status={status} />}
+      {setup ? <SweepSetup lines={lines} /> : <SweepLine projectId={projectId} status={status} />}
       <style>{"@keyframes firstSweepPulse { 0% { opacity: 0.35; } 50% { opacity: 1; } 100% { opacity: 0.35; } }"}</style>
     </>
   );
