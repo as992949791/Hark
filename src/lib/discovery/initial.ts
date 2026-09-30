@@ -130,13 +130,15 @@ export async function runInitialDiscovery(
     cadenceFor(settings.settings.cadence).nextRunAt(new Date()),
     discoveryBudget(limits).refreshDays,
   );
-  // X's first look starts beside the sweep, not when the X tab is first
-  // opened, so its leads are there by the time the person looks.
-  if (queuedChildren && xEnabledFor(project.userId)) {
-    await openX(projectId);
-  }
   // The sweep is already booked. The job stays open until the full reading
   // is written rather than leave it to a promise nothing waits for.
   await fullReading;
+  // X's first look starts beside the sweep, not when the X tab is first
+  // opened, so its leads are there by the time the person looks. It waits for
+  // the full reading, which names the competitors its rival searches are built
+  // from; the sweep has been running since the plan was published.
+  if (queuedChildren && xEnabledFor(project.userId)) {
+    await openX(projectId);
+  }
   return { queuedChildren };
 }
