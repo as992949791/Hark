@@ -7,6 +7,7 @@ import { VerdictBadge } from "@/components/VerdictBadge";
 import { LeadWorkspace } from "@/components/leads/LeadWorkspace";
 import { OpeningProvider } from "@/components/leads/opening";
 import { PeopleStrip } from "@/components/leads/PeopleStrip";
+import { Fleeting } from "@/components/Fleeting";
 import { ScanDone, ScanRunning } from "@/components/leads/ScanBanner";
 import { entryHref } from "@/components/leads/workspace";
 import { XFilters } from "@/components/x/XFilters";
@@ -61,12 +62,12 @@ function rowMeta(lead: XLeadCard): string | null {
   return [lead.kind === "reply" && lead.fresh ? "reply now" : null, views, via].filter(Boolean).join(" · ") || null;
 }
 
-/** How long a finished check keeps its banner: long enough to be seen by someone who looked away. */
+/** How long after a check ends its banner may still be shown once, to someone who opens the tab late. */
 const DONE_BANNER_MS = 30 * 60_000;
 
 /**
  * The check's own word over the list: a card while X is being searched, a
- * banner once a check has just ended, and nothing after that, when the status
+ * banner once, for a few seconds, when a check has just ended, and nothing after that, when the status
  * line alone says when X was checked.
  */
 function ScanState({ status, now }: { status: XStatus; now: Date }) {
@@ -80,10 +81,12 @@ function ScanState({ status, now }: { status: XStatus; now: Date }) {
   const found = run.leads + run.replies;
   const next = status.nextScanAt ? ` Next check ${relativeUntil(status.nextScanAt)}.` : "";
   return (
-    <ScanDone
-      title={found === 0 ? "X scan done. No leads this time." : `X scan done. Found ${found} ${found === 1 ? "lead" : "leads"}.`}
-      line={`Read ${run.postsNew.toLocaleString()} new ${run.postsNew === 1 ? "post" : "posts"} on X.${next}`}
-    />
+    <Fleeting id={`x-done:${run.id}`}>
+      <ScanDone
+        title={found === 0 ? "X scan done. No leads this time." : `X scan done. Found ${found} ${found === 1 ? "lead" : "leads"}.`}
+        line={`Read ${run.postsNew.toLocaleString()} new ${run.postsNew === 1 ? "post" : "posts"} on X.${next}`}
+      />
+    </Fleeting>
   );
 }
 
