@@ -51,17 +51,20 @@ export function parseLeadFilters(stored: unknown): LeadFilters {
 }
 
 /**
- * The endings a term's last word may carry and still be the same word, so
- * "invoice" finds "invoices" and "fix" finds "fixes". A possessive needs none:
- * "invoice's" is already "invoice s".
+ * The forms of a normalised term that still count as it: the term, and its
+ * last word with a plural ending, so "invoice" finds "invoices", "fix" finds
+ * "fixes" and "proxy" finds "proxies". A possessive needs none: "invoice's" is
+ * already "invoice s". Postgres builds the same list in `anyTermSql`.
  */
-const PLURALS = ["", "s", "es"] as const;
+function formsOf(key: string): string[] {
+  return [key, `${key}s`, `${key}es`, key.replace(/y$/, "ies")];
+}
 
 /** Whether `text` mentions `term` as whole words. The SQL below is this, in Postgres. */
 export function mentions(text: string, term: string): boolean {
   const key = wordsOf(term);
   const haystack = ` ${wordsOf(text)} `;
-  return key !== "" && PLURALS.some((ending) => haystack.includes(` ${key}${ending} `));
+  return key !== "" && formsOf(key).some((form) => haystack.includes(` ${form} `));
 }
 
 /** Whether a lead's text passes a project's word lists. */
@@ -84,9 +87,10 @@ function wordsSql(text: SQL): SQL {
 function anyTermSql(list: "mustMention" | "skipIfMentions", haystack: SQL): SQL {
   return sql`exists (
     select 1 from jsonb_array_elements_text(coalesce(${projects.leadFilters} -> ${sql.raw(`'${list}'`)}, '[]'::jsonb)) as term
-    cross join unnest(array[${sql.raw(PLURALS.map((e) => `'${e}'`).join(", "))}]) as ending
-    where ${wordsSql(sql`term`)} <> ''
-      and ${haystack} like '% ' || ${wordsSql(sql`term`)} || ending || ' %'
+    cross join lateral (select ${wordsSql(sql`term`)} as key) as normalised
+    cross join lateral unnest(array[key, key || 's', key || 'es', regexp_replace(key, 'y$', 'ies')]) as form
+    where key <> ''
+      and ${haystack} like '% ' || form || ' %'
   )`;
 }
 

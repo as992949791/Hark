@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { TermInput } from "@/components/product/TermInput";
 import { Button } from "@/components/ui/button";
+import type { HiddenLead } from "@/lib/leads";
 import {
   saveLeadFiltersAction,
   type ProfileState,
@@ -22,8 +23,8 @@ export type LeadFiltersFields = {
 
 type LeadFiltersFormProps = {
   filters: LeadFiltersFields;
-  /** How many of the month's new Reddit leads the word lists keep out right now. */
-  hidden: { hidden: number; total: number } | null;
+  /** How many of the month's new Reddit leads the word lists keep out right now, and the best of them. */
+  hidden: { hidden: number; total: number; leads: HiddenLead[] } | null;
 };
 
 const INITIAL: ProfileState = { error: null, saved: false };
@@ -58,6 +59,36 @@ function Score({
       placeholder={placeholder}
       className={`${INPUT} w-32 tabular-nums`}
     />
+  );
+}
+
+/**
+ * What the saved word lists keep out of this month's leads, by name, so a skip
+ * word that also catches real buyers, who mention it in passing, is seen.
+ */
+function HiddenLeads({ hidden }: { hidden: NonNullable<LeadFiltersFormProps["hidden"]> }) {
+  const unnamed = hidden.hidden - hidden.leads.length;
+  return (
+    <div className="flex flex-col gap-2 rounded-control bg-surface-2 p-3">
+      <p className="text-small text-fg-muted">
+        Right now they keep {hidden.hidden} of this month&apos;s {hidden.total} new Reddit leads
+        out. If one of these is someone you want, loosen the word that hides it.
+      </p>
+      <ul className="flex flex-col gap-1.5">
+        {hidden.leads.map((lead) => (
+          <li key={lead.id} className="flex items-baseline gap-2 text-small">
+            <span className="w-6 shrink-0 text-right tabular-nums text-fg-muted">{lead.score}</span>
+            <a href={lead.url} target="_blank" rel="noreferrer" className="min-w-0 truncate text-fg hover:underline">
+              {lead.title}
+            </a>
+            <span className="shrink-0 text-fg-muted">
+              {lead.skippedFor ? `mentions “${lead.skippedFor}”` : "mentions none of the required words"}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {unnamed > 0 ? <p className="text-small text-fg-muted">And {unnamed} more.</p> : null}
+    </div>
   );
 }
 
@@ -104,10 +135,8 @@ export function LeadFiltersForm({ filters, hidden }: LeadFiltersFormProps) {
         as whole words in any case, plurals included, in the post&apos;s title and text and the
         reply itself when a lead is one. Leave the first empty to allow every
         topic.
-        {hidden && hidden.hidden > 0
-          ? ` Right now they keep ${hidden.hidden} of this month's ${hidden.total} new Reddit leads out.`
-          : null}
       </p>
+      {hidden && hidden.hidden > 0 ? <HiddenLeads hidden={hidden} /> : null}
       <div className="flex flex-wrap gap-6">
         <Line label="Minimum score to show a lead">
           <Score name="scoreThreshold" value={filters.scoreThreshold} />

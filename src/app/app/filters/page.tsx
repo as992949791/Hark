@@ -5,7 +5,7 @@ import { ScoringPanel } from "@/components/product/ScoringPanel";
 import { Button } from "@/components/ui/button";
 import { requireLocalUser } from "@/lib/auth";
 import { ALERT_SCORE_FLOOR, parseLeadFilters } from "@/lib/leadFilters";
-import { wordsHideCount } from "@/lib/leads";
+import { wordsHidden } from "@/lib/leads";
 import { activeProject } from "@/lib/projects";
 import { DEFAULT_SCORE_THRESHOLD } from "@/lib/scan/constants";
 import { scoringPreview } from "@/lib/scoring/apply";
@@ -40,7 +40,7 @@ export default async function FiltersPage({ searchParams }: FiltersPageProps) {
     );
   }
 
-  const [preview, hidden] = await Promise.all([scoringPreview(project.id), wordsHideCount(project.id)]);
+  const [preview, hidden] = await Promise.all([scoringPreview(project.id), wordsHidden(project.id)]);
   const filters = parseLeadFilters(project.leadFilters);
 
   // Both forms hold what was typed in them, so switching projects draws them afresh.

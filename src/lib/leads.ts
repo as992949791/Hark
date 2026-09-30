@@ -14,7 +14,7 @@ import {
 } from "@/db/schema";
 import { redditLeadNotMuted } from "./mutes";
 import { forgetProjectFeed } from "./projectFeedCache";
-import { FEED_FLOOR_SQL, redditWordsWhere } from "./leadFilters";
+import { FEED_FLOOR_SQL, mentions, parseLeadFilters, redditWordsWhere } from "./leadFilters";
 import { atBounds } from "./feed";
 
 import type {
@@ -342,30 +342,80 @@ export async function feedFacets(projectId: string): Promise<FeedFacets> {
   };
 }
 
+/** A lead the word lists keep out, with the rule that does it. */
+export type HiddenLead = {
+  id: string;
+  title: string;
+  url: string;
+  score: number;
+  /** The skip word it mentions, or null when it mentions none of the required ones. */
+  skippedFor: string | null;
+};
+
+/** How many hidden leads the Filters page names; past this it only counts them. */
+const HIDDEN_SHOWN = 8;
+
 /**
  * Of the month's new buyer leads over the minimum score, how many the word
- * lists keep out, so the owner can see what a list is doing before trusting it.
+ * lists keep out, and the best of them by name with the word that does it, so
+ * an owner can see a list catching a real buyer before trusting it: a skip
+ * word a buyer mentions in passing hides them as surely as an unrelated thread.
  */
-export async function wordsHideCount(projectId: string): Promise<{ hidden: number; total: number }> {
-  const [row] = await db()
-    .select({
-      total: count(),
-      kept: sql<number>`count(*) filter (where ${redditWordsWhere()})`.mapWith(Number),
-    })
-    .from(leads)
-    .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
-    .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
-    .innerJoin(projects, eq(projects.id, leads.projectId))
-    .where(
-      and(
-        eq(leads.projectId, projectId),
-        eq(leads.status, "new"),
-        eq(leads.kind, "buyer"),
-        sql`${leads.score} >= ${FEED_FLOOR_SQL}`,
-        newerThan(30),
-      ),
-    );
-  return { hidden: (row?.total ?? 0) - (row?.kept ?? 0), total: row?.total ?? 0 };
+export async function wordsHidden(
+  projectId: string,
+): Promise<{ hidden: number; total: number; leads: HiddenLead[] }> {
+  const month = and(
+    eq(leads.projectId, projectId),
+    eq(leads.status, "new"),
+    eq(leads.kind, "buyer"),
+    sql`${leads.score} >= ${FEED_FLOOR_SQL}`,
+    newerThan(30),
+  );
+  const [counts, rows] = await Promise.all([
+    db()
+      .select({
+        total: count(),
+        kept: sql<number>`count(*) filter (where ${redditWordsWhere()})`.mapWith(Number),
+      })
+      .from(leads)
+      .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
+      .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
+      .innerJoin(projects, eq(projects.id, leads.projectId))
+      .where(month),
+    db()
+      .select({
+        id: leads.id,
+        title: redditPosts.title,
+        postBody: redditPosts.body,
+        commentBody: redditComments.body,
+        url: redditPosts.url,
+        score: leads.score,
+        filters: projects.leadFilters,
+      })
+      .from(leads)
+      .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
+      .leftJoin(redditComments, eq(redditComments.id, leads.commentId))
+      .innerJoin(projects, eq(projects.id, leads.projectId))
+      .where(and(month, sql`not ${redditWordsWhere()}`))
+      .orderBy(desc(leads.score), desc(leads.foundAt))
+      .limit(HIDDEN_SHOWN),
+  ]);
+  const total = counts[0]?.total ?? 0;
+  return {
+    hidden: total - (counts[0]?.kept ?? 0),
+    total,
+    leads: rows.map((row) => {
+      const text = [row.title, row.postBody, row.commentBody].filter(Boolean).join(" ");
+      const { skipIfMentions } = parseLeadFilters(row.filters);
+      return {
+        id: row.id,
+        title: row.title,
+        url: row.url,
+        score: row.score,
+        skippedFor: skipIfMentions.find((term) => mentions(text, term)) ?? null,
+      };
+    }),
+  };
 }
 
 /** New leads the feed would show, whatever their age, for the rail's badge. */

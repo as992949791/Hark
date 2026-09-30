@@ -22,6 +22,9 @@ describe("word matching", () => {
     expect(mentions("anything", "++")).toBe(false);
     expect(mentions("How do you send invoices?", "invoice")).toBe(true);
     expect(mentions("Two quick fixes", "fix")).toBe(true);
+    expect(mentions("What are the best proxies?", "proxy")).toBe(true);
+    expect(mentions("Scraping many companies", "Company")).toBe(true);
+    expect(mentions("Proxyman for open source", "proxy")).toBe(false);
     expect(mentions("The invoice's due date", "invoice")).toBe(true);
     expect(mentions("Invoicing is dull", "invoice")).toBe(false);
   });
@@ -98,14 +101,16 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
   it("keeps the unrelated thread that shares the product's word out of the feed and the digest", async () => {
     const owned = await fixture({ skipIfMentions: ["hiring"] });
     const { wanted } = await seedRepro(owned);
-    const { listLeads, countLeads, newLeadCount, wordsHideCount } = await import("@/lib/leads");
+    const { listLeads, countLeads, newLeadCount, wordsHidden } = await import("@/lib/leads");
     const { newLeadsSince } = await import("@/lib/alerts/leads");
     const { alertable } = await import("@/lib/alerts/select");
 
     expect((await listLeads(owned.project.id, { status: "new", days: 30 })).map((row) => row.id)).toEqual([wanted]);
     expect(await countLeads(owned.project.id, { status: "new", days: 30 })).toBe(1);
     expect(await newLeadCount(owned.project.id)).toBe(1);
-    expect(await wordsHideCount(owned.project.id)).toEqual({ hidden: 1, total: 2 });
+    const hidden = await wordsHidden(owned.project.id);
+    expect(hidden).toMatchObject({ hidden: 1, total: 2 });
+    expect(hidden.leads.map((row) => [row.title, row.skippedFor])).toEqual([["Hiring: invoice clerk, remote", "hiring"]]);
     const since = new Date(Date.now() - 2 * HOUR_MS);
     expect(alertable(await newLeadsSince(owned.project.id, since), since).map((row) => row.id)).toEqual([wanted]);
   });
@@ -219,7 +224,7 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
   });
 
   it("matches in SQL exactly as it does in TypeScript", async () => {
-    const filters = { mustMention: ["open source", "C#"], skipIfMentions: ["job"] };
+    const filters = { mustMention: ["open source", "C#"], skipIfMentions: ["job", "proxy"] };
     const owned = await fixture(filters);
     const texts = [
       "Open-source CRM anyone?",
@@ -231,6 +236,8 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
       "Café open source ünïcode",
       "Open sources and C#s",
       "jobsite for sources",
+      "Best proxies for open source",
+      "Proxyman is open source",
     ];
     const ids = new Map<string, string>();
     for (const text of texts) {
@@ -245,5 +252,7 @@ describe.skipIf(!hasDatabase)("a project's filters where leads are read", () => 
     expect(expected).not.toContain("jobs board for open source");
     expect(expected).toContain("Open sources and C#s");
     expect(expected).not.toContain("opensource tools");
+    expect(expected).not.toContain("Best proxies for open source");
+    expect(expected).toContain("Proxyman is open source");
   });
 });
