@@ -7,7 +7,6 @@ import { MarketingAnyapi } from "./MarketingAnyapi";
 import { MotionPanel } from "./MotionPanel";
 import { CtaRow } from "./CtaRow";
 import { BrandStack, BrandWord } from "./BrandWord";
-import type { Variant } from "./VariantSwitcher";
 import { REPO_URL } from "./researchContent";
 import "./marketing.css";
 import "./below-fold.css";
@@ -15,10 +14,10 @@ import "./round-three.css";
 import "./round-four.css";
 import "./anyapi.css";
 
-/** One feature story, with three reviewable hero compositions. */
-export function MarketingPageLayout({ variant }: { variant: Variant }) {
+/** The home page: one feature story under the hero. */
+export function MarketingPageLayout() {
   return (
-    <main className={`marketing marketing-${variant}`}>
+    <main className="marketing">
       <MotionPanel>
         <MarketingNav />
         <section className="hero-layout" aria-labelledby="marketing-title">

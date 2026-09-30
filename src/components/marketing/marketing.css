@@ -30,7 +30,6 @@
 /* Each clause of the headline holds its own line; the headline is wider than the copy under it. */
 .hero-line { display: inline-block; }
 .hero-layout h1 { position: relative; left: 50%; width: min(1240px, 94vw); transform: translateX(-50%); font-size: clamp(34px, 3.2vw, 50px); }
-.marketing-b .hero-layout h1 { left: auto; transform: none; }
 .marketing .hero-open { font-size: 18px; margin-block: 16px 28px; }
 .hero-open a { display: inline-flex; align-items: center; gap: 2px; color: var(--fg); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 4px; }
 .hero-open svg { width: 16px; height: 16px; }
@@ -107,19 +106,6 @@
 /* Every landscape window deliberately runs through the sky panel's bottom. */
 .marketing-hero { height: 820px; overflow: hidden; }
 .hero-product { max-width: 1120px; }
-.marketing-b .marketing-hero { background: linear-gradient(115deg, var(--bg), var(--m-sky-bottom) 55%, var(--m-sky-top)); }
-.marketing-b .hero-copy { text-align: left; max-width: 1120px; }
-.marketing-b .hero-copy h1 { max-width: 900px; }
-.marketing-b .hero-description { margin-inline: 0; max-width: 720px; }
-.marketing-b .hero-copy .cta-row, .marketing-b .hero-promises { justify-content: flex-start; }
-.marketing-b .hero-product { max-width: 1200px; transform: translateX(32px); }
-.marketing-b .marketing-showcase { align-items: flex-start; }
-.marketing-b .marketing-hero::before { transform: translateX(20%); }
-.marketing-c .marketing-hero { background: linear-gradient(180deg, var(--bg), var(--m-sky-bottom) 55%, var(--m-horizon)); }
-.marketing-c .hero-copy { max-width: 1050px; }
-.marketing-c h1 { font-size: 48px; }
-.marketing-c .hero-product { max-width: 1240px; }
-.marketing-c .marketing-hero::before { opacity: 0.55; transform: translateY(28%); }
 @media (max-width: 760px) {
   .marketing { padding: 8px; }
   .marketing-nav { padding: 16px; gap: 10px; }
@@ -127,15 +113,13 @@
   .marketing-nav nav { display: none; }
   .marketing-nav .marketing-button { padding: 8px 12px; min-height: 40px; font-size: 12px; }
   .hero-layout { padding: 28px 16px; }
-  .marketing-c h1 { font-size: 38px; }
   .hero-description { font-size: 14px; }
   .hero-break { display: none; }
   .marketing-button { padding: 10px 14px; font-size: 12px; }
   .marketing-showcase [role="tab"] { padding-inline: 12px; }
-  .hero-product, .marketing-b .hero-product, .marketing-c .hero-product { width: 100%; max-width: none; transform: none; }
+  .hero-product { width: 100%; max-width: none; transform: none; }
   .hero-product .product-mat { width: 580px; align-self: flex-start; }
   .marketing-hero { height: 760px; }
-  .marketing-c .product-mat { transform: translateX(-70px); }
 }
 @media (prefers-reduced-motion: reduce) { .marketing a, .marketing button { transition: none; }
 }
