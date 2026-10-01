@@ -1,14 +1,14 @@
 import { askJev, choice, noul, score, type Answers } from "@/lib/jev";
+import { LlmCapReachedError } from "@/lib/llm";
 import type { ProductFacts } from "@/lib/product";
 import { productState } from "@/lib/product";
-import { askInBatches, stateTokens } from "@/lib/scan/batches";
 import { engagementScore } from "@/lib/scan/constants";
 import { plainTypography, truncateBody } from "@/lib/scan/evidence";
 import { NO_QUOTE } from "@/lib/scan/questions";
 import { spans } from "@/lib/scan/spans";
 import { isVerbatim } from "@/lib/scan/validate";
 import { assertXLlmUnderCap } from "./budget";
-import { BIO_CHARS, BODY_CHARS } from "./constants";
+import { BIO_CHARS, BODY_CHARS, type XPurpose } from "./constants";
 import {
   decide,
   fitFrom,
@@ -16,7 +16,6 @@ import {
   replyScore,
   venueScore,
   foldScore,
-  priorityFor,
   reasonFrom,
   stageFor,
   type XDecision,
@@ -26,8 +25,10 @@ import {
   type XSignals,
   type XStage,
 } from "./gates";
+import { ownWords } from "./map";
 import { xQuestions } from "./questions";
 import { reachScore } from "./reach";
+import type { StoredXPost } from "./store";
 
 /**
  * One X post judged against one product, one post per request, as Reddit's
@@ -64,6 +65,33 @@ export type XCandidate = {
   venue?: boolean;
 };
 
+/**
+ * A stored post as the judge reads it: its own words, or the self-thread its
+ * context walk joined above them, and the posts that walk found it answering.
+ */
+export function candidateOf(
+  post: StoredXPost,
+  context: { text?: string; replyingTo?: string[]; chainIncomplete?: boolean } | null,
+  bio: string | null,
+  venue: boolean,
+): XCandidate {
+  return {
+    tweetId: post.id,
+    text: context?.text ?? ownWords(post),
+    rawText: post.text,
+    authorUsername: post.authorUsername,
+    replyingTo: context?.replyingTo ?? [],
+    chainIncomplete: context?.chainIncomplete ?? false,
+    bio,
+    createdAt: post.createdAt,
+    replyCount: post.replyCount,
+    likeCount: post.likeCount,
+    viewCount: post.viewCount,
+    fetchedAt: post.fetchedAt,
+    venue,
+  };
+}
+
 export type XAssessment = {
   level: XLevel;
   decision: XDecision;
@@ -74,7 +102,6 @@ export type XAssessment = {
   intent: number;
   engagement: number;
   score: number;
-  priority: "p0" | "p1" | null;
   needQuote: string | null;
   /** Every raw answer, kept so the gates can be replayed and an X model fitted later. */
   signals: Answers;
@@ -177,7 +204,6 @@ export function assess(
         : route === "need"
           ? replyScore(signals, engagement)
           : foldScore(fit, signals.intent, engagement),
-    priority: priorityFor(decision, signals.intent),
     needQuote,
     signals: answers,
   };
@@ -207,7 +233,9 @@ export function storedRoute(
 /**
  * Judges one candidate, or null when the model never answered: an unanswered
  * post keeps no verdict and is asked again later, never rejected. A spent
- * budget, global or X's own, is thrown, and the run ends partial.
+ * budget, global or X's own, is thrown, and the run ends partial. The call is
+ * recorded under `purpose`, which the day's judged allowance counts by
+ * (run.ts poolsFor): x_score and x_final by default.
  */
 export async function judgeX(
   projectId: string,
@@ -215,27 +243,23 @@ export async function judgeX(
   candidate: XCandidate,
   level: XLevel,
   replies = true,
+  purpose: XPurpose = level === "complete" ? "x_final" : "x_score",
 ): Promise<XAssessment | null> {
   const { state, sentences } = candidateState(product, candidate, level);
   const questions = xQuestions(Object.keys(sentences), {
     complete: level === "complete",
     brief: product.brief,
   });
-  const [result] = await askInBatches<XCandidate, XAssessment | null>(
-    [candidate],
-    1,
-    async () => {
-      await assertXLlmUnderCap();
-      const answers = await askJev({
-        purpose: level === "complete" ? "x_final" : "x_score",
-        projectId,
-        state,
-        questions,
-      });
-      return [assess(answers, candidate, sentences, level, new Date(), replies)];
-    },
-    () => [null],
-    () => stateTokens(state),
-  );
-  return result ?? null;
+  try {
+    await assertXLlmUnderCap();
+    const answers = await askJev({ purpose, projectId, state, questions });
+    return assess(answers, candidate, sentences, level, new Date(), replies);
+  } catch (error) {
+    if (error instanceof LlmCapReachedError) {
+      throw error;
+    }
+    // A dropped call, a refused request or an answer missing a question the
+    // gates read: unanswered, never rejected.
+    return null;
+  }
 }

@@ -6,6 +6,7 @@ import { enqueueOnce, writeProgress } from "@/jobs/enqueue";
 import { projectHasAlertChannel } from "@/lib/alerts/channels";
 import { clientForUser } from "@/lib/anyapi";
 import { config } from "@/lib/config";
+import { inFlight } from "@/lib/inFlight";
 import { parseScoring } from "@/lib/scoring/weights";
 import { LlmCapReachedError } from "@/lib/llm";
 import type { ProductFacts } from "@/lib/product";
@@ -20,7 +21,6 @@ import {
   FEED_WINDOW_DAYS,
   FIRST_LOOK_EXTRA,
   FIRST_LOOK_HOURS,
-  FIRST_LOOK_LANES,
   FIRST_LOOK_PAGES,
   MAX_LLM_ATTEMPTS,
   MAX_WINDOW_HOURS,
@@ -37,10 +37,11 @@ import {
 } from "./constants";
 import { buyBio, joinedText, ParentWalkError, storedParents, walkParents } from "./context";
 import { xEnabledFor } from "./enabled";
-import { judgeX, storedRoute, type XCandidate } from "./judge";
+import { candidateOf, judgeX, storedRoute } from "./judge";
 import { XLaneRefusedError } from "./grammar";
 import { compileLanes, lanesInputHash, rivalSeeds, VENUE_FAMILIES, type SeedSlots } from "./lanes";
 import { ownWords } from "./map";
+import { semaphore } from "./pace";
 import { checkReply } from "./reply";
 import { emptyCounts, finishXRun, markFirstLead, startXRun, type XRunCounts } from "./report";
 import { freeScreen, isListicle, isOwnOrRivalAccount, isVendorHook, matchedLaneTerms, PITCH_REASONS } from "./screen";
@@ -235,18 +236,17 @@ export function domainLabel(url: string | null): string | null {
 }
 
 /**
- * The project's lanes this scan may run: the tier's count of the lowest-ranked
- * active lanes, so a paused or refused lane hands its slot to the next one,
- * least recently run first so a short page budget rotates through them rather
- * than starving the last. Every compiled lane is stored, ranked (orderLanes).
- * They are recompiled only when the rivals, the seed words, the project's own
- * names, the language or the templates changed: a recompile gives a paused lane
- * another chance, a refused one stays refused, and every lane the compile no
- * longer makes is retired, whatever its state, so old searches never pile up.
+ * The project's lanes this scan may run: every active lane (a trial-size dev
+ * run takes only the lowest-ranked few, `sized`), least recently run first so
+ * a short page budget rotates through them rather than starving the last.
+ * Every compiled lane is stored, ranked (orderLanes). They are recompiled only
+ * when the rivals, the seed words, the project's own names or the templates
+ * changed: a recompile gives a paused lane another chance, a refused one stays
+ * refused, and every lane the compile no longer makes is retired, whatever its
+ * state, so old searches never pile up.
  */
 async function syncLanes(input: {
   projectId: string;
-  lang: string;
   storedHash: string | null;
   seeds: string[];
   slots: SeedSlots | null;
@@ -254,7 +254,7 @@ async function syncLanes(input: {
   x: XLimits;
   now: Date;
 }): Promise<Lane[]> {
-  const { projectId, lang, seeds, slots, x } = input;
+  const { projectId, seeds, slots, x } = input;
   // A lane paused for coming back empty is tried again once a week: a quiet
   // search on a daily tier should not hold a slot, nor be lost for good.
   const retryEmptyBefore = new Date(input.now.getTime() - EMPTY_RETRY_DAYS * 24 * HOUR_MS);
@@ -277,11 +277,11 @@ async function syncLanes(input: {
     );
     return ranked.sort((a, b) => (a.lastRunAt?.getTime() ?? 0) - (b.lastRunAt?.getTime() ?? 0));
   };
-  const hash = lanesInputHash(seeds, lang, slots, input.ownNames);
+  const hash = lanesInputHash(seeds, slots, input.ownNames);
   if (hash === input.storedHash) {
     return active();
   }
-  const compiled = compileLanes({ rivals: seeds, slots, ownNames: input.ownNames, lang });
+  const compiled = compileLanes({ rivals: seeds, slots, ownNames: input.ownNames });
   const bodies = compiled.map((lane) => lane.body);
   await db().transaction(async (tx) => {
     await tx
@@ -411,24 +411,6 @@ function ownHandle(handle: string, own: Set<string>): boolean {
   });
 }
 
-function candidateOf(post: StoredXPost, context: StoredContext | null, bio: string | null, venue: boolean): XCandidate {
-  return {
-    tweetId: post.id,
-    text: context?.text ?? ownWords(post),
-    rawText: post.text,
-    authorUsername: post.authorUsername,
-    replyingTo: context?.replyingTo ?? [],
-    chainIncomplete: context?.chainIncomplete ?? false,
-    bio,
-    createdAt: post.createdAt,
-    replyCount: post.replyCount,
-    likeCount: post.likeCount,
-    viewCount: post.viewCount,
-    fetchedAt: post.fetchedAt,
-    venue,
-  };
-}
-
 /**
  * A thread's post, credited to the lane whose reply led to it, in the lane's
  * funnel as well as its verdicts, so "seen · screened out · judged" adds up.
@@ -522,25 +504,23 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
     product,
     phrasings: scanProject.phrasings,
     competitors: named,
-    lang: state.lang,
   });
   // A competitor row that names no product ("this", "contact form") is never searched.
   const notProducts = new Set(
     (slots?.notProducts ?? []).map((name) => slug(name)).filter((name) => name.length > 0),
   );
   const seeds = named.filter((name) => !notProducts.has(slug(name)));
-  // The project's first look reads the last month, across up to FIRST_LOOK_LANES
-  // searches, on a bigger allowance; a trial-size dev run keeps its small caps.
+  // The project's first look reads the last month on a bigger allowance; a
+  // trial-size dev run keeps its small caps.
   const { firstLook, since: poolsSince } = await firstLookState(projectId, run.id);
   const bigFirstLook = firstLook && !smallSweep();
   const lanes = await syncLanes({
     projectId,
-    lang: state.lang,
     storedHash: state.lanesInputHash,
     seeds,
     slots,
     ownNames,
-    x: bigFirstLook && x.lanes !== null ? { ...x, lanes: Math.max(x.lanes, FIRST_LOOK_LANES) } : x,
+    x,
     now,
   });
   // Every lane the project ever had, retired ones too: a post an earlier run
@@ -581,22 +561,7 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
   };
 
   // Posts move through context and judging POST_CONCURRENCY at a time.
-  let active = 0;
-  const queue: Array<() => void> = [];
-  const slot = async <T>(fn: () => Promise<T>): Promise<T> => {
-    if (active >= POST_CONCURRENCY) {
-      await new Promise<void>((resolve) => queue.push(resolve));
-    } else {
-      active += 1;
-    }
-    try {
-      return await fn();
-    } finally {
-      const next = queue.shift();
-      if (next) next();
-      else active -= 1;
-    }
-  };
+  const slot = semaphore(() => POST_CONCURRENCY);
 
   /** One paid lookup failed for this post: it keeps its stage and loses one attempt. */
   const lookupFailed = async (evaluation: XEvaluation, error: unknown) => {
@@ -685,7 +650,6 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
       engagement: evaluation.engagement,
       reason: verdict.why,
       quote: verdict.quote,
-      priority: null,
       moment: verdict.moment,
     });
     await updateEvaluation(evaluation.id, {
@@ -694,7 +658,6 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
       reason: verdict.why,
       needQuote: verdict.quote,
       signals,
-      judgedAt: new Date(),
     });
     if (won) {
       counts.replies += 1;
@@ -873,11 +836,9 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
         laneId,
         // The lane's words, when the post shows them itself: the search may just not have reached it.
         matchedPhrase: laneId ? matchedLaneTerms(parent, termsOf.get(laneId) ?? [], venue) : null,
-        text: parent.text,
-        profileVersion: scanProject.profileVersion,
         context,
       };
-      const screen = freeScreen({ post: parent, since: threadSince, lang: state.lang, ownNames, rivals: seeds, laneTerms: [], financeProduct, venue });
+      const screen = freeScreen({ post: parent, since: threadSince, ownNames, rivals: seeds, laneTerms: [], financeProduct, venue });
       // The screen's account rules come after its bare-link rule, so an image's author is checked here.
       const account = isOwnOrRivalAccount(parent, ownNames, seeds) || slug(parent.authorUsername) === "grok";
       const image = !screen.pass && screen.reason === "bare_link" && (parent.mediaCount ?? 0) > 0;
@@ -1064,7 +1025,6 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
       const screen = freeScreen({
         post,
         since,
-        lang: state.lang,
         ownNames,
         rivals: seeds,
         laneTerms: lane.terms,
@@ -1081,8 +1041,6 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
         matchedPhrase,
         stage,
         freeReject: screen.pass ? null : screen.reason,
-        text: post.text,
-        profileVersion: scanProject.profileVersion,
       });
       if (!sighting) {
         // A thread's walk may have written it first: the words this search matched still show on its card.
@@ -1168,19 +1126,19 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
   // The tab puts "Searching X now:" before this line.
   const searches = `${due.length} ${due.length === 1 ? "search" : "searches"}`;
   await progress(due.length === 0 ? "checking posts found earlier" : firstLook ? `the last 30 days, ${searches}` : searches);
-  await Promise.all(
-    Array.from({ length: Math.min(LANE_CONCURRENCY, due.length) }, async (_, worker) => {
-      for (let index = worker; index < due.length; index += LANE_CONCURRENCY) {
-        // An unexpected error in one lane stops the run the way a post's does:
-        // the posts already moving are drained and the run is finished first.
-        try {
-          await searchLane(due[index]);
-        } catch (error) {
-          failure ??= error;
-          stopped ??= "An X search could not be processed.";
-        }
+  await inFlight(
+    due,
+    async (lane) => {
+      // An unexpected error in one lane stops the run the way a post's does:
+      // the posts already moving are drained and the run is finished first.
+      try {
+        await searchLane(lane);
+      } catch (error) {
+        failure ??= error;
+        stopped ??= "An X search could not be processed.";
       }
-    }),
+    },
+    LANE_CONCURRENCY,
   );
   await drain();
 
@@ -1236,23 +1194,22 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
     // 30 s, so one after another a first look's twenty-odd kept its replies
     // back for over ten minutes (AnyAPI, 2026-09-28).
     let unanswered = 0;
-    let next = 0;
-    const worker = async () => {
-      while (!stopped && !failure && next < candidates.length) {
-        const row = candidates[next];
-        next += 1;
+    await inFlight(
+      candidates,
+      async (row) => {
+        if (stopped || failure) return;
         const post = byId.get(row.tweetId);
-        if (!post) continue;
+        if (!post) return;
         const known = (row.context as StoredContext | null) ?? null;
         try {
           const refusal = replies ? unpaidRefusal(row, post, known) : "replies_off";
           if (refusal) {
             await settleCandidate(row, post, { code: refusal });
-            continue;
+            return;
           }
           // A scan kept alive only by an alert channel sends asks: a reply
           // candidate waits for the tab to be opened, or settles for free.
-          if (!openedRecently || pools.replyChecks.spent || unanswered >= MAX_UNANSWERED_REPLIES) continue;
+          if (!openedRecently || pools.replyChecks.spent || unanswered >= MAX_UNANSWERED_REPLIES) return;
           unanswered = (await checkWorthReply(row, post, known)) ? 0 : unanswered + 1;
         } catch (error) {
           if (isStopError(error)) {
@@ -1260,11 +1217,10 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
             return;
           }
           failure ??= error;
-          return;
         }
-      }
-    };
-    await Promise.all(Array.from({ length: REPLY_CONCURRENCY }, worker));
+      },
+      REPLY_CONCURRENCY,
+    );
   }
   // Last, and only for a tab someone reads: a score for what the free screen
   // set aside, so Filtered out ranks it. Nothing waits on it and nothing is

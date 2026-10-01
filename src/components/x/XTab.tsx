@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { openXAction, scanXNowAction } from "@/app/app/x/actions";
 import { PaidButton } from "@/components/PaidButton";
-import { Skeleton } from "@/components/Skeleton";
+import { ListSkeleton } from "@/components/Skeleton";
 import { StartOnOpen } from "@/components/StartOnOpen";
 import { VerdictBadge } from "@/components/VerdictBadge";
 import { LeadWorkspace } from "@/components/leads/LeadWorkspace";
@@ -21,7 +21,6 @@ import { atBounds, atKey, grainOf, type FeedParams } from "@/lib/feed";
 import { compactCount, relativeAge, relativeUntil } from "@/lib/format";
 import { tierForUser } from "@/lib/tier";
 import { QUIET_RECHECK_DAYS } from "@/lib/x/constants";
-import { TIERS, xLimitsFor } from "@/lib/tiers";
 import { allowanceFor } from "@/lib/throttle";
 import {
   X_STATUSES,
@@ -194,15 +193,7 @@ function ArrivingLeads() {
         matches words exactly, so this is a short list, not a feed: a few posts a week is normal, and some products see
         none.
       </p>
-      {Array.from({ length: 4 }, (_, index) => (
-        <div key={index} className="flex items-center gap-3 border-b p-3 last:border-b-0" style={{ opacity: 1 - index * 0.2 }}>
-          <Skeleton className="size-8 shrink-0 rounded-full" />
-          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <Skeleton className="h-4 w-full max-w-80" />
-            <Skeleton className="h-3 w-40" />
-          </div>
-        </div>
-      ))}
+      <ListSkeleton rows={4} bare fade={0.2} />
     </div>
   );
 }
@@ -269,7 +260,7 @@ export async function XTab({ userId, project, params }: { userId: string; projec
     listXLeads(project.id, filter),
     filter.status === "new" ? listXHeld(project.id, filter) : Promise.resolve([]),
     filter.status === "new" ? listXFiltered(project.id, filter) : Promise.resolve(NOTHING_FILTERED),
-    listXLanes(project.id, xLimitsFor(tier.limits).lanes),
+    listXLanes(project.id),
     listXFaces(project.id, filter),
     allowanceFor(userId, "x_scan_now"),
   ]);
@@ -328,7 +319,7 @@ export async function XTab({ userId, project, params }: { userId: string; projec
           {tier.name === "free" && tier.limits && !firstCheck && activeLanes.length > 0 && !status.quiet.quiet ? (
             <p className="text-small text-fg-muted">
               Free checks X once a day; a connected wallet checks every search hourly,
-              about ${projectedWalletCostPerDay(activeLanes, new Date(), TIERS.connected.x.lanes ?? Infinity).toFixed(2)} a day from your own balance at this project&apos;s
+              about ${projectedWalletCostPerDay(activeLanes).toFixed(2)} a day from your own balance at this project&apos;s
               volume.{" "}
               <Link href="/app/settings" className="underline">
                 Connect a wallet
