@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   projectCompetitors,
@@ -10,9 +10,7 @@ import {
   projectSubreddits,
   projects,
 } from "@/db/schema";
-import { scanNowAction } from "@/app/app/scan";
 import { enqueueJob } from "@/jobs/enqueue";
-import { requireLocalUser } from "@/lib/auth";
 import { competitorHost } from "@/lib/competitors/host";
 import type { Destination } from "@/lib/discovery/queries";
 import { parseDestinations, parseTextList } from "@/lib/discovery/store";
@@ -22,8 +20,8 @@ import { setKeywordMutes } from "@/lib/mutes";
 import { forgetProjectFeed } from "@/lib/projectFeedCache";
 import { rerankProject } from "@/lib/scoring/apply";
 import { parseScoring, scoringSchema, type ScoringSettings } from "@/lib/scoring/weights";
-import { projectForUser } from "@/lib/projects";
-import { spendAllowance } from "@/lib/throttle";
+import { requireOwnedProject } from "@/lib/owned";
+import { pressForJob, spendAllowance } from "@/lib/throttle";
 import { tierForUser } from "@/lib/tier";
 
 export type ChipKind = "keyword" | "subreddit" | "competitor";
@@ -35,15 +33,6 @@ export type ListKind = "destination" | "phrasing" | "capability" | "exclusion" |
 type TextListKind = Exclude<ListKind, "destination">;
 export type ProfileState = { error: string | null; saved: boolean };
 export type ChipResult = { error: string | null };
-
-async function ownedProject(projectId: string) {
-  const user = await requireLocalUser();
-  const project = await projectForUser(user.id, projectId);
-  if (!project) {
-    throw new Error("That project is not yours");
-  }
-  return { user, project };
-}
 
 function text(formData: FormData, field: string): string {
   return String(formData.get(field) ?? "").trim();
@@ -79,7 +68,7 @@ export async function saveProfileAction(
   formData: FormData,
 ): Promise<ProfileState> {
   try {
-    const { project } = await ownedProject(text(formData, "projectId"));
+    const { project } = await requireOwnedProject(text(formData, "projectId"));
     const name = text(formData, "name");
     if (!name) {
       return { error: "A project needs a name.", saved: false };
@@ -138,7 +127,7 @@ export async function saveLeadFiltersAction(
   formData: FormData,
 ): Promise<ProfileState> {
   try {
-    const { project } = await ownedProject(text(formData, "projectId"));
+    const { project } = await requireOwnedProject(text(formData, "projectId"));
     const current = parseLeadFilters(project.leadFilters);
     const filters: LeadFilters = {
       mustMention: terms(formData, "mustMention"),
@@ -200,6 +189,19 @@ const NOUNS: Record<ChipKind, string> = {
   competitor: "competitors",
 };
 
+/** The table each kind of chip is a row of, and the column that names it. */
+const CHIPS = {
+  keyword: { table: projectKeywords, column: projectKeywords.keyword },
+  subreddit: { table: projectSubreddits, column: projectSubreddits.name },
+  competitor: { table: projectCompetitors, column: projectCompetitors.name },
+} as const;
+
+/** The one row of a project's plan a chip stands for. */
+function chipRow(kind: ChipKind, projectId: string, value: string) {
+  const { table, column } = CHIPS[kind];
+  return and(eq(table.projectId, projectId), eq(column, value));
+}
+
 /**
  * A row a person typed is theirs: it is marked `user`, which is what makes the
  * next discovery rebuild leave it exactly where it is.
@@ -235,7 +237,7 @@ export async function addChipAction(
   raw: string,
 ): Promise<ChipResult> {
   try {
-    const { user, project } = await ownedProject(projectId);
+    const { user, project } = await requireOwnedProject(projectId);
     const value = clean(kind, raw);
     if (!value) {
       return { error: "Type something first." };
@@ -267,53 +269,26 @@ export async function removeChipAction(
   projectId: string,
   value: string,
 ) {
-  const { project } = await ownedProject(projectId);
-  if (kind === "keyword") {
-    await db()
-      .delete(projectKeywords)
-      .where(
-        and(
-          eq(projectKeywords.projectId, project.id),
-          eq(projectKeywords.keyword, value),
-        ),
-      );
-  } else if (kind === "subreddit") {
-    await db()
-      .delete(projectSubreddits)
-      .where(
-        and(
-          eq(projectSubreddits.projectId, project.id),
-          eq(projectSubreddits.name, value),
-        ),
-      );
-  } else {
-    await db()
-      .delete(projectCompetitors)
-      .where(
-        and(
-          eq(projectCompetitors.projectId, project.id),
-          eq(projectCompetitors.name, value),
-        ),
-      );
+  const { project } = await requireOwnedProject(projectId);
+  await db().delete(CHIPS[kind].table).where(chipRow(kind, project.id, value));
+  if (kind === "competitor") {
     await bumpProfileVersion(project.id);
   }
   revalidatePath("/app/product");
   revalidatePath("/app/sources");
 }
 
-/** The rows of one kind a scan may use: everything switched on. */
+/**
+ * The rows of one kind a scan may use: everything switched on, which is the
+ * plan's retrieved states (retrieved() in lib/scan/coverage.ts).
+ */
 async function chipsOn(kind: ChipKind, projectId: string): Promise<number> {
-  const table =
-    kind === "keyword"
-      ? projectKeywords
-      : kind === "subreddit"
-        ? projectSubreddits
-        : projectCompetitors;
-  const rows = await db()
-    .select({ state: table.state })
+  const { table } = CHIPS[kind];
+  const [row] = await db()
+    .select({ count: sql<number>`count(*)::int` })
     .from(table)
-    .where(eq(table.projectId, projectId));
-  return rows.filter((row) => row.state === "active" || row.state === "pinned").length;
+    .where(and(eq(table.projectId, projectId), inArray(table.state, ["active", "pinned"])));
+  return row?.count ?? 0;
 }
 
 /**
@@ -328,7 +303,7 @@ export async function setChipStateAction(
   state: ChipState,
 ): Promise<ChipResult> {
   try {
-    const { user, project } = await ownedProject(projectId);
+    const { user, project } = await requireOwnedProject(projectId);
     // Switching a row on spends a place under the tier cap, the same as adding one.
     if (state !== "excluded") {
       const limit = await chipLimit(kind, user.id);
@@ -338,36 +313,8 @@ export async function setChipStateAction(
         };
       }
     }
-    if (kind === "keyword") {
-      await db()
-        .update(projectKeywords)
-        .set({ state })
-        .where(
-          and(
-            eq(projectKeywords.projectId, project.id),
-            eq(projectKeywords.keyword, value),
-          ),
-        );
-    } else if (kind === "subreddit") {
-      await db()
-        .update(projectSubreddits)
-        .set({ state })
-        .where(
-          and(
-            eq(projectSubreddits.projectId, project.id),
-            eq(projectSubreddits.name, value),
-          ),
-        );
-    } else {
-      await db()
-        .update(projectCompetitors)
-        .set({ state })
-        .where(
-          and(
-            eq(projectCompetitors.projectId, project.id),
-            eq(projectCompetitors.name, value),
-          ),
-        );
+    await db().update(CHIPS[kind].table).set({ state }).where(chipRow(kind, project.id, value));
+    if (kind === "competitor") {
       await bumpProfileVersion(project.id);
     }
     revalidatePath("/app/product");
@@ -392,7 +339,7 @@ export async function setCompetitorDomainAction(
   raw: string,
 ): Promise<ChipResult> {
   try {
-    const { project } = await ownedProject(projectId);
+    const { project } = await requireOwnedProject(projectId);
     const typed = raw.trim();
     const domain = typed ? competitorHost(typed) : null;
     if (typed && !domain) {
@@ -485,7 +432,7 @@ export async function addListItemAction(
   raw: string,
 ): Promise<ChipResult> {
   try {
-    const { project } = await ownedProject(projectId);
+    const { project } = await requireOwnedProject(projectId);
     const value = raw.trim();
     if (!value) {
       return { error: "Type something first." };
@@ -516,7 +463,7 @@ export async function removeListItemAction(
   projectId: string,
   value: string,
 ) {
-  const { project } = await ownedProject(projectId);
+  const { project } = await requireOwnedProject(projectId);
   const lists = productLists(project);
   if (kind === "destination") {
     lists.destinations = lists.destinations.filter((place) => place.name !== value);
@@ -534,7 +481,7 @@ export async function removeListItemAction(
  * keep a verdict that was made against a product we no longer describe.
  */
 export async function rebuildProfileAction(formData: FormData) {
-  const { user, project } = await ownedProject(
+  const { user, project } = await requireOwnedProject(
     String(formData.get("projectId") ?? ""),
   );
   if (!project.url) {
@@ -548,10 +495,11 @@ export async function rebuildProfileAction(formData: FormData) {
 
 /** Queues a scan and opens the leads the scan will fill. */
 export async function scanAndOpenLeadsAction(formData: FormData) {
-  const { project } = await ownedProject(
+  const { user, project } = await requireOwnedProject(
     String(formData.get("projectId") ?? ""),
   );
-  await scanNowAction(project.id);
+  await pressForJob(user.id, "scan_now", "scan", project.id);
+  revalidatePath("/app", "layout");
   redirect(`/app/leads?project=${project.id}`);
 }
 
@@ -565,7 +513,7 @@ export type ScoringResult = { error: string | null; moved: number };
  */
 export async function saveScoringAction(projectId: string, raw: unknown): Promise<ScoringResult> {
   try {
-    const { project } = await ownedProject(projectId);
+    const { project } = await requireOwnedProject(projectId);
     let scoring: ScoringSettings | null = null;
     if (raw !== null) {
       const parsed = scoringSchema.safeParse(raw);

@@ -21,22 +21,15 @@ vi.mock("nodemailer", () => ({
 }));
 import { digestSubject, leadAge, renderDigestHtml, renderDigestText } from "@/lib/alerts/digest";
 import { payloadFor, sendToChannel } from "@/lib/alerts/send";
-import { alertInvitesOn, discordApp, emailSender, slackApp } from "@/lib/alerts/config";
-import { discordInstallUrl, exchangeDiscordCode } from "@/lib/alerts/discord";
-import {
-  exchangeSlackCode,
-  slackInstallUrl,
-  slackLabel,
-  slackRedirectUri,
-} from "@/lib/alerts/slack";
+import { alertInvitesOn, chatAppConfigured, emailSender } from "@/lib/alerts/config";
+import { CHAT_APPS, chatRedirectUri } from "@/lib/alerts/chatApps";
 import {
   CADENCE_MS,
   CHAT_LEAD_CAP,
   effectiveCadence,
   isDue,
-  selectLeads,
+  messageLeads,
   alertable,
-  ALERT_SCORE_FLOOR,
   EMAIL_LEAD_CAP,
   FRESH_SLACK_MS,
   customWebhookAllowance,
@@ -47,6 +40,7 @@ import { describeTarget, normalizeTarget } from "@/lib/alerts/channels";
 import { isPublicAddress } from "@/lib/alerts/outbound";
 import type { Digest, DigestLead } from "@/lib/alerts/types";
 import { excerptOf } from "@/lib/alerts/excerpt";
+import { ALERT_SCORE_FLOOR } from "@/lib/leadFilters";
 import { TIERS } from "@/lib/tiers";
 
 /** Local time on purpose: the timeline axis is drawn in the reader's hours. */
@@ -116,7 +110,7 @@ describe("what one message carries", () => {
       lead({ id: "low", score: 61 }),
       lead({ id: "high", score: 88 }),
     ];
-    expect(selectLeads(rows, since, EMAIL_LEAD_CAP).map((one) => one.id)).toEqual(["high", "low"]);
+    expect(messageLeads(rows, since, EMAIL_LEAD_CAP).leads.map((one) => one.id)).toEqual(["high", "low"]);
   });
 
   it("leaves out a thread nobody asks in, a weak score and a stale post", () => {
@@ -133,13 +127,18 @@ describe("what one message carries", () => {
     const rows = Array.from({ length: 25 }, (_, index) =>
       lead({ id: `l${index}`, score: 90 - index }),
     );
-    expect(selectLeads(rows, since, CHAT_LEAD_CAP)).toHaveLength(CHAT_LEAD_CAP);
-    expect(selectLeads(rows, since, EMAIL_LEAD_CAP)).toHaveLength(EMAIL_LEAD_CAP);
-    expect(alertable(rows, since)).toHaveLength(25);
+    const chat = messageLeads(rows, since, CHAT_LEAD_CAP);
+    expect(chat.leads).toHaveLength(CHAT_LEAD_CAP);
+    expect(chat.rest.map((one) => one.id)).toEqual(
+      alertable(rows, since).slice(CHAT_LEAD_CAP).map((one) => one.id),
+    );
+    const email = messageLeads(rows, since, EMAIL_LEAD_CAP);
+    expect(email.leads).toHaveLength(EMAIL_LEAD_CAP);
+    expect(email.rest).toHaveLength(25 - EMAIL_LEAD_CAP);
   });
 
   it("hands back digest leads without the selection columns", () => {
-    const [only] = selectLeads([lead({ id: "a" })], since, EMAIL_LEAD_CAP);
+    const [only] = messageLeads([lead({ id: "a" })], since, EMAIL_LEAD_CAP).leads;
     expect(only).not.toHaveProperty("status");
     expect(only).not.toHaveProperty("foundAt");
   });
@@ -228,14 +227,14 @@ describe("the excerpt", () => {
 
 describe("chat payloads", () => {
   it("puts the headline and every lead in the Slack blocks", () => {
-    const payload = payloadFor("slack", digestOf(selectLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP)));
+    const payload = payloadFor("slack", digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads));
     expect(payload).toMatchObject({ text: "1 new lead for Acme in the last 24 hours." });
     expect(JSON.stringify(payload)).toContain("https://www.reddit.com/r/SaaS/comments/x/");
   });
 
   it("shows a Slack lead as its linked title over the author's words, not the rubric", () => {
     const one = lead({ id: "a", title: "Scraper <help> & advice" });
-    const payload = payloadFor("slack", digestOf(selectLeads([one], SINCE, EMAIL_LEAD_CAP)));
+    const payload = payloadFor("slack", digestOf(messageLeads([one], SINCE, EMAIL_LEAD_CAP).leads));
     const [first] = (
       payload as { attachments: Array<{ color: string; blocks: Array<Record<string, unknown>> }> }
     ).attachments;
@@ -254,13 +253,13 @@ describe("chat payloads", () => {
 
   it("says when the lead is a comment, and falls back to the phrase with no body", () => {
     const one = lead({ id: "a", body: null, isComment: true });
-    const payload = JSON.stringify(payloadFor("slack", digestOf(selectLeads([one], SINCE, EMAIL_LEAD_CAP))));
+    const payload = JSON.stringify(payloadFor("slack", digestOf(messageLeads([one], SINCE, EMAIL_LEAD_CAP).leads)));
     expect(payload).toContain("\\npaying too much");
     expect(payload).toContain("comment by u/ella_builds");
   });
 
   it("gives Discord one embed per lead with the score and subreddit", () => {
-    const payload = payloadFor("discord", digestOf(selectLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP)));
+    const payload = payloadFor("discord", digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads));
     expect(payload).toMatchObject({
       embeds: [
         {
@@ -279,7 +278,7 @@ describe("chat payloads", () => {
   });
 
   it("ends every chat message and email with the AnyAPI line, tagged by channel", () => {
-    const digest = digestOf(selectLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP));
+    const digest = digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads);
     const slack = (payloadFor("slack", digest) as { attachments: unknown[] }).attachments.at(-1);
     expect(JSON.stringify(slack)).toContain("utm_source=lurk&utm_medium=slack");
     expect(renderDigestHtml(digest)).toContain("utm_medium=email");
@@ -288,7 +287,7 @@ describe("chat payloads", () => {
   });
 
   it("hands a generic endpoint the digest unstyled", () => {
-    const payload = payloadFor("webhook", digestOf(selectLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP)));
+    const payload = payloadFor("webhook", digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads));
     expect(payload).toMatchObject({ project: "Acme", cadence: "daily" });
   });
 });
@@ -301,11 +300,11 @@ function structure(html: string): string {
 }
 
 describe("the digest email", () => {
-  const html = renderDigestHtml(digestOf(selectLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP)));
+  const html = renderDigestHtml(digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads));
 
   it("names the project and the count in the subject", () => {
     expect(digestSubject(digestOf([]))).toBe("0 new leads for Acme");
-    expect(digestSubject(digestOf(selectLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP)))).toBe(
+    expect(digestSubject(digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads))).toBe(
       "1 new lead for Acme",
     );
   });
@@ -321,17 +320,17 @@ describe("the digest email", () => {
 
   it("shows the matched line in place of the excerpt, unless it only repeats the title", () => {
     const quoted = renderDigestHtml(
-      digestOf(selectLeads([lead({ id: "a", body: "Intro text. We are paying too much." })], SINCE, EMAIL_LEAD_CAP)),
+      digestOf(messageLeads([lead({ id: "a", body: "Intro text. We are paying too much." })], SINCE, EMAIL_LEAD_CAP).leads),
     );
     expect(quoted).toContain("&ldquo;paying too much&rdquo;");
     expect(quoted).not.toContain("Intro text.");
     const echo = renderDigestHtml(
       digestOf(
-        selectLeads(
+        messageLeads(
           [lead({ id: "a", body: "Intro text.", matchedPhrase: "Paying too much for a scraper!" })],
           SINCE,
           EMAIL_LEAD_CAP,
-        ),
+        ).leads,
       ),
     );
     expect(echo).toContain("Intro text.");
@@ -344,7 +343,7 @@ describe("the digest email", () => {
       lead({ id: "r1", postId: "t1", isComment: true, author: "replier_one", matchedPhrase: "anyone have a cheaper one", score: 75 }),
       lead({ id: "r2", postId: "t2", isComment: true, author: "replier_two", title: "Other thread", score: 70 }),
     ];
-    const grouped = renderDigestHtml(digestOf(selectLeads(rows, SINCE, EMAIL_LEAD_CAP)));
+    const grouped = renderDigestHtml(digestOf(messageLeads(rows, SINCE, EMAIL_LEAD_CAP).leads));
     expect(grouped.match(/Paying too much for a scraper/g)).toHaveLength(1);
     expect(grouped).toContain("u/replier_one replied");
     expect(grouped).toContain("Thread in r/SaaS");
@@ -356,7 +355,7 @@ describe("the digest email", () => {
       lead({ id: "echo", isComment: true, matchedPhrase: "Paying too much for a scraper?" }),
       lead({ id: "own", isComment: true, matchedPhrase: "we need one by Friday" }),
     ];
-    expect(selectLeads(rows, SINCE, EMAIL_LEAD_CAP).map((one) => one.id)).toEqual(["own"]);
+    expect(messageLeads(rows, SINCE, EMAIL_LEAD_CAP).leads.map((one) => one.id)).toEqual(["own"]);
   });
 
   it("gives ages under two days in hours", () => {
@@ -379,7 +378,7 @@ describe("the digest email", () => {
 
   it("escapes what a Reddit title can contain", () => {
     const nasty = renderDigestHtml(
-      digestOf(selectLeads([lead({ id: "a", title: '<script>"x"</script>' })], SINCE, EMAIL_LEAD_CAP)),
+      digestOf(messageLeads([lead({ id: "a", title: '<script>"x"</script>' })], SINCE, EMAIL_LEAD_CAP).leads),
     );
     expect(nasty).not.toContain("<script>");
     expect(nasty).toContain("&lt;script&gt;");
@@ -431,7 +430,7 @@ describe("delivery", () => {
       await sendToChannel(
         "webhook",
         hook.url,
-        digestOf(selectLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP)),
+        digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads),
       );
       expect(hook.seen[0].path).toBe("/hooks");
       expect(JSON.parse(hook.seen[0].body)).toMatchObject({ project: "Acme" });
@@ -516,7 +515,7 @@ describe("delivery", () => {
     await sendToChannel(
       "email",
       "you@company.com",
-      digestOf(selectLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP)),
+      digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads),
     );
     expect(azureSend).toHaveBeenCalledTimes(1);
     const [connection, message] = azureSend.mock.calls[0];
@@ -586,20 +585,29 @@ describe("add to Slack", () => {
 
   it("is off until both halves of the app are set", () => {
     vi.stubEnv("SLACK_CLIENT_ID", "1.2");
-    expect(slackApp()).toBeNull();
-    expect(() => slackInstallUrl("s")).toThrow("SLACK_CLIENT_ID and SLACK_CLIENT_SECRET");
+    expect(chatAppConfigured("slack")).toBe(false);
+    expect(() => CHAT_APPS.slack.installUrl("s")).toThrow(
+      "Add to Slack needs SLACK_CLIENT_ID and SLACK_CLIENT_SECRET",
+    );
+    vi.stubEnv("SLACK_CLIENT_SECRET", "shh");
+    expect(chatAppConfigured("slack")).toBe(true);
   });
 
   it("sends the person to Slack asking only for a webhook, back to this instance", () => {
     vi.stubEnv("SLACK_CLIENT_ID", "1.2");
     vi.stubEnv("SLACK_CLIENT_SECRET", "shh");
-    const url = new URL(slackInstallUrl("state-1"));
+    const url = new URL(CHAT_APPS.slack.installUrl("state-1"));
     expect(url.origin + url.pathname).toBe("https://slack.com/oauth/v2/authorize");
     expect(url.searchParams.get("scope")).toBe("incoming-webhook");
     expect(url.searchParams.get("client_id")).toBe("1.2");
     expect(url.searchParams.get("state")).toBe("state-1");
     expect(url.searchParams.get("redirect_uri")).toBe("https://lurk.so/connect/slack/callback");
-    expect(slackRedirectUri()).toBe("https://lurk.so/connect/slack/callback");
+    expect(chatRedirectUri("slack")).toBe("https://lurk.so/connect/slack/callback");
+  });
+
+  // The cookie names are part of an install already under way, and the paths are registered with Slack.
+  it("keeps the cookie the flow has always used", () => {
+    expect(CHAT_APPS.slack.cookie).toBe("slack_oauth");
   });
 
   it("swaps the code for the webhook and names the channel and workspace", async () => {
@@ -614,21 +622,22 @@ describe("add to Slack", () => {
         incoming_webhook: { url: "https://hooks.slack.com/services/T/B/x", channel: "#leads" },
       });
     });
-    const install = await exchangeSlackCode("code-9");
+    const install = await CHAT_APPS.slack.exchange("code-9");
     expect(seen[0].url).toBe("https://slack.com/api/oauth.v2.access");
     const form = new URLSearchParams(seen[0].body);
     expect(form.get("code")).toBe("code-9");
     expect(form.get("client_secret")).toBe("shh");
     expect(form.get("redirect_uri")).toBe("https://lurk.so/connect/slack/callback");
-    expect(install.webhookUrl).toBe("https://hooks.slack.com/services/T/B/x");
-    expect(slackLabel(install)).toBe("#leads in AnyAPI");
+    expect(install).toEqual({ webhookUrl: "https://hooks.slack.com/services/T/B/x", label: "#leads in AnyAPI" });
   });
 
   it("says why Slack refused", async () => {
     vi.stubEnv("SLACK_CLIENT_ID", "1.2");
     vi.stubEnv("SLACK_CLIENT_SECRET", "shh");
     vi.stubGlobal("fetch", async () => Response.json({ ok: false, error: "invalid_code" }));
-    await expect(exchangeSlackCode("stale")).rejects.toThrow("invalid_code");
+    await expect(CHAT_APPS.slack.exchange("stale")).rejects.toThrow("Slack refused the install: invalid_code");
+    vi.stubGlobal("fetch", async () => new Response("Bad gateway", { status: 502 }));
+    await expect(CHAT_APPS.slack.exchange("stale")).rejects.toThrow("Slack returned 502");
   });
 });
 
@@ -647,20 +656,23 @@ describe("add to Discord", () => {
   it("is off until both halves of the app are set", () => {
     vi.stubEnv("DISCORD_CLIENT_ID", "123");
     vi.stubEnv("DISCORD_CLIENT_SECRET", "");
-    expect(discordApp()).toBeNull();
-    expect(() => discordInstallUrl("s")).toThrow("DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET");
+    expect(chatAppConfigured("discord")).toBe(false);
+    expect(() => CHAT_APPS.discord.installUrl("s")).toThrow(
+      "Add to Discord needs DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET",
+    );
   });
 
   it("sends the person to Discord asking only for a webhook, back to this instance", () => {
     vi.stubEnv("DISCORD_CLIENT_ID", "123");
     vi.stubEnv("DISCORD_CLIENT_SECRET", "shh");
-    const url = new URL(discordInstallUrl("state-1"));
+    const url = new URL(CHAT_APPS.discord.installUrl("state-1"));
     expect(url.origin + url.pathname).toBe("https://discord.com/oauth2/authorize");
     expect(url.searchParams.get("scope")).toBe("webhook.incoming");
     expect(url.searchParams.get("response_type")).toBe("code");
     expect(url.searchParams.get("client_id")).toBe("123");
     expect(url.searchParams.get("state")).toBe("state-1");
     expect(url.searchParams.get("redirect_uri")).toBe("https://lurk.so/connect/discord/callback");
+    expect(CHAT_APPS.discord.cookie).toBe("discord_oauth");
   });
 
   it("swaps the code for the webhook, building its URL when Discord leaves it out", async () => {
@@ -671,14 +683,14 @@ describe("add to Discord", () => {
       seen.push({ url: String(input), body: String(init?.body ?? "") });
       return Response.json({ webhook: { id: "77", token: "tok", channel_id: "5" } });
     });
-    const install = await exchangeDiscordCode("code-9");
+    const install = await CHAT_APPS.discord.exchange("code-9");
     expect(seen[0].url).toBe("https://discord.com/api/v10/oauth2/token");
     const form = new URLSearchParams(seen[0].body);
     expect(form.get("grant_type")).toBe("authorization_code");
     expect(form.get("code")).toBe("code-9");
     expect(form.get("client_secret")).toBe("shh");
     expect(form.get("redirect_uri")).toBe("https://lurk.so/connect/discord/callback");
-    expect(install).toEqual({ webhookUrl: "https://discord.com/api/webhooks/77/tok", channelId: "5" });
+    expect(install).toEqual({ webhookUrl: "https://discord.com/api/webhooks/77/tok" });
   });
 
   it("says why Discord refused", async () => {
@@ -687,6 +699,8 @@ describe("add to Discord", () => {
     vi.stubGlobal("fetch", async () =>
       Response.json({ error: "invalid_grant", error_description: "Invalid \"code\" in request." }, { status: 400 }),
     );
-    await expect(exchangeDiscordCode("stale")).rejects.toThrow('Invalid "code" in request.');
+    await expect(CHAT_APPS.discord.exchange("stale")).rejects.toThrow(
+      'Discord refused the install: Invalid "code" in request.',
+    );
   });
 });

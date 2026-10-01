@@ -20,8 +20,6 @@ export const CHAT_LEAD_CAP = 5;
 /** The email lists this many and counts the rest, so a big day stays readable. */
 export const EMAIL_LEAD_CAP = 20;
 
-export { ALERT_SCORE_FLOOR };
-
 /**
  * The house floor is on the Reddit lead model's scale. An X ask has already
  * passed X's own gates (src/lib/x/gates.ts `decide`), and its score only orders
@@ -155,14 +153,18 @@ export function alertable(
   return inTurns(fresh);
 }
 
-/** The leads one message carries: the first `limit` of `alertable`. */
-export function selectLeads(
+/**
+ * One message's split of `alertable`, ranked once: the first `limit` as the
+ * leads it lists, and the rest it only counts.
+ */
+export function messageLeads(
   rows: SelectableLead[],
   since: Date,
   limit: number,
   askFloor: Date = since,
-): DigestLead[] {
-  return alertable(rows, since, askFloor).slice(0, limit).map(digestLead);
+): { leads: DigestLead[]; rest: SelectableLead[] } {
+  const ranked = alertable(rows, since, askFloor);
+  return { leads: ranked.slice(0, limit).map(digestLead), rest: ranked.slice(limit) };
 }
 
 export function digestLead(row: SelectableLead): DigestLead {

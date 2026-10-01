@@ -1,50 +1,36 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { enqueueOnce } from "@/jobs/enqueue";
 import { addChannel, channelForProject, removeChannel } from "@/lib/alerts/channels";
 import { sampleDigest } from "@/lib/alerts/fixtures";
 import { CHAT_LEAD_CAP } from "@/lib/alerts/select";
 import { sendToChannel } from "@/lib/alerts/send";
 import { CHANNEL_LABELS, isAlertChannel } from "@/lib/alerts/types";
-import { requireLocalUser } from "@/lib/auth";
 import { addMute, isMuteKind, removeMute } from "@/lib/mutes";
-import { projectForUser } from "@/lib/projects";
-import { tierForUser } from "@/lib/tier";
-
-async function ownedProject(projectId: string) {
-  const user = await requireLocalUser();
-  const project = await projectForUser(user.id, projectId);
-  if (!project) {
-    throw new Error("That project is not yours");
-  }
-  return { user, project };
-}
+import { requireOwnedProject } from "@/lib/owned";
 
 export type TestSendResult = { ok: boolean; message: string };
 
-/** Adds a channel and makes sure the digest job is queued to serve it. */
+/** Adds a channel, which the hourly digest job serves from its next pass. */
 export async function addChannelAction(projectId: string, formData: FormData) {
-  const { user } = await ownedProject(projectId);
+  const { user } = await requireOwnedProject(projectId);
   const channel = String(formData.get("channel") ?? "");
   if (!isAlertChannel(channel)) {
     throw new Error("Pick a channel");
   }
   const cadence = formData.get("cadence") === "hourly" ? "hourly" : "daily";
-  const { limits } = await tierForUser(user.id);
   await addChannel({
     projectId,
+    userId: user.id,
     channel,
     target: String(formData.get("target") ?? ""),
     cadence,
-    limits,
   });
-  await enqueueOnce("digest");
   revalidatePath("/app/settings/alerts");
 }
 
 export async function removeChannelAction(projectId: string, alertId: string) {
-  await ownedProject(projectId);
+  await requireOwnedProject(projectId);
   await removeChannel(projectId, alertId);
   revalidatePath("/app/settings/alerts");
 }
@@ -54,7 +40,7 @@ export async function sendTestAction(
   projectId: string,
   alertId: string,
 ): Promise<TestSendResult> {
-  const { project } = await ownedProject(projectId);
+  const { project } = await requireOwnedProject(projectId);
   const channel = await channelForProject(projectId, alertId);
   if (!channel) {
     return { ok: false, message: "That channel is gone" };
@@ -74,7 +60,7 @@ export async function sendTestAction(
 
 /** Mutes a keyword or a subreddit for the project, in the feed and every channel. */
 export async function addMuteAction(projectId: string, formData: FormData) {
-  await ownedProject(projectId);
+  await requireOwnedProject(projectId);
   const kind = String(formData.get("kind") ?? "");
   if (!isMuteKind(kind)) {
     throw new Error("Pick a keyword or a subreddit");
@@ -84,7 +70,7 @@ export async function addMuteAction(projectId: string, formData: FormData) {
 }
 
 export async function removeMuteAction(projectId: string, muteId: string) {
-  await ownedProject(projectId);
+  await requireOwnedProject(projectId);
   await removeMute(projectId, muteId);
   revalidatePath("/app", "layout");
 }

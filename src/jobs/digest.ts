@@ -7,10 +7,9 @@ import {
   CADENCE_MS,
   CHAT_LEAD_CAP,
   EMAIL_LEAD_CAP,
-  alertable,
   effectiveCadence,
   isDue,
-  selectLeads,
+  messageLeads,
   windowStart,
 } from "@/lib/alerts/select";
 import { sendToChannel } from "@/lib/alerts/send";
@@ -56,11 +55,10 @@ export async function digestFor(
   // An X ask is held fresh from one cadence back as well, however old the window.
   const askFloor = new Date(now.getTime() - CADENCE_MS[cadence]);
   const limit = channel.channel === "email" ? EMAIL_LEAD_CAP : CHAT_LEAD_CAP;
-  const leads = selectLeads(rows, since, limit, askFloor);
+  const { leads, rest } = messageLeads(rows, since, limit, askFloor);
   if (leads.length === 0) {
     return null;
   }
-  const rest = alertable(rows, since, askFloor).slice(leads.length);
   const appUrl = config().APP_URL;
   return {
     projectName: channel.projectName,
