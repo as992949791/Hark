@@ -1,14 +1,12 @@
 import { ChartNoAxesColumn, Heart, MessageCircle, Repeat2, Search } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
-import { XBody } from "@/components/x/XBody";
+import { HighlightedBody } from "@/components/leads/HighlightedBody";
+import { compactCount } from "@/lib/format";
 import type { XThread as XThreadData, XThreadPost } from "@/lib/x/read";
 
 /** A count the way X shows one under a post: 950, 1.2K, 38K, 1.4M; nothing when X never gave it. */
 function count(value: number | null): string {
-  if (value === null || value === 0) return "";
-  if (value < 1000) return String(value);
-  if (value < 1_000_000) return `${(value / 1000).toFixed(value < 10_000 ? 1 : 0).replace(/\.0$/u, "")}K`;
-  return `${(value / 1_000_000).toFixed(1).replace(/\.0$/u, "")}M`;
+  return value === null || value === 0 ? "" : compactCount(value, { upper: true });
 }
 
 /** A post's age as X heads it: 12m and 3h inside a day, then its date. */
@@ -122,7 +120,7 @@ function ThreadRow({ post, now, joinBelow, context }: { post: XThreadPost; now: 
             </a>
           </div>
           <Handles names={post.replyingTo} />
-          <XBody text={post.text} phrase={null} className="text-body text-fg" />
+          <HighlightedBody text={post.text} phrase={null} linkify className="text-body text-fg" />
           <div className="pt-1">
             <Actions post={post} />
           </div>
@@ -177,7 +175,7 @@ export function XThread({ thread, quote, now = new Date() }: { thread: XThreadDa
           </div>
         </div>
         {thread.above.length === 0 ? <Handles names={post.replyingTo} /> : null}
-        <XBody text={post.text} phrase={quote} className="text-[17px] leading-6 text-fg" />
+        <HighlightedBody text={post.text} phrase={quote} linkify className="text-[17px] leading-6 text-fg" />
         <p className="text-small text-fg-muted">
           <a href={post.url} target="_blank" rel="noreferrer noopener" className="hover:underline">
             {stamp(post.postedAt)}

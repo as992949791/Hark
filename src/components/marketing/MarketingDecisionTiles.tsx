@@ -1,5 +1,6 @@
 import { Mail, MessageSquare, Quote, ShieldCheck, Tags, Webhook } from "lucide-react";
 import { BrandImage } from "./BrandImage";
+import { BRAND_MARKS } from "./BrandWord";
 import { EyebrowLink } from "./EyebrowLink";
 import { ALERT_THREAD, MOCK_DETAIL, RULE_THREAD } from "./mockContent";
 import { MENTION_TALLY, SAVED_THEMES } from "./researchContent";
@@ -8,7 +9,7 @@ import { ThreadIdentity } from "./ThreadIdentity";
 /** Four quiet tiles: what lurk puts in front of you before you decide to reply. */
 export function MarketingDecisionTiles() {
   return (
-    <section className="decision-section" id="decide" data-proof="reply">
+    <section className="decision-section" id="decide">
       <header className="centered-heading">
         <EyebrowLink href="#costs">Your reply, your decision</EyebrowLink>
         <h2>Context first. Nothing sends.</h2>
@@ -62,11 +63,11 @@ export function MarketingDecisionTiles() {
             <div className="quiet-card quiet-digest">
               <div className="quiet-channels">
                 <span>
-                  <BrandImage name="Slack" src="/brands/slack-color.svg" size={18} />
+                  <BrandImage name="Slack" src={BRAND_MARKS.Slack} size={18} />
                   Slack
                 </span>
                 <span>
-                  <BrandImage name="Discord" src="/brands/discord.svg" size={18} />
+                  <BrandImage name="Discord" src={BRAND_MARKS.Discord} size={18} />
                   Discord
                 </span>
                 <span>

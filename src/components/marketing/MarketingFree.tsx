@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { PRESETS } from "@/lib/settings/presets";
 import { limitsFor, type TierName } from "@/lib/tiers";
 import { AnyapiLink } from "@/components/AnyapiLink";
+import { fullCount } from "@/lib/format";
 import { BrandImage } from "./BrandImage";
 import { MONTHLY_PLANS, PRICING_OBSERVED } from "./pricingContent";
 
@@ -13,8 +14,7 @@ const OPTIONS = [
   { id: "self-host", label: "Self-host" },
 ] as const;
 type Choice = (typeof OPTIONS)[number]["id"];
-const count = (value: number | null | undefined) =>
-  value == null ? "No app limit" : value.toLocaleString("en-US");
+const count = (value: number | null | undefined) => fullCount(value, "No app limit");
 
 /** What the scan cadence preset of each option says, in the visitor's words. */
 function cadenceLabel(choice: Choice): string {
@@ -50,7 +50,7 @@ export function MarketingFree() {
     ["API reads / day", count(limits?.apiRequestsPerDay)],
   ];
   return (
-    <section className="free-section" id="costs" data-proof="costs">
+    <section className="free-section" id="costs">
       <header className="narrow-heading">
         <h2>
           <span>Free.</span> No card, no subscription.

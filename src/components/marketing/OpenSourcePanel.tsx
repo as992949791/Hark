@@ -1,9 +1,9 @@
 import { Braces, Code2 } from "lucide-react";
 import { AnyapiLink } from "@/components/AnyapiLink";
-import { REPO_URL } from "./researchContent";
+import { REPO_URL } from "@/lib/brand";
 
 const LINES = [
-  "$ git clone https://github.com/getanyapi-com/lurk.git",
+  `$ git clone ${REPO_URL}.git`,
   "$ cd lurk && cp .env.example .env",
   "$ docker compose up",
   "Applying database migrations",
@@ -15,7 +15,7 @@ const LINES = [
 /** Open source, self-host and the read-only API in the one dark panel. */
 export function OpenSourcePanel() {
   return (
-    <section className="dark-api-panel" id="self-host" data-proof="source">
+    <section className="dark-api-panel" id="self-host">
       <div className="api-panel-copy">
         <h2>
           lurk is open source.
