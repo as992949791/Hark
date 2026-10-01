@@ -1,16 +1,22 @@
+import { cache } from "react";
 import { and, asc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { projects, users } from "@/db/schema";
 import { limitsFor } from "./tiers";
 import { config } from "./config";
-import { walletConnection } from "./anyapi";
+import { tierNameFor } from "./anyapi";
 
 export type Project = typeof projects.$inferSelect;
 
-export async function listProjects(userId: string): Promise<Project[]> {
+/**
+ * Read once per server render: the layout's switcher and the page under it
+ * both need the list. Outside a render every call reads afresh (see
+ * currentLocalUser).
+ */
+export const listProjects = cache(async (userId: string): Promise<Project[]> => {
   return db().select().from(projects).where(eq(projects.userId, userId)).orderBy(asc(projects.createdAt));
-}
+});
 
 /**
  * Creates a project, refusing when the user's tier is already at its limit. The
@@ -18,8 +24,7 @@ export async function listProjects(userId: string): Promise<Project[]> {
  * requests arriving together are counted one after the other, not both at once.
  */
 export async function createProject(userId: string, name: string, url: string | null) {
-  const connected = (await walletConnection(userId)) !== null;
-  const limits = limitsFor(connected ? "connected" : "free", config().SELF_HOSTED);
+  const limits = limitsFor(await tierNameFor(userId), config().SELF_HOSTED);
   return db().transaction(async (tx) => {
     if (limits?.projects != null) {
       await tx.select({ id: users.id }).from(users).where(eq(users.id, userId)).for("update");
@@ -47,7 +52,11 @@ export async function projectForUser(userId: string, projectId: string): Promise
 
 /** The project the screen is showing: the one asked for, else the first. */
 export async function activeProject(userId: string, requested?: string): Promise<Project | null> {
-  const all = await listProjects(userId);
+  return pickProject(await listProjects(userId), requested);
+}
+
+/** activeProject over a list already in hand. */
+export function pickProject(all: Project[], requested?: string): Project | null {
   return all.find((project) => project.id === requested) ?? all[0] ?? null;
 }
 

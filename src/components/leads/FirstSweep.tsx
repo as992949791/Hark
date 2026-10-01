@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sweepAction } from "@/app/app/leads/actions";
+import { useHoldActivityPoll } from "@/components/ActivityPoll";
 import { Fleeting } from "@/components/Fleeting";
 import { ScanDone } from "@/components/leads/ScanBanner";
 import type { SweepStatus } from "@/lib/sweep";
@@ -149,6 +150,14 @@ export function FirstSweep({ projectId, first }: { projectId: string; first: Swe
   const router = useRouter();
   const [status, setStatus] = useState(first);
   const ended = status.state === "done" || status.state === "stopped";
+  // A read that finds no sweep at all means the jobs behind it are gone, which
+  // a failed setup leaves. This has nothing more to report then, so it stops
+  // reading the sweep and never reads the page again.
+  const [gone, setGone] = useState(false);
+  // This reads the page again whenever a lead lands, so the layout's poll has
+  // nothing to add while the sweep runs. It takes over again once the sweep
+  // ends or is gone, for the jobs a new project runs after it.
+  useHoldActivityPoll(!ended && !gone);
   const [lines, setLines] = useState<SetupLine[]>(() =>
     first.progress ? [{ text: first.progress, at: Date.now() }] : [],
   );
@@ -171,7 +180,7 @@ export function FirstSweep({ projectId, first }: { projectId: string; first: Swe
   }, [status.feedLeads, ended, router]);
 
   useEffect(() => {
-    if (ended) {
+    if (ended || gone) {
       return;
     }
     let stopped = false;
@@ -179,6 +188,9 @@ export function FirstSweep({ projectId, first }: { projectId: string; first: Swe
     const read = async () => {
       try {
         const next = await sweepAction(projectId);
+        if (!stopped && next === null) {
+          setGone(true);
+        }
         if (!stopped && next) {
           setStatus(next);
           const line = next.progress;
@@ -200,7 +212,7 @@ export function FirstSweep({ projectId, first }: { projectId: string; first: Swe
       stopped = true;
       clearTimeout(timer);
     };
-  }, [projectId, ended]);
+  }, [projectId, ended, gone]);
 
   return (
     <>
