@@ -2,6 +2,8 @@ import { and, desc, eq, gte, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { leads, redditComments, redditPosts } from "@/db/schema";
 import type { LeadStatus } from "@/lib/feed";
+import { LEAD_BODY, LEAD_URL, NEED_AT } from "@/lib/leadSql";
+import { daysAgo } from "@/lib/time";
 import { ApiError } from "./responses";
 
 export type LeadStatusFilter = LeadStatus | "all";
@@ -59,13 +61,6 @@ export function parseLeadQuery(params: URLSearchParams): LeadQuery {
   return { status, minScore, since, limit, offset, includeBody: params.get("include") === "body" };
 }
 
-/** When the need was written. A comment lead is as old as its comment. */
-const NEED_AT = sql<Date>`coalesce(${redditComments.createdAt}, ${redditPosts.createdAt})`;
-
-function windowStart(days: number): Date {
-  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-}
-
 /**
  * The conditions behind a leads call: the project, the feed window on when the
  * need was written (the comment's date for a comment lead, as the app's feed
@@ -81,16 +76,17 @@ export function leadConditions(
   return and(
     eq(leads.projectId, projectId),
     query.status === "all" ? undefined : eq(leads.status, query.status),
-    sql`${NEED_AT} >= ${windowStart(feedWindowDays).toISOString()}::timestamptz`,
+    sql`${NEED_AT} >= ${daysAgo(feedWindowDays).toISOString()}::timestamptz`,
     query.minScore === null ? undefined : gte(leads.score, query.minScore),
     query.since ? gte(leads.scoredAt, query.since) : undefined,
   );
 }
 
-/** Where the lead's own words are: the comment when it is one, else the post. */
-export const LEAD_URL = sql<string>`coalesce(${redditComments.permalink}, ${redditPosts.url})`;
-
-const columns = {
+/**
+ * What the API reads of a lead, the list and the single lead alike. The body
+ * is not here: the list reads it only when asked to include it.
+ */
+export const LEAD_COLUMNS = {
   id: leads.id,
   postId: leads.postId,
   commentId: leads.commentId,
@@ -107,13 +103,16 @@ const columns = {
   status: leads.status,
   postedAt: NEED_AT,
   scoredAt: leads.scoredAt,
-  body: sql<string | null>`coalesce(${redditComments.body}, ${redditPosts.body})`,
 };
 
-/** One extra row is read so `hasMore` is a fact rather than a guess. */
+/**
+ * One extra row is read so `hasMore` is a fact rather than a guess. A page that
+ * leaves bodies out reads a null in their place rather than up to a hundred
+ * and one of them, and its rows keep the same type either way.
+ */
 export function leadsSelect(projectId: string, query: LeadQuery, feedWindowDays: number) {
   return db()
-    .select(columns)
+    .select({ ...LEAD_COLUMNS, body: query.includeBody ? LEAD_BODY : sql<string | null>`null` })
     .from(leads)
     .innerJoin(redditPosts, eq(redditPosts.id, leads.postId))
     .leftJoin(redditComments, eq(redditComments.id, leads.commentId))

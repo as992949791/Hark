@@ -14,10 +14,12 @@ import { enqueueJob } from "@/jobs/enqueue";
 import { competitorHost } from "@/lib/competitors/host";
 import type { Destination } from "@/lib/discovery/queries";
 import { parseDestinations, parseTextList } from "@/lib/discovery/store";
-import { FILTER_TERM_CAP, parseLeadFilters, termsOf, type LeadFilters } from "@/lib/leadFilters";
+import { FILTER_TERM_CAP, subredditKey, termsOf } from "@/lib/filterWords";
+import { parseLeadFilters, type LeadFilters } from "@/lib/leadFilters";
 import { buildProfile } from "@/lib/profile";
 import { setKeywordMutes } from "@/lib/mutes";
 import { forgetProjectFeed } from "@/lib/projectFeedCache";
+import { RETRIEVED_STATES } from "@/lib/scan/planStates";
 import { rerankProject } from "@/lib/scoring/apply";
 import { parseScoring, scoringSchema, type ScoringSettings } from "@/lib/scoring/weights";
 import { requireOwnedProject } from "@/lib/owned";
@@ -161,10 +163,7 @@ export async function saveLeadFiltersAction(
 }
 
 function clean(kind: ChipKind, value: string): string {
-  const trimmed = value.trim();
-  return kind === "subreddit"
-    ? trimmed.replace(/^\/?r\//i, "").toLowerCase()
-    : trimmed;
+  return kind === "subreddit" ? subredditKey(value) : value.trim();
 }
 
 async function chipLimit(
@@ -280,14 +279,14 @@ export async function removeChipAction(
 
 /**
  * The rows of one kind a scan may use: everything switched on, which is the
- * plan's retrieved states (retrieved() in lib/scan/coverage.ts).
+ * plan's retrieved states (lib/scan/planStates.ts).
  */
 async function chipsOn(kind: ChipKind, projectId: string): Promise<number> {
   const { table } = CHIPS[kind];
   const [row] = await db()
     .select({ count: sql<number>`count(*)::int` })
     .from(table)
-    .where(and(eq(table.projectId, projectId), inArray(table.state, ["active", "pinned"])));
+    .where(and(eq(table.projectId, projectId), inArray(table.state, RETRIEVED_STATES)));
   return row?.count ?? 0;
 }
 
