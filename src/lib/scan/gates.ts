@@ -1,4 +1,5 @@
-import { engagementScore, foldScore } from "./constants";
+import { redditScore } from "@/lib/scoring/weights";
+import { engagementScore } from "./constants";
 import type { Assessment, Decision, Judgement, ReasonCode, ScorableItem } from "./judgement";
 
 /**
@@ -102,21 +103,13 @@ export function decide(item: Assessment): { decision: Decision; reasonCode: Reas
 
 /**
  * What a lead is for. A `context` lead was a thread worth a comment, not an
- * ask. No judgement is routed there any more, but leads a user already acted
- * on from that lane keep the kind.
+ * ask: helpers and threads where nobody asked, when the product plainly fit.
+ * On the 442 leads labelled 2026-09-22 that lane showed 11 threads, none good
+ * and 5 bad, and it skipped the lead model that decides buyers, so only a
+ * qualified buyer is written now. Leads a user already acted on from that lane
+ * keep the kind.
  */
 export type LeadKind = "buyer" | "context";
-
-/**
- * Where this assessment belongs, or null when it belongs nowhere. Only a buyer
- * with an open need the product covers is a lead. Helpers and threads where
- * nobody asks used to go to a "worth a comment" lane when the product plainly
- * fit, but on the 442 leads labelled 2026-09-22 that lane showed 11 threads,
- * none good and 5 bad, and it skipped the lead model that decides buyers.
- */
-export function routeLead(item: Assessment): LeadKind | null {
-  return decide(item).decision === "qualify" ? "buyer" : null;
-}
 
 /**
  * Sends an item the evidence does not support to review, never to the feed. A
@@ -129,8 +122,9 @@ export function downgradeToReview(item: Judgement, code: ReasonCode): Judgement 
 
 /**
  * One assessment as the scan uses it: the gated decision, the engagement this
- * code computed, the feed sort order, and the two columns the leads table has
- * always held.
+ * code computed, the score under the default ranking weights (a lead is ranked
+ * by its owner's when it is written, run.ts toLead), and the matched phrase the
+ * leads table has always held.
  */
 export function judge(item: Assessment, source: ScorableItem): Judgement {
   const engagement = engagementScore(source.ageHours, source.numComments);
@@ -140,9 +134,11 @@ export function judge(item: Assessment, source: ScorableItem): Judgement {
     decision,
     reasonCode,
     engagement,
-    score: foldScore(item.quality, engagement),
+    score: redditScore(
+      { quality: item.quality, intent: item.intent, engagement, subreddit: source.subreddit },
+      null,
+    ),
     matchedPhrase: item.needEvidence?.quote ?? "",
-    sellerSide: item.relationship === "seller",
     subreddit: source.subreddit,
   };
 }

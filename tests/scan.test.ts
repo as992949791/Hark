@@ -3,15 +3,15 @@ import { JevRequestTooLargeError } from "@/lib/jev";
 import {
   TRIAGE_BATCH_SIZE,
   engagementScore,
-  foldScore,
   hydrationCap,
   retrievalBudgets,
 } from "@/lib/scan/constants";
 import { BODY_CHAR_BUDGET, truncateBody } from "@/lib/scan/evidence";
-import { decide, judge, routeLead } from "@/lib/scan/gates";
+import { decide, judge } from "@/lib/scan/gates";
 import type { Assessment, ScorableItem, TriageItem } from "@/lib/scan/judgement";
 import { itemState, ownSpans, spans } from "@/lib/scan/spans";
 import { retentionCutoff } from "@/lib/retention";
+import { redditScore } from "@/lib/scoring/weights";
 import { TIERS } from "@/lib/tiers";
 import { judgeAnswers, product, triageAnswers } from "./jevAnswers";
 
@@ -54,16 +54,20 @@ function assessment(patch: Partial<Assessment> = {}): Assessment {
 }
 
 describe("score folding", () => {
+  /** A judgement's own score, which folds the default weights. */
+  const defaultScore = (quality: number | null, engagement: number) =>
+    redditScore({ quality, intent: null, engagement, subreddit: null }, null);
+
   it("starts the qualified band at 50 at the lead model's threshold and ends at 100", () => {
-    expect(foldScore(0.5, 0)).toBe(50);
-    expect(foldScore(1, 4)).toBe(100);
-    expect(foldScore(0.49, 4)).toBeLessThan(50);
-    expect(foldScore(null, 4)).toBe(0);
+    expect(defaultScore(0.5, 0)).toBe(50);
+    expect(defaultScore(1, 4)).toBe(100);
+    expect(defaultScore(0.49, 4)).toBeLessThan(50);
+    expect(defaultScore(null, 4)).toBe(0);
   });
 
   it("weights the model's verdict four times as heavily as liveliness", () => {
-    expect(foldScore(0.9, 0)).toBeGreaterThan(foldScore(0.7, 4));
-    expect(foldScore(0.7, 3)).toBeGreaterThan(foldScore(0.7, 1));
+    expect(defaultScore(0.9, 0)).toBeGreaterThan(defaultScore(0.7, 4));
+    expect(defaultScore(0.7, 3)).toBeGreaterThan(defaultScore(0.7, 1));
   });
 });
 
@@ -92,7 +96,6 @@ describe("the qualification gates", () => {
 
   it("treats a helper as neither a seller nor a lead", () => {
     const judged = judge(assessment({ relationship: "helper" }), item);
-    expect(judged.sellerSide).toBe(false);
     expect(judged.decision).toBe("reject");
     expect(judged.reasonCode).toBe("helper_only");
   });
@@ -196,31 +199,31 @@ describe("the qualification gates", () => {
   });
 });
 
-describe("routing a judgement to a lane", () => {
-  it("sends a buyer whose open need the product covers to the buyer lane", () => {
-    expect(routeLead(assessment())).toBe("buyer");
+describe("which judgements reach the feed", () => {
+  it("qualifies a buyer whose open need the product covers", () => {
+    expect(decide(assessment()).decision).toBe("qualify");
   });
 
-  it("drops a helper, even when the product plainly does the job", () => {
-    expect(routeLead(assessment({ relationship: "helper", fit: 3 }))).toBeNull();
+  it("keeps out a helper, even when the product plainly does the job", () => {
+    expect(decide(assessment({ relationship: "helper", fit: 3 })).decision).not.toBe("qualify");
   });
 
-  it("drops a thread where nobody asks, even when the product plainly does the job", () => {
-    expect(routeLead(assessment({ needState: "no_active_need", fit: 3 }))).toBeNull();
+  it("keeps out a thread where nobody asks, even when the product plainly does the job", () => {
+    expect(decide(assessment({ needState: "no_active_need", fit: 3 })).decision).not.toBe("qualify");
   });
 
-  it("drops a need the person says is already met, however good the fit", () => {
-    expect(routeLead(assessment({ needState: "resolved", fit: 4 }))).toBeNull();
+  it("keeps out a need the person says is already met, however good the fit", () => {
+    expect(decide(assessment({ needState: "resolved", fit: 4 })).decision).not.toBe("qualify");
   });
 
   // Labelled 2026-09-19: 68% of context leads were not worth a comment, most
   // of them a rival being promoted or a thread the product only might fit.
-  it("drops someone promoting their own thing, however good the fit", () => {
-    expect(routeLead(assessment({ relationship: "seller", fit: 4 }))).toBeNull();
+  it("keeps out someone promoting their own thing, however good the fit", () => {
+    expect(decide(assessment({ relationship: "seller", fit: 4 })).decision).not.toBe("qualify");
   });
 
-  it("drops a thread the product only plausibly fits", () => {
-    expect(routeLead(assessment({ relationship: "helper", fit: 2 }))).toBeNull();
+  it("keeps out a thread the product only plausibly fits", () => {
+    expect(decide(assessment({ relationship: "helper", fit: 2 })).decision).not.toBe("qualify");
   });
 });
 
@@ -303,8 +306,6 @@ describe("judging a batch", () => {
       buyers: ["founders"],
       nonBuyers: ["students"],
       price: "cheap self-serve",
-      freePlan: true,
-      limits: [],
       goodAsks: ["need a form that takes payments"],
       nearMisses: [{ ask: "how do I print a form", why: "paper" }],
     };

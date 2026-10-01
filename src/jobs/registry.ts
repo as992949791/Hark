@@ -6,16 +6,14 @@ import { sendAlertInvites } from "@/lib/alerts/invite";
 import { CADENCE_MS } from "@/lib/alerts/select";
 import { runDiscoveryRefresh } from "@/lib/discovery/refresh";
 import { runInitialDiscovery } from "@/lib/discovery/initial";
-import { parseTextList } from "@/lib/discovery/store";
 import { briefFromPage, writeBrief } from "@/lib/brief";
-import { readSite, reseedFromPage } from "@/lib/profile";
+import { readSite } from "@/lib/profile";
 import { deleteExpiredPosts } from "@/lib/retention";
 import { discoveryBudget } from "@/lib/discovery/run";
 import { runBackfill } from "@/lib/scan/backfill";
 import { loadScanProject } from "@/lib/scan/project";
 import { runRescore } from "@/lib/scan/rescore";
 import { runScan } from "@/lib/scan/run";
-import { settleReplyParents } from "@/lib/scan/replies";
 import { widenSearches } from "@/lib/scan/widen";
 import { deleteExpiredXData } from "@/lib/x/retention";
 import { cadenceFor } from "@/lib/settings/cadence";
@@ -81,38 +79,6 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
     await runRescore(job.projectId, job.id);
   },
   /**
-   * One new reading of the site for a project whose profile an older prompt
-   * made, queued at boot and never again. When a fact changed, every verdict
-   * the project holds was made about a different product, so they are judged
-   * again; the text is already here, so that buys no Reddit data.
-   */
-  profile_reseed: async (job) => {
-    if (!job.projectId) {
-      throw new Error("A profile reseed needs a project");
-    }
-    const [project] = await db().select().from(projects).where(eq(projects.id, job.projectId));
-    if (!project?.url) {
-      return;
-    }
-    const result = await reseedFromPage({
-      id: project.id,
-      userId: project.userId,
-      url: project.url,
-      problemPhrasings: parseTextList(project.problemPhrasings),
-      exclusions: parseTextList(project.exclusions),
-      notBuyers: parseTextList(project.notBuyers),
-      profileVersion: project.profileVersion,
-    });
-    if (result.refreshed || result.exclusions.length > 0 || result.notBuyers.length > 0) {
-      await enqueueOnce("rescore", new Date(), project.id);
-    }
-    // Searches for a platform's API that the product never sold are in the plan
-    // itself, and only a new plan takes them out.
-    if (result.droppedPhrasings.length > 0) {
-      await enqueueOnce("discovery_initial", new Date(), project.id);
-    }
-  },
-  /**
    * The brief for a project whose profile it was not written against: every
    * project made before briefs existed, queued at boot, and any whose profile
    * was edited since. The site is read again, because the brief may say what
@@ -143,13 +109,6 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
    * them. It runs once per project and is never held, so a project nobody
    * attends still gets the leads its invite is built from.
    */
-  /** Once per project: learns which reply leads answer another comment, and withdraws them. */
-  reply_parents: async (job) => {
-    if (!job.projectId) {
-      throw new Error("Settling reply parents needs a project");
-    }
-    await settleReplyParents(job.projectId);
-  },
   widen_searches: async (job) => {
     if (!job.projectId) {
       throw new Error("Widening searches needs a project");

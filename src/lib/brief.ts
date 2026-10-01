@@ -27,8 +27,6 @@ export const briefSchema = z.object({
   buyers: z.array(z.string()),
   nonBuyers: z.array(z.string()),
   price: z.string(),
-  freePlan: z.boolean().nullable(),
-  limits: z.array(z.string()),
   goodAsks: z.array(z.string()),
   nearMisses: z.array(z.object({ ask: z.string(), why: z.string() })),
 });
@@ -46,8 +44,6 @@ export const BRIEF_INSTRUCTIONS = `The brief is for a different reader: a small,
 - buyers: 2 to 5 short phrases naming who actually pays for it.
 - nonBuyers: 3 to 6 short phrases naming people who talk about this topic but would not buy it: free-tier users, competitors and vendors, students, the wrong scale or segment.
 - price: one of free, freemium, cheap self-serve, mid-market, premium, enterprise, custom quote, unknown.
-- freePlan: true, false, or null when you cannot tell.
-- limits: up to 5 short phrases naming places, platforms, languages or sizes it does not serve.
 - goodAsks: 6 short Reddit-style posts, 20 words or fewer, that ARE real buyer leads for this product.
 - nearMisses: 6 { ask, why }: Reddit-style posts of 20 words or fewer that look related but are NOT leads, with why in 10 words or fewer.`;
 
@@ -66,6 +62,19 @@ export function usableBrief(value: unknown): ProductBrief | null {
     return null;
   }
   return parsed.data;
+}
+
+/**
+ * A usable brief in the shape it is stored. Revisions before 2026-10-01 asked
+ * for freePlan and limits and read a brief without them as no brief at all, so
+ * a scan the outgoing revision claims mid-deploy, or a rollback, would judge
+ * the project without its brief questions and keep those verdicts. Storing the
+ * two keys empty keeps it readable there; usableBrief strips them here. Drop
+ * them once no such revision can run.
+ */
+export function storedBrief(value: unknown) {
+  const brief = usableBrief(value);
+  return brief && { ...brief, freePlan: null, limits: [] };
 }
 
 /** The brief for a project that already has a profile, read from its site and that profile. */
@@ -93,6 +102,6 @@ export async function briefFromPage(
 export async function writeBrief(projectId: string, brief: ProductBrief | null, profileVersion: number) {
   await db()
     .update(projects)
-    .set({ brief: usableBrief(brief), briefProfileVersion: profileVersion })
+    .set({ brief: storedBrief(brief), briefProfileVersion: profileVersion })
     .where(eq(projects.id, projectId));
 }

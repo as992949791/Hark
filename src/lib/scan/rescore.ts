@@ -1,9 +1,8 @@
-import { and, eq, lt, ne, or } from "drizzle-orm";
+import { and, eq, isNull, lt, ne, or } from "drizzle-orm";
 import { db } from "@/db";
 import { leadEvaluations, leads, redditComments, redditPosts } from "@/db/schema";
 import { writeProgress } from "@/jobs/enqueue";
 import { SCORER_VERSION, writeEvaluations, type EvaluationRecord } from "./evaluations";
-import { routeLead, type LeadKind } from "./gates";
 import type { Judgement, ScorableItem } from "./judgement";
 import { demoteLeads, leadKey, writeLeads } from "./leads";
 import { loadScanProject } from "./project";
@@ -26,7 +25,7 @@ import { toLead } from "./run";
 const HOUR_MS = 60 * 60 * 1000;
 
 export type RescoreOutcome = {
-  /** Candidates re-judged, which is every stale verdict the project held. */
+  /** Candidates re-judged, which is every stale verdict the project held that a scan would judge. */
   judged: number;
   /** Leads withdrawn because the new verdict no longer puts them in the feed. */
   demoted: number;
@@ -48,15 +47,30 @@ type Stale = {
 };
 
 /**
- * Every project holding a verdict an older scorer made. One query for all of
- * them, because the caller is a loop over every project at boot and a query
- * inside that loop is a round trip per project for a single boolean.
+ * The verdicts a rescore may judge again: a post's, or a comment's that answers
+ * the post. The scan judges no other comment (comments.ts
+ * representativeComments): a reply to another comment, or one whose parent
+ * Reddit did not give, reads against the post alone as a need it is not.
+ * Judged again here it could reach the feed the scan keeps it out of, so its
+ * old verdict is left as it is. Reads the comment the verdict is on, which the
+ * query has to join.
+ */
+function judgedAsTheScanWould() {
+  return or(isNull(leadEvaluations.commentId), eq(redditComments.parentId, leadEvaluations.postId));
+}
+
+/**
+ * Every project holding a verdict an older scorer made that a rescore would
+ * judge. One query for all of them, because the caller is a loop over every
+ * project at boot and a query inside that loop is a round trip per project for
+ * a single boolean.
  */
 export async function projectsWithStaleEvaluations(): Promise<Set<string>> {
   const rows = await db()
     .selectDistinct({ projectId: leadEvaluations.projectId })
     .from(leadEvaluations)
-    .where(ne(leadEvaluations.scorerVersion, SCORER_VERSION));
+    .leftJoin(redditComments, eq(redditComments.id, leadEvaluations.commentId))
+    .where(and(ne(leadEvaluations.scorerVersion, SCORER_VERSION), judgedAsTheScanWould()));
   return new Set(rows.map((row) => row.projectId));
 }
 
@@ -64,7 +78,8 @@ export async function projectsWithStaleEvaluations(): Promise<Set<string>> {
  * Every stale verdict this project holds, as the judge reads it: one an older
  * scorer made, or one made against an older profile than the project has now. A comment is
  * judged as its author's own words with the post it replies to for context,
- * exactly as the scan judges one; a post is judged as itself.
+ * exactly as the scan judges one, and only when it answers the post; a post is
+ * judged as itself.
  */
 async function staleItems(projectId: string, profileVersion: number): Promise<Stale[]> {
   const rows = await db()
@@ -86,6 +101,7 @@ async function staleItems(projectId: string, profileVersion: number): Promise<St
           ne(leadEvaluations.scorerVersion, SCORER_VERSION),
           lt(leadEvaluations.profileVersion, profileVersion),
         ),
+        judgedAsTheScanWould(),
       ),
     );
   return rows.map((row) => ({
@@ -133,7 +149,7 @@ async function leadStatuses(projectId: string): Promise<Map<string, string>> {
 }
 
 type Reconciled = {
-  write: { judgement: Judgement; stale: Stale; kind: LeadKind }[];
+  write: { judgement: Judgement; stale: Stale }[];
   demote: { postId: string; commentId: string | null }[];
   promoted: number;
   unchanged: number;
@@ -155,14 +171,13 @@ export function reconcile(
     if (status !== undefined && status !== "new") {
       continue;
     }
-    const kind = routeLead(judgement);
-    if (kind === null) {
+    if (judgement.decision !== "qualify") {
       if (status === "new") {
         out.demote.push({ postId: stale.postId, commentId: stale.commentId });
       }
       continue;
     }
-    out.write.push({ judgement, stale, kind });
+    out.write.push({ judgement, stale });
     if (status === "new") {
       out.unchanged += 1;
     } else {
@@ -206,7 +221,7 @@ export async function runRescore(projectId: string, jobId: string): Promise<Resc
   const outcome = reconcile(judged, await leadStatuses(projectId));
   await writeLeads(
     outcome.write.map((entry) =>
-      toLead(project, entry.judgement, entry.stale.postId, entry.stale.commentId, entry.kind),
+      toLead(project, entry.judgement, entry.stale.postId, entry.stale.commentId),
     ),
   );
   const demoted = await demoteLeads(projectId, outcome.demote);
