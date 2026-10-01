@@ -7,6 +7,7 @@ import { ChannelMark } from "@/components/alerts/ChannelMark";
 import { PillTabs } from "@/components/PillTabs";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
+import { errorFrom } from "@/lib/actionError";
 import { ALERT_CHANNELS, CHANNEL_LABELS, type AlertCadence, type AlertChannel } from "@/lib/alerts/types";
 import { cn } from "@/lib/utils";
 
@@ -53,11 +54,7 @@ export function AddChannelForm({
 
   async function submit(formData: FormData) {
     setError(null);
-    try {
-      await addChannelAction(projectId, formData);
-    } catch (problem) {
-      setError(problem instanceof Error ? problem.message : String(problem));
-    }
+    setError(await errorFrom(() => addChannelAction(projectId, formData)));
   }
 
   return (

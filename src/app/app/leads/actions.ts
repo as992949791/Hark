@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { failure, type ActionResult } from "@/lib/actionResult";
 import { dismissAlertsOffer, turnOnDiscordAlerts, turnOnEmailAlerts } from "@/lib/alerts/offer";
 import { toRow } from "@/components/leads/stream";
 import { FEED_PAGE_SIZE, feedFilter, type FeedRow } from "@/lib/feed";
@@ -48,15 +49,16 @@ export async function muteSubredditAction(projectId: string, subreddit: string) 
   revalidatePath("/app", "layout");
 }
 
-/** Records that a lead was a miss, with the reason the user picked. */
-export async function markNotFitAction(projectId: string, leadId: string, formData: FormData) {
+/** Records that a lead was a miss, with the reason the user picked, or asks for one. */
+export async function markNotFitAction(projectId: string, leadId: string, formData: FormData): Promise<ActionResult> {
   await requireOwnedProject(projectId);
   const reason = String(formData.get("reason") ?? "").trim();
   if (!reason) {
-    throw new Error("Pick a reason before marking a lead as not a fit");
+    return { error: "Pick a reason before marking a lead as not a fit" };
   }
   await setLeadStatus(projectId, leadId, "not_fit", reason);
   revalidatePath("/app", "layout");
+  return { error: null };
 }
 
 /**
@@ -101,22 +103,33 @@ export async function promoPolicyAction(
 }
 
 /** The offer's "Email me daily": a daily digest to the person's own address. */
-export async function emailAlertsAction(projectId: string) {
+export async function emailAlertsAction(projectId: string): Promise<ActionResult> {
   const { user } = await requireOwnedProject(projectId);
-  await turnOnEmailAlerts(user.id, projectId);
+  try {
+    await turnOnEmailAlerts(user.id, projectId);
+  } catch (error) {
+    return failure(error);
+  }
   revalidatePath("/app", "layout");
+  return { error: null };
 }
 
-/** The offer's Discord field: a daily post to the pasted webhook. */
-export async function discordAlertsAction(projectId: string, url: string) {
+/** The offer's Discord field: a daily post to the pasted webhook, or why that URL is not one. */
+export async function discordAlertsAction(projectId: string, url: string): Promise<ActionResult> {
   const { user } = await requireOwnedProject(projectId);
-  await turnOnDiscordAlerts(user.id, projectId, url);
+  try {
+    await turnOnDiscordAlerts(user.id, projectId, url);
+  } catch (error) {
+    return failure(error);
+  }
   revalidatePath("/app", "layout");
+  return { error: null };
 }
 
 /** The offer's "Not now". */
-export async function dismissAlertsOfferAction(projectId: string) {
+export async function dismissAlertsOfferAction(projectId: string): Promise<ActionResult> {
   const { user } = await requireOwnedProject(projectId);
   await dismissAlertsOffer(user.id, projectId);
   revalidatePath("/app", "layout");
+  return { error: null };
 }
