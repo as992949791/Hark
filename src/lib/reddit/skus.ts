@@ -5,6 +5,7 @@ import { redditAuthors, subreddits } from "@/db/schema";
 import { clientForUser } from "@/lib/anyapi";
 import { generateStructured } from "@/lib/llm";
 import { PROMO_POLICY_SYSTEM } from "@/lib/prompts";
+import { redditThread } from "@/lib/seo/links";
 import {
   fetchShared,
   normalizeQuery,
@@ -135,6 +136,14 @@ export async function fetchSubredditPosts(
   });
 }
 
+/**
+ * One thread, opened in full. The run is keyed on the post id rather than the
+ * URL, the way its comments are: the feed and the SEO refresh open a thread by
+ * its canonical URL (a Google run stored before results were canonical still
+ * holds Google's own link), and a scan and the competitor scan by its slugged
+ * permalink, and all of them are one thread bought once. The URL the caller
+ * gave is still what Reddit is asked for.
+ */
 export async function fetchPost(
   ctx: FetchContext,
   url: string,
@@ -144,7 +153,7 @@ export async function fetchPost(
     ctx,
     kind: "post",
     sku: "reddit.post",
-    normalizedQuery: url,
+    normalizedQuery: redditThread(url)?.postId ?? url,
     maxAgeMs,
     run: async () => {
       const res = await ctx.funded.client.reddit.post({ url });

@@ -2,7 +2,7 @@ import { enqueueJob, writeProgress } from "@/jobs/enqueue";
 import { clientForUser } from "@/lib/anyapi";
 import { labelThreads } from "@/lib/discovery/label";
 import {
-  applyRelevance,
+  applyRelevances,
   loadEvidenceForPosts,
   UNLABELED,
   writeObservations,
@@ -10,17 +10,17 @@ import {
 import { competitorsInThread, writeThreadMentions } from "@/lib/competitors/threads";
 import type { FetchContext } from "@/lib/reddit/fetch";
 import { fetchPost } from "@/lib/reddit/skus";
-import { commentsOfPost, type StoredPost } from "@/lib/reddit/store";
-import { readThreads, type ThreadRead } from "@/lib/scan/comments";
+import type { StoredPost } from "@/lib/reddit/store";
+import { commentsAreCurrent, readLeadThreads, storedThreads } from "@/lib/scan/comments";
 import { loadEvaluations, writeEvaluations } from "@/lib/scan/evaluations";
 import { threadPolicyFor } from "@/lib/settings/threadPolicy";
 import type { ThreadPolicy } from "@/lib/settings/types";
+import { inFlight } from "@/lib/inFlight";
+import { evaluationsFor, judgePosts, unjudged } from "@/lib/scan/judging";
 import { requireScanProject, type ScanProject } from "@/lib/scan/project";
-import { readPosts, splitByReading } from "@/lib/scan/reading";
-import { evaluationsFor, postItem, unjudged } from "@/lib/scan/run";
-import { judgeItems } from "@/lib/scan/score";
 import { tierForUser } from "@/lib/tier";
-import { fetchRankingThreads, googleQuery } from "./fetch";
+import { googleQuery, googleSearch } from "./fetch";
+import { redditThread } from "./links";
 import { seoSettings } from "./limits";
 import { writeOpportunities, type OpportunityRow } from "./opportunities";
 import { NO_PHRASINGS_PROGRESS } from "./read";
@@ -41,10 +41,9 @@ export type SeoRefreshOutcome = {
 async function readThread(
   ctx: FetchContext,
   url: string,
-  maxAgeMs: number,
 ): Promise<{ post: StoredPost | null; costUsd: number }> {
   try {
-    const result = await fetchPost(ctx, url, maxAgeMs);
+    const result = await fetchPost(ctx, url, ctx.maxAgeMs);
     return { post: result.value[0] ?? null, costUsd: result.costUsd };
   } catch {
     return { post: null, costUsd: 0 };
@@ -53,9 +52,10 @@ async function readThread(
 
 /**
  * Whether a thread's replies are worth buying: the policy reads replies here
- * at all, there are enough of them to name anyone, and the thread was either
- * never read or has grown since. The same reply rule a scan applies to a
- * lead's thread, so a thread both surfaces hold is bought once between them.
+ * at all, there are enough of them to name anyone, and the stored comments are
+ * not the thread as Reddit last reported it. The same freshness rule a scan
+ * applies to a lead's thread, so a thread both surfaces hold is bought once
+ * between them.
  *
  * Age gates nothing here. A thread Google still ranks is worth its replies
  * however old the post is; what earns the call is the ranking, not the clock.
@@ -65,32 +65,10 @@ async function readThread(
  * Exported for its own test: the refresh around it needs a funded client.
  */
 export function repliesWorthReading(policy: ThreadPolicy, post: StoredPost): boolean {
-  const replies = post.numComments ?? 0;
   return (
     policy.readSeoReplies &&
-    replies >= policy.minReplies &&
-    (post.commentsObservedAt === null || post.numComments !== post.commentsReadCount)
-  );
-}
-
-/**
- * Each opened thread with its replies: bought now when they are worth reading,
- * otherwise whatever an earlier read stored, which is what the flag is judged on.
- */
-async function threadsOf(
-  ctx: FetchContext,
-  policy: ThreadPolicy,
-  posts: StoredPost[],
-): Promise<ThreadRead[]> {
-  const threads = await readThreads(
-    ctx,
-    posts.filter((post) => repliesWorthReading(policy, post)),
-  );
-  const read = new Map(threads.map((thread) => [thread.post.id, thread]));
-  return Promise.all(
-    posts.map(
-      async (post) => read.get(post.id) ?? { post, comments: await commentsOfPost(post.id) },
-    ),
+    (post.numComments ?? 0) >= policy.minReplies &&
+    !commentsAreCurrent(post)
   );
 }
 
@@ -99,15 +77,17 @@ async function refreshPhrasing(
   ctx: FetchContext,
   policy: ThreadPolicy,
   phrasing: string,
-  maxAgeMs: number,
 ): Promise<{ threads: number; costUsd: number; seen: Seen[]; opened: StoredPost[] }> {
-  const ranked = await fetchRankingThreads(ctx, phrasing, maxAgeMs);
+  const ranked = await googleSearch(ctx, googleQuery(phrasing), { preferLatency: true });
+  // The threads are opened together, and what they found is then taken in
+  // Google's order, so the result is the same as opening them one by one.
+  const reads = await inFlight(ranked.value, (result) => readThread(ctx, result.url));
   let costUsd = ranked.costUsd;
   const seen: Seen[] = [];
   const opened: StoredPost[] = [];
   const positions = new Map<string, number>();
-  for (const result of ranked.value) {
-    const thread = await readThread(ctx, result.url, maxAgeMs);
+  for (const [index, result] of ranked.value.entries()) {
+    const thread = reads[index];
     costUsd += thread.costUsd;
     if (!thread.post) {
       continue;
@@ -116,7 +96,7 @@ async function refreshPhrasing(
     positions.set(thread.post.id, result.position);
     seen.push({
       postId: thread.post.id,
-      canonicalUrl: result.url,
+      canonicalUrl: redditThread(result.url)?.canonicalUrl ?? result.url,
       subreddit: thread.post.subreddit.toLowerCase(),
       query: googleQuery(phrasing),
       position: result.position,
@@ -124,7 +104,13 @@ async function refreshPhrasing(
       snippet: result.snippet,
     });
   }
-  const threads = await threadsOf(ctx, policy, opened);
+  // Each opened thread with its replies: bought now when they are worth
+  // reading, otherwise whatever an earlier read stored, which is what the flag
+  // is judged on. Every opened thread is a row on the tab, so one whose
+  // replies could not be bought this time falls back to the store as well.
+  const read = await readLeadThreads(ctx, opened, (post) => repliesWorthReading(policy, post));
+  const got = new Set(read.map((thread) => thread.post.id));
+  const threads = [...read, ...(await storedThreads(opened.filter((post) => !got.has(post.id))))];
   await writeThreadMentions(project.id, project.competitors, threads);
   const rows: OpportunityRow[] = threads.map((thread) => ({
     postId: thread.post.id,
@@ -160,13 +146,7 @@ async function judgeOpened(project: ScanProject, opened: StoredPost[]): Promise<
   if (candidates.length === 0) {
     return;
   }
-  const sources = candidates.map(postItem);
-  const readings = await readPosts(project.id, sources);
-  const { toJudge, cut } = splitByReading(sources, readings);
-  const judgements = [
-    ...cut,
-    ...(await judgeItems(project.id, project.product, toJudge, readings)),
-  ];
+  const judgements = await judgePosts(project, candidates);
   await writeEvaluations(evaluationsFor(project, candidates, judgements));
 }
 
@@ -219,9 +199,7 @@ export async function judgeUnseen(project: ScanProject, seen: Seen[]): Promise<v
         snippet: thread.snippet ?? "",
       })),
   });
-  for (const label of labels) {
-    await applyRelevance(project.id, label.id, label.relevance, label.destination);
-  }
+  await applyRelevances(project.id, labels);
 }
 
 /**
@@ -254,12 +232,14 @@ export async function runSeoRefresh(
   let costUsd = 0;
   const seen: Seen[] = [];
   const opened: StoredPost[] = [];
+  // One phrasing at a time: its own threads already fill the job's share of
+  // Reddit calls, and each writes a progress line of its own.
   for (const [index, phrasing] of settings.phrasings.entries()) {
     await writeProgress(
       jobId,
       `Searching ${index + 1} of ${settings.phrasings.length}: ${phrasing}`,
     );
-    const done = await refreshPhrasing(project, ctx, policy, phrasing, maxAgeMs);
+    const done = await refreshPhrasing(project, ctx, policy, phrasing);
     threads += done.threads;
     costUsd += done.costUsd;
     seen.push(...done.seen);

@@ -45,21 +45,29 @@ export function discoveryBudget(limits: TierLimits | null) {
   };
 }
 
-type RoundOutcome = { labels: ThreadLabel[]; newRelevant: number; costUsd: number };
+type RoundOutcome = {
+  labels: ThreadLabel[];
+  /** Threads this round saw that nothing had labelled before it. */
+  fresh: number;
+  newRelevant: number;
+  costUsd: number;
+};
 
 /**
- * One round: buy the queries, label the threads none of the earlier rounds had
- * seen, and file each verdict against every row that saw that thread.
+ * One round: buy the queries, label the threads `labelled` does not already
+ * hold, and file each verdict against every row that saw that thread. The
+ * opening pass and the weekly delta both learn through it: the pass hands it
+ * the threads its earlier rounds labelled, the delta every thread the project
+ * already holds evidence on.
  */
-async function runRound(
+export async function runRound(
   ctx: FetchContext,
   product: ProductFacts,
   destinations: Destination[],
   queries: DiscoveryQuery[],
-  maxAgeMs: number,
   labelled: Set<string>,
 ): Promise<RoundOutcome> {
-  const { observations, costUsd } = await runDiscoveryQueries(ctx, queries, maxAgeMs);
+  const { observations, costUsd } = await runDiscoveryQueries(ctx, queries);
   const seen = observations.map((row) => ({ ...row, relevance: UNLABELED }));
   const fresh = dedupeThreads(seen).filter((thread) => !labelled.has(thread.postId));
   const labels = await labelThreads({
@@ -79,6 +87,7 @@ async function runRound(
   await applyRelevances(ctx.projectId, labels);
   return {
     labels,
+    fresh: fresh.length,
     newRelevant: labels.filter((label) => label.relevance === "relevant").length,
     costUsd,
   };
@@ -178,7 +187,7 @@ export async function runDiscovery(input: DiscoveryInput): Promise<DiscoveryOutc
         ? `Asking Google ${queries.length} ${queries.length === 1 ? "question" : "questions"} about where your buyers ask`
         : `Asking Google ${queries.length} more, where the first answers were thin`,
     );
-    const round_ = await runRound(ctx, input.facts, input.destinations, queries, maxAgeMs, labelled);
+    const round_ = await runRound(ctx, input.facts, input.destinations, queries, labelled);
     used.push(...queries);
     labels.push(...round_.labels);
     costUsd += round_.costUsd;

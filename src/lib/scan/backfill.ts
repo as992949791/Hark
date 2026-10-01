@@ -10,9 +10,16 @@ import { loadEvaluations, writeEvaluations } from "./evaluations";
 import { writeLeads, type LeadRow } from "./leads";
 import { requireScanProject, type ScanProject } from "./project";
 import { SMALL_SWEEP, smallSweep, spread } from "@/lib/sweepScale";
-import { evaluationsFor, fetchAvatars, postItem, toLead, unjudged } from "./run";
+import {
+  evaluationsFor,
+  fetchAvatars,
+  postItem,
+  toLead,
+  triagedOrder,
+  unjudged,
+} from "./judging";
 import type { Judgement } from "./judgement";
-import { judgeItems, readOrder, triageTitles } from "./score";
+import { judgeItems } from "./score";
 import type { StoredJudgement } from "./evaluations";
 import { sweepSearches } from "./searches";
 import { creditSources, keepSearches, markCovered, recordSources, type CandidateSource } from "./sources";
@@ -43,8 +50,6 @@ import { creditSources, keepSearches, markCovered, recordSources, type Candidate
  *   leads    LEAD_CAP buyer leads, and the sweep stops searching and scoring.
  */
 
-const HOUR_MS = 60 * 60 * 1000;
-
 /** Lead authors a sweep looks up, best leads first. $0.00038 each through `reddit.avatar`, so 2¢. */
 const FACES = 50;
 
@@ -60,6 +65,13 @@ const QUIET_MS = 3000;
 
 /** Pages in a row carrying nothing new to their walk before the walk ends. */
 const STALE_PAGES = 3;
+
+/**
+ * How often a sweep rewrites its progress line. Its counts move with every
+ * page found and every post scored, which is up to sixty writes in flight on
+ * a ten-connection pool, and the person watching reads a line a second at most.
+ */
+const REPORT_EVERY_MS = 1000;
 
 /**
  * Pages each walk reads in the first pass, before any walk reads more. A page
@@ -362,32 +374,12 @@ class Judge {
       chunk.map((post) => ({ postId: post.id, sources: this.sources.get(post.id) ?? [] })),
     );
     this.candidates.push(...chunk);
-    const now = Date.now();
-    const triage = await triageTitles(
+    const ordered = await triagedOrder(
       this.project.id,
       this.project.product,
-      chunk.map((post) => ({
-        id: post.id,
-        title: post.title,
-        subreddit: post.subreddit,
-        author: post.author,
-        score: post.score,
-        ageHours: (now - post.createdAt.getTime()) / HOUR_MS,
-      })),
+      chunk,
+      ASKING_FLOOR,
     );
-    const byId = new Map(chunk.map((post) => [post.id, post]));
-    const facts = new Map(
-      chunk.map((post) => [
-        post.id,
-        { ageHours: (now - post.createdAt.getTime()) / HOUR_MS, upvotes: post.score },
-      ]),
-    );
-    const ordered = readOrder(
-      triage.filter((item) => item.asking >= ASKING_FLOOR),
-      facts,
-    )
-      .map((id) => byId.get(id))
-      .filter((post): post is StoredPost => post !== undefined);
 
     // Every batch of verdicts is committed the moment it lands, so the feed
     // fills while the sweep is still running. A batch whose commit fails is
@@ -457,8 +449,16 @@ export async function runBackfill(projectId: string, jobId?: string): Promise<Ba
   let walks = 0;
   let cutShort = 0;
   let pass: "first" | "rest" | "scoring" = "first";
-  const report = (): Promise<void> =>
-    progress(
+  let reportedAt = 0;
+  // At most once every REPORT_EVERY_MS. A new pass and the counts the sweep
+  // ends on are forced through, so no line a person should see is skipped.
+  const report = (force = false): Promise<void> => {
+    const now = Date.now();
+    if (!force && now - reportedAt < REPORT_EVERY_MS) {
+      return Promise.resolve();
+    }
+    reportedAt = now;
+    return progress(
       jobId,
       pass === "first"
         ? `First pass over a year of Reddit · ${plan.length} searches · ${found.size} posts found · ${judge.judged.length} scored · ${judge.leads.length} leads`
@@ -466,6 +466,7 @@ export async function runBackfill(projectId: string, jobId?: string): Promise<Ba
           ? `Reading further where the leads are · ${walks} of ${plan.length} searches done · ${found.size} posts found · ${judge.judged.length} scored · ${judge.leads.length} leads`
           : `Scoring ${judge.candidates.length} posts · ${judge.judged.length} scored · ${judge.leads.length} leads`,
     );
+  };
   const judge: Judge = new Judge(project, stored, sourcesByPost, report);
 
   // Every walk is independent of every other and nearly all waiting on Reddit,
@@ -505,7 +506,7 @@ export async function runBackfill(projectId: string, jobId?: string): Promise<Ba
     .slice(0, DEEP_WALKS);
   walks = plan.length - deeper.length;
   pass = "rest";
-  await report();
+  await report(true);
   await Promise.all(
     deeper.map(async (item) => {
       await run(item, depthPages - firstPassPages);
@@ -513,8 +514,9 @@ export async function runBackfill(projectId: string, jobId?: string): Promise<Ba
     }),
   );
   pass = "scoring";
-  await report();
+  await report(true);
   await judge.settle();
+  await report(true);
 
   // Faces for the top of the feed only. A full sweep writes hundreds of leads:
   // looked up for all 448 of them on 2026-09-18, through `reddit.profile` as
@@ -558,11 +560,7 @@ export async function runBackfill(projectId: string, jobId?: string): Promise<Ba
     );
   }
   const at = new Date();
-  for (const query of queries) {
-    for (const row of query.rows) {
-      await markCovered(row, at);
-    }
-  }
+  await markCovered(queries.flatMap((query) => query.rows.map((row) => ({ row, at }))));
 
   await progress(
     jobId,
