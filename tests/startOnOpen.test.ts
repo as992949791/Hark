@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { makePost, makeProject, makeUser } from "./fixtures/db";
 
 let signedIn: { id: string } = { id: "" };
 const kickScheduler = vi.fn();
@@ -16,14 +17,8 @@ vi.mock("@/jobs/scheduler", () => ({ kickScheduler }));
  */
 describe("startOnOpen against a database", () => {
   async function owned() {
-    const [user] = await db()
-      .insert(schema.users)
-      .values({ clerkUserId: `user_${randomUUID()}`, email: `${randomUUID()}@example.com` })
-      .returning();
-    const [project] = await db()
-      .insert(schema.projects)
-      .values({ userId: user.id, name: "Formcraft" })
-      .returning();
+    const user = await makeUser({ clerkUserId: `user_${randomUUID()}`, email: `${randomUUID()}@example.com` });
+    const project = await makeProject(user.id);
     return { user, project };
   }
 
@@ -57,17 +52,7 @@ describe("startOnOpen against a database", () => {
   });
 
   async function post() {
-    const id = `p${randomUUID().slice(0, 8)}`;
-    await db()
-      .insert(schema.redditPosts)
-      .values({
-        id,
-        subreddit: "SaaS",
-        title: "Need a form builder",
-        url: `https://www.reddit.com/r/SaaS/comments/${id}/`,
-        createdAt: new Date(),
-      });
-    return id;
+    return (await makePost({ author: null, title: "Need a form builder" })).id;
   }
 
   it("groups the leads again on open only when some arrived since the last grouping", async () => {

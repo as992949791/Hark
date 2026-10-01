@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
+import { describeDb, makeProject, makeUser } from "./fixtures/db";
 
 /**
  * How X's paid calls use the shared run store: the key keeps the query's exact
@@ -10,20 +11,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { search } = vi.hoisted(() => ({ search: vi.fn() }));
 
-const hasDatabase = !!process.env.DATABASE_URL;
-
 function page() {
   return { output: { found: true, data: { items: [], nextCursor: null } }, costUsd: 0.00065, items: 0 };
 }
 
-describe.skipIf(!hasDatabase)("X search runs in the shared store", () => {
+describeDb("X search runs in the shared store", () => {
   let db: typeof import("@/db").db;
   let schema: typeof import("@/db/schema");
   let orm: typeof import("drizzle-orm");
   let searchPage: typeof import("@/lib/x/skus").searchPage;
 
   beforeEach(async () => {
-    process.env.APP_ENCRYPTION_KEY ??= Buffer.alloc(32).toString("base64");
     process.env.HOUSE_X_DATA_CAP_USD_PER_DAY = "5";
     ({ db } = await import("@/db"));
     schema = await import("@/db/schema");
@@ -34,8 +32,8 @@ describe.skipIf(!hasDatabase)("X search runs in the shared store", () => {
   });
 
   async function context() {
-    const [user] = await db().insert(schema.users).values({ clerkUserId: `test_${randomUUID()}` }).returning();
-    const [project] = await db().insert(schema.projects).values({ userId: user.id, name: "Skus" }).returning();
+    const user = await makeUser();
+    const project = await makeProject(user.id, { name: "Skus" });
     return {
       projectId: project.id,
       maxAgeMs: 0,

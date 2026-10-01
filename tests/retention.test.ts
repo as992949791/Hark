@@ -1,5 +1,26 @@
 import { randomUUID } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
+import { describeDb, makeProject, makeUser } from "./fixtures/db";
+
+/**
+ * The times the passes here run as, with this file's rows dated before them. A
+ * retention pass reaches every row in the database, and the test database is
+ * shared with every file running beside this one: on 2026-10-01 a pass on the
+ * real clock took the 200-day-old post backfill.test.ts had just written, and
+ * its next insert failed on the missing post. No other file dates a row this
+ * early, so a pass as of these times can only take this file's.
+ *
+ * The posts pass runs before 1970, because upsertPosts dates a post that comes
+ * without createdUtc at the epoch, 1970-01-01: a test or a fake client that
+ * leaves it out writes a post any later pass would take. The jobs pass runs
+ * as of 2010, not 2000, because jobs.test.ts clears and claims the queue rows
+ * dated then.
+ */
+const POSTS_NOW = new Date("1969-12-31T00:00:00Z");
+const NOW = new Date("2010-01-01T00:00:00Z");
+
+/** Seconds since the epoch, as Reddit sends them, 600 days before the posts pass. */
+const LONG_AGO = Math.floor(POSTS_NOW.getTime() / 1000) - 600 * 24 * 3600;
 
 /**
  * What the retention job is allowed to take away. A ranking thread is old by
@@ -7,25 +28,17 @@ import { describe, expect, it } from "vitest";
  * post anything still points at outlives the window. Proven against a real
  * database, because the delete is the claim.
  */
-describe.skipIf(!process.env.DATABASE_URL)("deleting expired posts", () => {
+describeDb("deleting expired posts", () => {
   async function fixture() {
-    process.env.APP_ENCRYPTION_KEY ??= Buffer.alloc(32).toString("base64");
     const { db } = await import("@/db");
     const schema = await import("@/db/schema");
     const { upsertPosts } = await import("@/lib/reddit/store");
     const { deleteExpiredPosts } = await import("@/lib/retention");
     const { inArray } = await import("drizzle-orm");
 
-    const [user] = await db()
-      .insert(schema.users)
-      .values({ clerkUserId: `test_${randomUUID()}` })
-      .returning();
-    const [project] = await db()
-      .insert(schema.projects)
-      .values({ userId: user.id, name: "HotelsAllow" })
-      .returning();
+    const user = await makeUser();
+    const project = await makeProject(user.id, { name: "HotelsAllow" });
 
-    const longAgo = Math.floor(Date.now() / 1000) - 600 * 24 * 3600;
     const [led, ranked, loose] = await upsertPosts(
       ["led", "ranked", "loose"].map((role) => ({
         id: `p${randomUUID().slice(0, 8)}`,
@@ -34,7 +47,7 @@ describe.skipIf(!process.env.DATABASE_URL)("deleting expired posts", () => {
         title: `An old thread the ${role} case points at`,
         body: "Every hotel we called says 21+.",
         permalink: `/r/philly/comments/${role}/old/`,
-        createdUtc: longAgo,
+        createdUtc: LONG_AGO,
       })),
     );
 
@@ -51,7 +64,7 @@ describe.skipIf(!process.env.DATABASE_URL)("deleting expired posts", () => {
   it("keeps a post a lead or an SEO row still points at, and drops the rest", async () => {
     const { db, schema, deleteExpiredPosts, inArray, led, ranked, loose } = await fixture();
 
-    await deleteExpiredPosts();
+    await deleteExpiredPosts(POSTS_NOW);
 
     const left = await db()
       .select({ id: schema.redditPosts.id })
@@ -63,7 +76,6 @@ describe.skipIf(!process.env.DATABASE_URL)("deleting expired posts", () => {
   it("works through more expired posts than one batch holds", async () => {
     const { db, schema, deleteExpiredPosts, inArray, led, ranked, loose } = await fixture();
     const { upsertPosts } = await import("@/lib/reddit/store");
-    const longAgo = Math.floor(Date.now() / 1000) - 600 * 24 * 3600;
     const more = await upsertPosts(
       [1, 2, 3, 4].map((n) => ({
         id: `p${randomUUID().slice(0, 8)}`,
@@ -72,11 +84,11 @@ describe.skipIf(!process.env.DATABASE_URL)("deleting expired posts", () => {
         title: `Another old thread ${n}`,
         body: "Still nobody takes under 21.",
         permalink: `/r/philly/comments/more${n}/old/`,
-        createdUtc: longAgo,
+        createdUtc: LONG_AGO,
       })),
     );
 
-    await deleteExpiredPosts(new Date(), 2);
+    await deleteExpiredPosts(POSTS_NOW, 2);
 
     const ids = [led.id, ranked.id, loose.id, ...more.map((post) => post.id)];
     const left = await db()
@@ -98,7 +110,7 @@ describe.skipIf(!process.env.DATABASE_URL)("deleting expired posts", () => {
       .insert(schema.llmUsage)
       .values({ projectId: project.id, purpose: "score", inputTokens: 10, outputTokens: 5 });
 
-    await deleteExpiredPosts();
+    await deleteExpiredPosts(POSTS_NOW);
 
     const kept = await db()
       .select({ id: schema.llmUsage.id })
@@ -113,23 +125,16 @@ describe.skipIf(!process.env.DATABASE_URL)("deleting expired posts", () => {
  * job of each kind, since pages say when a project last ran something. A job
  * still waiting or running is never the retention job's to take.
  */
-describe.skipIf(!process.env.DATABASE_URL)("pruning finished jobs", () => {
+describeDb("pruning finished jobs", () => {
   it("drops month-old finished jobs but the newest of each kind, and never an unfinished one", async () => {
-    process.env.APP_ENCRYPTION_KEY ??= Buffer.alloc(32).toString("base64");
     const { db } = await import("@/db");
     const schema = await import("@/db/schema");
     const { eq, inArray } = await import("drizzle-orm");
     const { pruneFinishedJobs } = await import("@/lib/retention");
 
-    const [user] = await db()
-      .insert(schema.users)
-      .values({ clerkUserId: `test_${randomUUID()}` })
-      .returning();
-    const [project] = await db()
-      .insert(schema.projects)
-      .values({ userId: user.id, name: "Queue" })
-      .returning();
-    const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 3600 * 1000);
+    const user = await makeUser();
+    const project = await makeProject(user.id, { name: "Queue" });
+    const daysAgo = (days: number) => new Date(NOW.getTime() - days * 24 * 3600 * 1000);
     const ran = (kind: string, days: number, projectId: string | null = project.id) => ({
       kind,
       projectId,
@@ -148,7 +153,9 @@ describe.skipIf(!process.env.DATABASE_URL)("pruning finished jobs", () => {
         ran("scan", 2),
         // Claimed long ago and never finished: a lease that ran out.
         { kind: "scan", projectId: project.id, runAt: daysAgo(40), startedAt: daysAgo(40) },
-        { kind: "scan", projectId: project.id, runAt: daysAgo(-1) },
+        // Waiting for tomorrow by the real clock as well as by NOW, so no claimer
+        // on either clock could take it before the user's delete cascades.
+        { kind: "scan", projectId: project.id, runAt: new Date(Date.now() + 24 * 3600 * 1000) },
         ran("backfill", 200),
         ran("x_scan", 90),
         ran("x_scan", 40),
@@ -159,7 +166,7 @@ describe.skipIf(!process.env.DATABASE_URL)("pruning finished jobs", () => {
     const [old60, old50, recent, stuck, queued, backfill, x90, x40, instanceOld, instanceNewest] =
       rows.map((row) => row.id);
 
-    await pruneFinishedJobs(new Date(), 1);
+    await pruneFinishedJobs(NOW, 1);
 
     const left = await db()
       .select({ id: schema.jobs.id })

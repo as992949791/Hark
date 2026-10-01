@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describeDb, makeProject, makeUser } from "./fixtures/db";
 
 /**
  * A project set up before the first sweep kept its searches reads listings
@@ -17,8 +18,6 @@ vi.mock("@/lib/scan/searches", async (original) => ({
 }));
 vi.mock("@/lib/scan/run", () => ({ runScan: (...args: unknown[]) => runScan(...args) }));
 vi.mock("@/lib/alerts/email", () => ({ sendEmail: async () => {} }));
-
-process.env.APP_ENCRYPTION_KEY ??= Buffer.alloc(32).toString("base64");
 
 const MADE = [
   ...["a", "b", "c"].map((x) => ({ kind: "symptom", text: `symptom ${x}` })),
@@ -43,7 +42,7 @@ describe("picking searches", () => {
   });
 });
 
-describe.skipIf(!process.env.DATABASE_URL)("widening a project's searches", () => {
+describeDb("widening a project's searches", () => {
   beforeEach(() => {
     sweepSearchItems.mockReset().mockResolvedValue(MADE);
     runScan.mockReset().mockResolvedValue({});
@@ -54,19 +53,11 @@ describe.skipIf(!process.env.DATABASE_URL)("widening a project's searches", () =
     const schema = await import("@/db/schema");
     const { upsertPosts } = await import("@/lib/reddit/store");
     const { ALERT_SCORE_FLOOR } = await import("@/lib/leadFilters");
-    const [user] = await db()
-      .insert(schema.users)
-      .values({ clerkUserId: `test_${randomUUID()}`, email: `w-${randomUUID()}@example.com` })
-      .returning();
-    const [row] = await db()
-      .insert(schema.projects)
-      .values({
-        userId: user.id,
-        name: "Formcraft",
-        url: "https://formcraft.test",
-        discoveredAt: opts.discovered === false ? null : new Date(),
-      })
-      .returning();
+    const user = await makeUser({ email: `w-${randomUUID()}@example.com` });
+    const row = await makeProject(user.id, {
+      url: "https://formcraft.test",
+      discoveredAt: opts.discovered === false ? null : new Date(),
+    });
     if (opts.keyword) {
       await db()
         .insert(schema.projectKeywords)
