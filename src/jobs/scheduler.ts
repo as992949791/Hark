@@ -2,6 +2,7 @@ import { Cron } from "croner";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { jobs, projects } from "@/db/schema";
+import { alertInvitesOn } from "@/lib/alerts/config";
 import { config } from "@/lib/config";
 import { projectsWithStaleEvaluations } from "@/lib/scan/rescore";
 import { projectsOwedReplyParents } from "@/lib/scan/replies";
@@ -252,8 +253,11 @@ export function startScheduler(): Cron {
     const watchedWorkers = config().SCHEDULER_WATCHED_WORKERS;
     void enqueueOnce("retention");
     void enqueueOnce("digest");
-    // After the outgoing revision is gone, which has no handler for it yet.
-    void enqueueOnce("alert_invites", new Date(Date.now() + BRIEF_START_MS));
+    // Only where an invite can go out (alertInvitesOn), and a few minutes after
+    // boot like the other passes boot queues.
+    if (alertInvitesOn()) {
+      void enqueueOnce("alert_invites", new Date(Date.now() + BRIEF_START_MS));
+    }
     if (config().SCHEDULER_SEED) {
       void seedProjectScans();
     }

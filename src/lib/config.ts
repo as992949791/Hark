@@ -15,7 +15,6 @@ const schema = z.object({
   APP_URL: z.preprocess(blankIsAbsent, z.url().default("http://localhost:3000")),
   APP_ENCRYPTION_KEY: z.string().min(1),
   SELF_HOSTED: z.preprocess(blankIsAbsent, bool),
-  RUN_SCHEDULER: z.preprocess(blankIsAbsent, bool),
 
   ANYAPI_BASE_URL: z.preprocess(blankIsAbsent, z.url().default("https://api.getanyapi.com")),
   ANYAPI_OAUTH_CLIENT_ID: optional(z.string()),
@@ -43,7 +42,10 @@ const schema = z.object({
   AZURE_EMAIL_CONNECTION_STRING: optional(z.string()),
   SMTP_URL: optional(z.string()),
   ALERTS_FROM_EMAIL: optional(z.email()),
-  /** The one-time ask to turn alerts on goes out only once this is true. */
+  /**
+   * The one-time ask to turn alerts on goes out only once this is true and
+   * email is set up; see alertInvitesOn in src/lib/alerts/config.ts.
+   */
   ALERT_INVITES: z.preprocess(blankIsAbsent, bool),
 
   /** A Slack app with the incoming-webhook scope turns the paste-a-URL step into Add to Slack. */
@@ -53,12 +55,6 @@ const schema = z.object({
   DISCORD_CLIENT_ID: optional(z.string()),
   DISCORD_CLIENT_SECRET: optional(z.string()),
 
-  /**
-   * How many jobs the scheduler runs at once. Three is a starting hypothesis,
-   * not a tuned number: it keeps one slow scan from holding up the retention
-   * and digest jobs, and stays well inside the ten-connection pool in
-   * src/db/index.ts. Move it once real queue delay has been measured.
-   */
   /**
    * Whether boot queues the jobs every project is missing. Production wants
    * that: it is how a project whose job died gets scanned again. A dev database
@@ -78,6 +74,12 @@ const schema = z.object({
   SWEEP_SCALE: z.preprocess(blankIsAbsent, z.enum(["full", "small"]).default("full")),
   /** How many new-project setups and first sweeps run at once, on top of the routine workers. */
   SCHEDULER_WATCHED_WORKERS: z.coerce.number().int().positive().default(8),
+  /**
+   * How many jobs the scheduler runs at once. Three is a starting hypothesis,
+   * not a tuned number: it keeps one slow scan from holding up the retention
+   * and digest jobs, and stays well inside the ten-connection pool in
+   * src/db/index.ts. Move it once real queue delay has been measured.
+   */
   SCHEDULER_WORKERS: z.coerce.number().int().positive().default(3),
 
   /**
@@ -97,22 +99,6 @@ const schema = z.object({
    * src/lib/x/enabled.ts. Off, the tab is a 404 and an X job books nothing.
    */
   X_LEADS: z.preprocess(blankIsAbsent, bool),
-  /**
-   * Comma-separated users.id values X is limited to while X_LEADS is on. Empty
-   * means everyone. It narrows the switch and never opens it.
-   */
-  X_LEADS_USERS: z.preprocess(
-    blankIsAbsent,
-    z
-      .string()
-      .optional()
-      .transform((v) =>
-        (v ?? "")
-          .split(",")
-          .map((id) => id.trim())
-          .filter(Boolean),
-      ),
-  ),
   /**
    * The "Worth a reply" kind inside the X tab: posts nobody is shopping in but
    * worth answering, checked by Muse. On with X; false turns only this kind off
