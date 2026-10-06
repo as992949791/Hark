@@ -1,0 +1,73 @@
+[p1 "Privacy Policy | lurk" | space "Lurk 原版页面与功能对照"(6): 1 managed, 0 untracked — p1* "Privacy Policy | lurk"]
+root
+  container
+    container
+      anchor "lurk home" [ref=129, loc=css:a[aria-label="lurk home"], url=https://lurk.so/]
+        image
+        text "lurk"
+      text "by"
+      anchor [ref=130, loc=href:https://getanyapi.com/?utm_source=lurk, url=https://getanyapi.com/?utm_source=lurk]
+        image
+        text "AnyAPI"
+        svg_root
+    heading
+      text "Privacy Policy"
+    paragraph
+      text "Last updated"
+      text "September 18, 2026"
+    paragraph
+      text "lurk"
+      text "(lurk.so) is operated by AnyAPI. This policy says what we collect when you use the hosted service, why, and who else handles it. Questions go to"
+      text "support@getanyapi.com"
+      text "."
+    container
+      heading
+        text "What we collect"
+      paragraph
+        text "Account details: your email address and, if you sign in with Google, the name, email address and profile picture Google shares. We request only the basic profile scopes and never read your Gmail, Driv..."
+      paragraph
+        text "What you give the product: the product URLs and descriptions you enter, the profile we build from them, your settings, the alert channels you add (email addresses, Slack and Discord webhooks), and wha..."
+      paragraph
+        text "Usage data: pages viewed, actions taken, device and browser information, IP address, and error reports, so we can run and improve the service."
+      paragraph
+        text "If you connect an AnyAPI wallet, we store the encrypted access token that lets scans bill your own account. We never see your payment details."
+    container
+      heading
+        text "Public Reddit content"
+      paragraph
+        text "lurk reads public Reddit posts, comments and public author details to find conversations relevant to your product. This content is public, is stored only as long as it is useful for your leads, and is..."
+    container
+      heading
+        text "How we use it"
+      paragraph
+        text "To provide the service: finding and scoring leads, sending the alerts you asked for, securing accounts, preventing abuse, and answering support requests. We do not sell personal data and we do not use..."
+    container
+      heading
+        text "Who handles it for us"
+      paragraph
+        text "Clerk (sign-in and accounts), Google (if you choose Google sign-in), Microsoft Azure (hosting, database and email delivery), PostHog (product analytics), AnyAPI (public web and Reddit data), and langu..."
+    container
+      heading
+        text "Retention and your choices"
+      paragraph
+        text "We keep account data while your account is open. Email support@getanyapi.com to access, correct, export or delete your data, or to close your account; we act on these requests within 30 days. You can ..."
+    container
+      heading
+        text "Cookies"
+      paragraph
+        text "We use cookies that keep you signed in and a first-party analytics cookie. We do not use advertising cookies."
+    container
+      heading
+        text "Changes"
+      paragraph
+        text "If this policy changes in a way that matters, we will update the date above and tell account holders by email."
+    paragraph
+      anchor [ref=131, loc=href:/privacy, url=https://lurk.so/privacy]
+        text "Privacy"
+      text "·"
+      anchor [ref=132, loc=href:/terms, url=https://lurk.so/terms]
+        text "Terms"
+      text "·"
+      anchor [ref=133, loc=href:mailto:support@getanyapi.com, url=mailto:support@getanyapi.com]
+        text "support@getanyapi.com"
+  alert

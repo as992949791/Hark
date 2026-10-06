@@ -1,0 +1,41 @@
+[p1 "lurk by AnyAPI" | space "Lurk 原版页面与功能对照"(6): 1 managed, 0 untracked — p1* "lurk by AnyAPI"]
+root
+  container
+    container
+      container
+        heading
+          text "Sign in to lurk"
+        paragraph
+          text "Welcome back! Please sign in to continue"
+      container
+        button [ref=108]
+          container "Google icon"
+          text "Continue with Google"
+        paragraph
+          text "or"
+        form
+          container
+            container
+              text "Email address"
+              textbox [ref=109, loc=css:input[name="identifier"]]
+                text "Enter your email address"
+            text "Password"
+            textbox [ref=110, loc=css:input[name="password"]]
+              text "Enter your password"
+            button "Show password" [ref=111, loc=css:button[aria-label="Show password"]]
+              svg_root
+          button [ref=112]
+            container
+              text "Continue"
+              svg_root
+    container
+      container
+        text "Don’t have an account?"
+        anchor [ref=113, loc=href:https://accounts.lurk.so/sign-up, url=https://accounts.lurk.so/sign-up]
+          text "Sign up"
+      container
+        paragraph
+          text "Secured by"
+        anchor "Clerk logo" [ref=114, loc=css:a[aria-label="Clerk logo"], url=https://go.clerk.com/components]
+          svg_root
+  alert

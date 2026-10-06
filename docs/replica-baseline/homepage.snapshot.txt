@@ -1,0 +1,1365 @@
+[p1 "lurk by AnyAPI" | space "Lurk 原版页面与功能对照"(6): 1 managed, 0 untracked — p1* "lurk by AnyAPI"]
+root
+  container
+    container
+      container
+        container
+          anchor "lurk home" [ref=1, url=https://lurk.so/]
+            image
+            text "lurk"
+          text "by"
+          anchor [ref=2, url=https://getanyapi.com/?utm_source=lurk]
+            image
+            text "AnyAPI"
+            svg_root
+        container "Main navigation"
+          anchor [ref=3, url=https://lurk.so/#features]
+            text "Features"
+          anchor [ref=4, url=https://lurk.so/#costs]
+            text "Data costs"
+          anchor [ref=5, url=https://lurk.so/#self-host]
+            text "Self-host"
+          anchor [ref=6, url=https://getanyapi.com/?utm_source=lurk]
+            text "AnyAPI"
+            svg_root
+        container
+          button "Switch to light theme" [ref=7, loc=css:button[aria-label="Switch to light theme"]]
+            svg_root
+          anchor [ref=8, url=https://lurk.so/sign-up]
+            text "Start free"
+      container "Monitor Reddit and X to find customers, get cited by AI, and rank on Google."
+        container
+          heading
+            container
+              text "Monitor"
+              container
+                image
+                text "Reddit"
+              text "and"
+              container
+                image
+                text "X"
+              text "to find customers,"
+            container
+              text "get cited by"
+              container "Google AI Overviews, ChatGPT and Perplexity"
+                image
+                image
+                image
+              text "AI, and rank on"
+              container
+                image
+                text "Google"
+              text "."
+          paragraph
+            text "Free."
+            anchor [ref=9, url=https://github.com/getanyapi-com/lurk]
+              text "Open source"
+              svg_root
+          container
+            anchor [ref=10, url=https://lurk.so/sign-up]
+              text "Find leads for free"
+              svg_root
+            anchor [ref=11, url=https://lurk.so/#self-host]
+              text "Self-host"
+          container
+            container
+              svg_root
+              text "Free, no card"
+            container
+              svg_root
+              text "Never posts or DMs"
+        container
+          tablist
+            tab [ref=12]
+              image
+              text "Leads"
+            tab [ref=13]
+              image
+              text "X leads"
+            tab [ref=14]
+              image
+              text "Reddit SEO"
+            tab [ref=15]
+              text "Competitors"
+          tabpanel "X leads"
+            container "X leads product preview"
+              container
+                container
+                  image
+                  container
+                    text "Cal.com"
+                    text "Saved example project"
+                container
+                  text "DISCOVER"
+                  container
+                    svg_root
+                    text "Leads"
+                  container
+                    svg_root
+                    text "X leads"
+                  container
+                    svg_root
+                    text "Reddit SEO"
+                container
+                  text "UNDERSTAND"
+                  container
+                    svg_root
+                    text "Competitors"
+                  container
+                    svg_root
+                    text "Insights"
+                container
+                  text "WORKSPACE"
+                  svg_root
+                  text "Product"
+                  svg_root
+                  text "Sources"
+                  svg_root
+                  text "Alerts"
+                  svg_root
+                  text "Data usage"
+                  svg_root
+                  text "Settings"
+                image
+                text "Data by AnyAPI"
+              container
+                container
+                  text "X leads"
+                  text "Scan now"
+                container
+                  container
+                    container
+                      svg_root
+                      text "30 days"
+                    text "Saved examples"
+                  container
+                    text "Leads ·"
+                    text "3"
+                    text "asks +"
+                    text "1"
+                    text "to reply to"
+                  container
+                    container
+                      container
+                        image
+                        image
+                      container
+                        text "I'm looking for an alternative to Calendly, and the only feature I want is round-robin scheduling."
+                        container
+                          text "@"
+                          text "Tmeister"
+                          text "·"
+                          text "Sep 21"
+                      container
+                        text "Good lead"
+                        container "Fit 3 of 4"
+                    container
+                      container
+                        image
+                        image
+                      container
+                        text "Anyone found an open-source calendly/cal-com replacement you self host on @CloudflareDev workers?"
+                        container
+                          text "@"
+                          text "theozero"
+                          text "·"
+                          text "Sep 14"
+                      container
+                        text "Good lead"
+                        container "Fit 3 of 4"
+                    container
+                      container
+                        image
+                        image
+                      container
+                        text "yeah I really like an alternative because calendly is crazy."
+                        container
+                          text "@"
+                          text "nazanin_ashrafi"
+                          text "·"
+                          text "Sep 25"
+                      container
+                        text "Good lead"
+                        container "Fit 3 of 4"
+                    container
+                      container
+                        image
+                        image
+                      container
+                        text "So we vibe coded our own Calendly++. Why the heck would you do this, when Calendly is cheap, proven, and just works well?"
+                        container
+                          text "@"
+                          text "jasonlk"
+                          text "·"
+                          text "Sep 27"
+                          text "·"
+                          svg_root
+                          text "16,124"
+                          text "views"
+                      container
+                        svg_root
+                        text "Building their own"
+                  paragraph
+                    text "Developer needs affordable Calendly alternative for round-robin scheduling, which Cal.com covers with team booking routing and distribution."
+    container
+      container
+        anchor [ref=16, url=https://lurk.so/#features]
+          text "Every lead is a person"
+          svg_root
+        heading
+          text "Real people, asking in public,"
+          text "for what you sell."
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      paragraph
+        text "Unlike a keyword alert,"
+        text "lurk"
+        text "reads the whole post and the community rules before it calls something a lead. You see who asked, why it matched, and what the community allows - then you decide whether to join the conversation."
+      container
+        container
+          text "Looking for a simpler Jotform alternative"
+          container "Leads product preview"
+            container
+              container
+                image
+                container
+                  text "Tally"
+                  text "Saved example project"
+              container
+                text "DISCOVER"
+                container
+                  svg_root
+                  text "Leads"
+                container
+                  svg_root
+                  text "X leads"
+                container
+                  svg_root
+                  text "Reddit SEO"
+              container
+                text "UNDERSTAND"
+                container
+                  svg_root
+                  text "Competitors"
+                container
+                  svg_root
+                  text "Insights"
+              container
+                text "WORKSPACE"
+                container
+                  svg_root
+                  text "Product"
+                container
+                  svg_root
+                  text "Sources"
+                container
+                  svg_root
+                  text "Alerts"
+                container
+                  svg_root
+                  text "Data usage"
+                container
+                  svg_root
+                  text "Settings"
+              container
+                image
+                text "Data by AnyAPI"
+            container
+              container
+                text "Leads"
+                text "Scan now"
+              container
+                container
+                  container
+                    svg_root
+                    text "30 days"
+                  container
+                    svg_root
+                    text "All communities"
+                  text "Saved examples"
+                container
+                  container
+                    container
+                      image
+                      image
+                    container
+                      image
+                      image
+                    container
+                      image
+                      image
+                  text "One thread. More than one person asking."
+                  text "Saved conversation"
+                container
+                  container
+                    container
+                      image
+                      image
+                    container
+                      text "u/"
+                      text "driftmoose88"
+                    container
+                      image
+                      text "r/"
+                      text "nocode"
+                    container
+                      text "Good lead"
+                      container "Fit 3 of 4"
+                  anchor [ref=17, url=https://www.reddit.com/r/nocode/comments/1w5mqwf/looking_for_a_simpler_jotform_alternative/]
+                    text "Looking for a simpler Jotform alternative"
+                    svg_root
+                  container
+                    text "Post"
+                    text "/"
+                    text "comparing"
+                    text "/"
+                    text "Saved Sep 2"
+                  paragraph
+                    text "They find Jotform overkill for basic surveys and asked for a simpler tool non-technical staff can manage."
+                  paragraph
+                    text "Looking for a Jotform alternative that's more focused on surveys/feedback"
+                  container
+                    svg_root
+                    text "No blatant self-promotion; contribute value"
+                container
+                  container
+                    container
+                      image
+                      image
+                    container
+                      text "u/"
+                      text "jordanmiller81"
+                    container
+                      image
+                      text "r/"
+                      text "nocode"
+                    container
+                      text "Worth a look"
+                      container "Fit 3 of 4"
+                  paragraph
+                    text "I'm actually looking for an alternative too"
+        text "Leads"
+        text "Every post and comment scored, with a written reason and the phrase that matched."
+      container
+        container
+          text "Which are the best online form builder and surveying tools?"
+          container "Reddit SEO product preview"
+            container
+              container
+                image
+                container
+                  text "Tally"
+                  text "Saved example project"
+              container
+                text "DISCOVER"
+                container
+                  svg_root
+                  text "Leads"
+                container
+                  svg_root
+                  text "X leads"
+                container
+                  svg_root
+                  text "Reddit SEO"
+              container
+                text "UNDERSTAND"
+                container
+                  svg_root
+                  text "Competitors"
+                container
+                  svg_root
+                  text "Insights"
+              container
+                text "WORKSPACE"
+                container
+                  svg_root
+                  text "Product"
+                container
+                  svg_root
+                  text "Sources"
+                container
+                  svg_root
+                  text "Alerts"
+                container
+                  svg_root
+                  text "Data usage"
+                container
+                  svg_root
+                  text "Settings"
+              container
+                image
+                text "Data by AnyAPI"
+            container
+              container
+                text "Reddit SEO"
+                text "Refresh now"
+              container
+                container
+                  image
+                  container
+                    text "free form builder"
+                    text "Saved Google results"
+                paragraph
+                  text "Find the conversations people reach from search."
+                container
+                  container
+                    image
+                    text "#"
+                    text "4"
+                  container
+                    anchor [ref=18, url=https://www.reddit.com/r/Entrepreneur/comments/1o5nn0k/looking_for_a_form_builder_thats_actually/]
+                      text "Looking for a form builder that's actually engaging (but not just another submission box)"
+                    container
+                      container
+                        image
+                        text "r/"
+                        text "Entrepreneur"
+                      container
+                        text "Posted"
+                        text "2025-10-13"
+                    container
+                      image
+                      text "Competitor named"
+                container
+                  container
+                    image
+                    text "#"
+                    text "5"
+                  container
+                    anchor [ref=19, url=https://www.reddit.com/r/marketing/comments/1d317mp/which_are_the_best_online_form_builder_and/]
+                      text "Which are the best online form builder and surveying tools?&why you're using it?"
+                    container
+                      container
+                        image
+                        text "r/"
+                        text "marketing"
+                      container
+                        text "Posted"
+                        text "2024-05-29"
+                image
+        text "Reddit SEO"
+        text "The threads Google already ranks for your keywords, so one reply keeps working."
+      container
+        container
+          text "Free typeform alternative?"
+          container "Competitors product preview"
+            container
+              container
+                image
+                container
+                  text "Tally"
+                  text "Saved example project"
+              container
+                text "DISCOVER"
+                container
+                  svg_root
+                  text "Leads"
+                container
+                  svg_root
+                  text "X leads"
+                container
+                  svg_root
+                  text "Reddit SEO"
+              container
+                text "UNDERSTAND"
+                container
+                  svg_root
+                  text "Competitors"
+                container
+                  svg_root
+                  text "Insights"
+              container
+                text "WORKSPACE"
+                container
+                  svg_root
+                  text "Product"
+                container
+                  svg_root
+                  text "Sources"
+                container
+                  svg_root
+                  text "Alerts"
+                container
+                  svg_root
+                  text "Data usage"
+                container
+                  svg_root
+                  text "Settings"
+              container
+                image
+                text "Data by AnyAPI"
+            container
+              container
+                text "Competitors"
+                text "Rescan now"
+              container
+                paragraph
+                  text "Who gets recommended in the threads your leads sit in, over the last 30 days."
+                container
+                  image
+                  text "Jotform"
+                  container
+                    text "7"
+                    text "mention"
+                    text "s"
+                container
+                  image
+                  text "Typeform"
+                  container
+                    text "7"
+                    text "mention"
+                    text "s"
+                container
+                  image
+                  text "Google Forms"
+                  container
+                    text "7"
+                    text "mention"
+                    text "s"
+                container
+                  text "21"
+                  text "mentions read,"
+                  text "1"
+                  text "negative"
+                image
+        text "Competitors"
+        text "Who gets recommended in the threads your leads sit in, and how each mention was meant."
+    container
+      container
+        anchor [ref=20, url=https://lurk.so/#features]
+          image
+          text "X leads"
+          svg_root
+        heading
+          text "Buyers on X say it out loud."
+        paragraph
+          text "People on"
+          image
+          text "X"
+          text "ask for recommendations, complain about what they pay, and post that they built their own. lurk searches"
+          image
+          text "X"
+          text "for those posts about your competitors and your category, reads each one, and keeps the ones worth a reply."
+      container
+        container
+          image
+          text "Found for"
+          text "Cal.com"
+          anchor [ref=21, loc=href:https://x.com/Tmeister/status/2102070473446031613, url=https://x.com/Tmeister/status/2102070473446031613]
+            image
+            text "Enrique Chavez"
+            svg_root "Verified account"
+            container
+              text "@"
+              text "Tmeister"
+              text "·"
+              text "Sep 21"
+            svg_root
+            text "I'm looking for an alternative to Calendly, and the only feature I want is round-robin scheduling."
+            text "Show more"
+            svg_root
+            text "10"
+            svg_root
+            svg_root
+            text "6"
+            svg_root
+            text "848"
+            svg_root
+            svg_root
+          anchor [ref=22, loc=href:https://x.com/theozero/status/2099604273277665312, url=https://x.com/theozero/status/2099604273277665312]
+            image
+            text "Theo Ephraim"
+            svg_root "Verified account"
+            container
+              text "@"
+              text "theozero"
+              text "·"
+              text "Sep 14"
+            svg_root
+            text "Anyone found an open-source calendly/cal-com replacement you self host on @CloudflareDev workers?"
+            svg_root
+            text "9"
+            svg_root
+            svg_root
+            text "23"
+            svg_root
+            text "3.9K"
+            svg_root
+            svg_root
+        text "Asking for what you sell"
+        text "Someone wants a tool like yours and says what it has to do."
+      container
+        container
+          image
+          text "Found for"
+          text "Clipy"
+          anchor [ref=23, loc=href:https://x.com/kylebuildsweb/status/2094888320878956980, url=https://x.com/kylebuildsweb/status/2094888320878956980]
+            image
+            text "Kyle Richardson"
+            svg_root "Verified account"
+            container
+              text "@"
+              text "kylebuildsweb"
+              text "·"
+              text "Sep 1"
+            svg_root
+            text "what screen recording do people use now? I had screen studio but license ran out"
+            svg_root
+            text "4"
+            svg_root
+            svg_root
+            text "4"
+            svg_root
+            text "129"
+            svg_root
+            svg_root
+          anchor [ref=24, loc=href:https://x.com/ui_varshaa/status/2095400225913651234, url=https://x.com/ui_varshaa/status/2095400225913651234]
+            image
+            text "Varshaa"
+            svg_root "Verified account"
+            container
+              text "@"
+              text "ui_varshaa"
+              text "·"
+              text "Sep 3"
+            svg_root
+            text "Replying to"
+            text "@bybellarizp"
+            text "I use Screen Studio but it's too expensive for me. I wanna find an alternative. What do you use currently?"
+            svg_root
+            text "1"
+            svg_root
+            svg_root
+            text "1"
+            svg_root
+            text "174"
+            svg_root
+            svg_root
+        text "Leaving a competitor"
+        text "A license ran out or the price went up, and they are asking what to use instead."
+      container
+        container
+          image
+          text "Found for"
+          text "Cal.com"
+          anchor [ref=25, loc=href:https://x.com/jasonlk/status/2104318737541439638, url=https://x.com/jasonlk/status/2104318737541439638]
+            image
+            text "Jason Lemkin"
+            svg_root "Verified account"
+            container
+              text "@"
+              text "jasonlk"
+              text "·"
+              text "Sep 27"
+            svg_root
+            text "So we vibe coded our own Calendly++. Why the heck would you do this, when Calendly is cheap, proven, and just works well?"
+            text "Show more"
+            svg_root
+            text "24"
+            svg_root
+            text "4"
+            svg_root
+            text "65"
+            svg_root
+            text "16K"
+            svg_root
+            svg_root
+          anchor [ref=26, loc=href:https://x.com/adambuildsapps/status/2104634863022207080, url=https://x.com/adambuildsapps/status/2104634863022207080]
+            image
+            text "Adam"
+            container
+              text "@"
+              text "adambuildsapps"
+              text "·"
+              text "Sep 28"
+            svg_root
+            text "Vibe coded my own screen recording software because I don’t wanna pay $30/m for screen studio"
+            svg_root
+            svg_root
+            svg_root
+            svg_root
+            text "2"
+            svg_root
+            svg_root
+        text "Building their own"
+        text "They built or vibe coded their own. Big posts are ranked by reach, so a reply gets seen."
+    container
+      container
+        heading
+          text "Free."
+          text "No card, no subscription."
+        paragraph
+          text "The hosted app runs on our own"
+          anchor [ref=27, url=https://getanyapi.com/?utm_source=lurk]
+            image
+            text "AnyAPI"
+            svg_root
+          text "wallet within the limits below. Connect your own wallet for more, or self-host the MIT source with no app limits at all."
+      image
+      text "lurk"
+      text "Reddit and X leads, AI scoring, competitors, Reddit SEO"
+      text "Free"
+      image
+      text "F5Bot"
+      text "Email keyword alerts"
+      svg_root
+      text "Also free, but it only emails you every keyword match. No dashboard, no AI scoring, no competitor tracking, no SEO."
+      text "Free"
+      image
+      text "ReplyGuy"
+      text "Small plan"
+      text "$10/mo"
+      image
+      text "LeadsRover"
+      text "Starter plan"
+      text "$13.99/mo"
+      image
+      text "GummySearch"
+      text "Starter plan"
+      text "$29/mo"
+      text "Entry plan, monthly billing, as published on"
+      text "2026-09-06"
+      text "."
+      tab [ref=28]
+        text "Hosted free"
+      tab [ref=29]
+        text "Connected wallet"
+      tab [ref=30]
+        text "Self-host"
+      paragraph
+        text "Start on the house wallet, within the hosted free limits."
+      unordered_list
+        list_item
+          text "Projects"
+        list_item
+          text "2"
+        list_item
+          text "Keywords / project"
+        list_item
+          text "25"
+        list_item
+          text "Communities / project"
+        list_item
+          text "10"
+        list_item
+          text "Scan cadence"
+        list_item
+          text "Daily, at the hour you pick"
+        list_item
+          text "SEO refresh"
+        list_item
+          text "Every 7 days"
+        list_item
+          text "API reads / day"
+        list_item
+          text "1,000"
+      text "Daily alerts / Slack and Discord, plus 1 custom webhook"
+    container
+      container
+        heading
+          text "Scans"
+          text "that read the whole thread."
+        paragraph
+          text "Every keyword and community is searched on a schedule. Titles are filtered first, then the shortlisted posts and comments are read in full and scored with a written reason and the exact phrase that ma..."
+      svg_root
+      text "ai form builder"
+      text "reddit.search, sorted new, then r/nocode and r/GPT"
+      container "Leads product preview"
+        container
+          container
+            image
+            container
+              text "Tally"
+              text "Saved example project"
+          container
+            text "DISCOVER"
+            container
+              svg_root
+              text "Leads"
+            container
+              svg_root
+              text "X leads"
+            container
+              svg_root
+              text "Reddit SEO"
+          container
+            text "UNDERSTAND"
+            container
+              svg_root
+              text "Competitors"
+            container
+              svg_root
+              text "Insights"
+          container
+            text "WORKSPACE"
+            container
+              svg_root
+              text "Product"
+            container
+              svg_root
+              text "Sources"
+            container
+              svg_root
+              text "Alerts"
+            container
+              svg_root
+              text "Data usage"
+            container
+              svg_root
+              text "Settings"
+          container
+            image
+            text "Data by AnyAPI"
+        container
+          container
+            text "Leads"
+            text "Scan now"
+          container
+            container
+              container
+                svg_root
+                text "30 days"
+              container
+                svg_root
+                text "All communities"
+              text "Saved examples"
+            container
+              container
+                container
+                  image
+                  image
+                container
+                  image
+                  image
+                container
+                  image
+                  image
+              text "One thread. More than one person asking."
+              text "Saved conversation"
+            container
+              container
+                container
+                  image
+                  image
+                container
+                  text "u/"
+                  text "driftmoose88"
+                container
+                  image
+                  text "r/"
+                  text "nocode"
+                container
+                  text "Good lead"
+                  container "Fit 3 of 4"
+              anchor [ref=31, url=https://www.reddit.com/r/nocode/comments/1w5mqwf/looking_for_a_simpler_jotform_alternative/]
+                text "Looking for a simpler Jotform alternative"
+                svg_root
+              container
+                text "Post"
+                text "/"
+                text "comparing"
+                text "/"
+                text "Saved Sep 2"
+              paragraph
+                text "They find Jotform overkill for basic surveys and asked for a simpler tool non-technical staff can manage."
+              paragraph
+                text "Looking for a Jotform alternative that's more focused on surveys/feedback"
+              container
+                svg_root
+                text "No blatant self-promotion; contribute value"
+            container
+              container
+                container
+                  image
+                  image
+                container
+                  text "u/"
+                  text "jordanmiller81"
+                container
+                  image
+                  text "r/"
+                  text "nocode"
+                container
+                  text "Worth a look"
+                  container "Fit 3 of 4"
+              paragraph
+                text "I'm actually looking for an alternative too"
+      container
+        image
+        image
+        text "u/"
+        text "TurboKestrel45"
+        text "r/"
+        text "GPT"
+        text "Sep 1"
+        text "Worth a look"
+        anchor [ref=32, url=https://www.reddit.com/r/GPT/comments/1w4pynu/ai_form_builder_that_can_create_forms_from/]
+          text "AI form builder that can create forms from training material?"
+        text "in r/"
+        text "GPT"
+        text "-"
+        text "solution seeking"
+        paragraph
+          text "They waste time rebuilding training feedback forms and asked for an AI builder that generates editable questions from a doc."
+        paragraph
+          text "I handle internal training at work and"
+          text "creating a new feedback form after every session gets repetitive"
+          text ". Looking for an AI form builder that can take a training doc, understand the topic, and generate relevant feedback questions that I can tweak afterward. Any recommendations?"
+        unordered_list
+          list_item
+            text "Fit"
+          list_item
+            text "2"
+          list_item
+            text "Intent"
+          list_item
+            text "3"
+          list_item
+            text "Engagement"
+          list_item
+            text "0"
+        svg_root
+        text "6"
+        svg_root
+        text "27"
+        svg_root
+        text "Community policy unavailable. Read the current rules."
+        container
+          container
+            svg_root
+            text "Open on Reddit"
+          container
+            svg_root
+            text "Hide"
+          container
+            svg_root
+            text "Not a fit"
+    container
+      container
+        anchor [ref=33, url=https://lurk.so/#decide]
+          image
+          text "Reddit"
+          text "SEO"
+          svg_root
+        heading
+          text "A reply can outlive the day you write it."
+        paragraph
+          image
+          text "Google"
+          text "already ranks"
+          image
+          text "Reddit"
+          text "threads for what you sell, and"
+          image
+          text "Google AI Overviews"
+          text ","
+          image
+          text "ChatGPT"
+          text "and"
+          image
+          text "Perplexity"
+          text "cite the same threads when they answer."
+          text "lurk finds them, saves the position, and shows which ones name a competitor."
+      container
+        container
+          image
+          text "Typeform alternatives"
+          svg_root
+          image
+          text "Reddit / r/"
+          text "Entrepreneur"
+          text "Typeform Alternative"
+          text "#"
+          text "1"
+          image
+          text "Reddit / r/"
+          text "Entrepreneur"
+          text "Free typeform alternative?"
+          text "#"
+          text "2"
+        text "Ranked threads"
+        text "Your keywords, searched on"
+        image
+        text "Google"
+        text ", filtered to the"
+        image
+        text "Reddit"
+        text "discussions that already rank."
+      container
+        container
+          text "#"
+          text "4"
+          text "Looking for a form builder that's actually engaging (but not just another submission box)"
+          image
+          text "r/"
+          text "Entrepreneur"
+          text "#"
+          text "5"
+          text "Which are the best online form builder and surveying tools?&why you're using it?"
+          image
+          text "r/"
+          text "marketing"
+        text "Position, age, comments"
+        text "Saved at the time it was observed, so you can see which threads are still alive."
+      container
+        table
+          table_row
+            table_cell
+              text "Thread"
+            table_cell
+              text "Competitor"
+            table_cell "Named"
+          table_row
+            table_cell
+              text "r/"
+              text "Entrepreneur"
+            table_cell
+              image
+              text "Typeform"
+            table_cell
+              svg_root
+          table_row
+            table_cell
+              text "r/"
+              text "Entrepreneur"
+            table_cell
+              image
+              text "Typeform"
+            table_cell
+              svg_root
+          table_row
+            table_cell
+              text "r/"
+              text "Entrepreneur"
+            table_cell
+              text "Named in thread"
+            table_cell
+              svg_root
+          table_row
+            table_cell
+              text "r/"
+              text "marketing"
+            table_cell
+              text "None named"
+            table_cell
+              svg_root
+        text "Competitor named"
+        text "A thread that already compares tools is where a careful answer is welcome."
+    container
+      heading
+        text "lurk is open source."
+        text "MIT. Run it on your own key,"
+        text "with your own model."
+      anchor [ref=34, url=https://github.com/getanyapi-com/lurk]
+        text "Read the code"
+      paragraph
+        text "Self-host in one command"
+        text "Docker starts the app and Postgres. The scoring instructions are a file in src/lib/prompts.ts, not a secret."
+      paragraph
+        text "Read-only API and MCP"
+        text "Your tools and agents read projects, leads and SEO rows. There is no tool for posting or sending a DM."
+      svg_root
+      text "Terminal"
+      anchor [ref=35, url=https://getanyapi.com/?utm_source=lurk]
+        image
+        text "Data by AnyAPI"
+        svg_root
+      text "$ git clone https://github.com/getanyapi-com/lurk.git $ cd lurk && cp .env.example .env $ docker compose up Applying database migrations migrations applied $ curl "$APP_URL/api/v1/projects" -H "Author..."
+      anchor [ref=36, url=https://lurk.so/openapi.json]
+        svg_root
+        text "API schema"
+      anchor [ref=37, url=https://lurk.so/agent-guide.md]
+        svg_root
+        text "Agent guide"
+    container
+      container
+        anchor [ref=38, url=https://lurk.so/#costs]
+          text "Your reply, your decision"
+          svg_root
+        heading
+          text "Context first. Nothing sends."
+        paragraph
+          text "The community rule, the reason it scored and what keeps coming up, all in front of you before you type a word. lurk never posts or DMs on your behalf."
+      container
+        image
+        image
+        text "u/"
+        text "TurboDragonX76"
+        image
+        text "r/"
+        text "nocode"
+        text "Tally alternative with better survey analysis?"
+        svg_root
+        text "r/"
+        text "nocode"
+        text ": contribute value"
+        text "No blatant self-promotion without giving value back."
+        text "The rule on the lead"
+        text "Each community's promotion policy, read from its sidebar, sits next to the post."
+      container
+        image
+        image
+        text "u/"
+        text "driftmoose88"
+        image
+        text "r/"
+        text "nocode"
+        text "Looking for a simpler Jotform alternative"
+        svg_root
+        text "comparing"
+        text "They find Jotform overkill for basic surveys and asked for a simpler tool non-technical staff can manage."
+        paragraph
+          text "“"
+          text "Looking for a Jotform alternative that's more focused on surveys/feedback"
+          text "”"
+        text "Why it scored"
+        text "The stage they are at, one sentence of reasoning, and the exact words that matched."
+      container
+        image
+        text "Slack"
+        image
+        text "Discord"
+        svg_root
+        text "Email"
+        svg_root
+        text "Webhook"
+        image
+        image
+        text "u/"
+        text "SenorSmartyPantz"
+        image
+        text "r/"
+        text "selfhosted"
+        text "Monitor and log to find high load process?"
+        text "New lead, 2 minutes ago"
+        text "The digest comes to you"
+        text "New leads to Slack, Discord, email or a webhook, with the score, reason and link."
+      container
+        svg_root
+        text "PAIN THEMES"
+        text "Simpler Alternative To Jotform"
+        text "2"
+        text "lead"
+        text "s"
+        text "Repetitive Training Feedback Forms"
+        text "1"
+        text "lead"
+        svg_root
+        text "COMPETITOR MENTIONS"
+        image
+        text "7"
+        image
+        text "7"
+        image
+        text "7"
+        text "What keeps coming up"
+        text "Themes across your saved leads, and who gets named when people compare tools."
+    container
+      container
+        anchor [ref=39, url=https://getanyapi.com/?utm_source=lurk]
+          image
+          text "Data by AnyAPI"
+          svg_root
+        heading
+          text "Need data from Reddit, TikTok or LinkedIn?"
+          text "Use AnyAPI."
+        paragraph
+          text "Every thread lurk reads comes through"
+          anchor [ref=40, url=https://getanyapi.com/?utm_source=lurk]
+            text "AnyAPI"
+          text ". The same key reads"
+          image
+          text "TikTok"
+          text ","
+          image
+          text "Instagram"
+          text ","
+          image
+          text "YouTube"
+          text ","
+          image
+          text "X"
+          text ","
+          image
+          text "LinkedIn"
+          text ","
+          image
+          text "Google Maps"
+          text "and"
+          image
+          text "Amazon"
+          text ", and about 70 more platforms, as clean JSON."
+      container
+        container
+          image
+          text "Reddit"
+          text "Posts, comments, subreddits"
+          image
+          text "TikTok"
+          text "Videos, comments, transcripts"
+          image
+          text "Instagram"
+          text "Profiles, posts, reels"
+          image
+          text "YouTube"
+          text "Videos, comments, transcripts"
+        text "One key for every platform"
+        text "No scraper to run, no proxies to rent and no developer account on each site."
+      container
+        table
+          table_row
+            table_cell
+              text "Endpoint"
+            table_cell
+              text "From / 1k req"
+          table_row
+            table_cell
+              image
+              text "reddit.search"
+            table_cell
+              text "$"
+              text "0.38"
+          table_row
+            table_cell
+              image
+              text "tiktok.video_comments"
+            table_cell
+              text "$"
+              text "0.70"
+          table_row
+            table_cell
+              image
+              text "amazon.product"
+            table_cell
+              text "$"
+              text "1.00"
+          table_row
+            table_cell
+              image
+              text "instagram.profile"
+            table_cell
+              text "$"
+              text "1.20"
+          table_row
+            table_cell
+              image
+              text "maps.reviews"
+            table_cell
+              text "$"
+              text "3.50"
+          table_row
+            table_cell
+              image
+              text "linkedin.profile"
+            table_cell
+              text "$"
+              text "4.00"
+        text "Pay per request"
+        text "In dollars, with no subscription, and a failed call costs nothing. Prices from the catalog on"
+        text "2026-09-18"
+        text "."
+      container
+        container
+          image
+          text "About 150 requests on the house"
+          paragraph
+            text "No card. Search the catalog, run a call, see the JSON."
+          anchor [ref=41, url=https://getanyapi.com/?utm_source=lurk]
+            text "Get your AnyAPI key"
+            svg_root
+        text "Try it free"
+        text "The same wallet lurk runs on, for whatever you need to read next."
+    container
+      text "Good conversations start with listening"
+      heading
+        text "Find the ask."
+        text "Bring something useful."
+      anchor [ref=42, url=https://lurk.so/sign-up]
+        text "Find leads for free"
+        svg_root
+      anchor [ref=43, url=https://lurk.so/#self-host]
+        text "Self-host"
+    container
+      container "Footer"
+        text "Discover"
+        anchor [ref=44, url=https://lurk.so/#features]
+          image
+          text "Reddit leads"
+        anchor [ref=45, loc=href:/#x, url=https://lurk.so/#x]
+          image
+          text "X leads"
+        anchor [ref=46, loc=href:/#seo, url=https://lurk.so/#seo]
+          image
+          text "Reddit SEO"
+        anchor [ref=47, url=https://lurk.so/#decide]
+          text "Competitors"
+        text "Understand"
+        anchor [ref=48, url=https://lurk.so/#features]
+          text "Scores and reasons"
+        anchor [ref=49, url=https://lurk.so/#decide]
+          text "Community rules"
+        anchor [ref=50, url=https://lurk.so/#decide]
+          text "Insights"
+        text "Your workflow"
+        anchor [ref=51, url=https://lurk.so/#decide]
+          text "Why it scored"
+        anchor [ref=52, url=https://lurk.so/#decide]
+          text "Alerts"
+        anchor [ref=53, url=https://lurk.so/#costs]
+          text "Data costs"
+        text "Build with it"
+        anchor [ref=54, url=https://lurk.so/openapi.json]
+          text "REST schema"
+        anchor [ref=55, url=https://lurk.so/agent-guide.md]
+          text "MCP agent guide"
+        anchor [ref=56, url=https://lurk.so/#self-host]
+          text "Self-host"
+        text "Get started"
+        anchor [ref=57, url=https://github.com/getanyapi-com/lurk]
+          text "GitHub / at launch"
+        anchor [ref=58, url=https://lurk.so/sign-up]
+          text "Hosted free"
+        anchor [ref=59, url=https://getanyapi.com/?utm_source=lurk]
+          image
+          text "AnyAPI"
+          svg_root
+        anchor [ref=60, loc=href:mailto:support@getanyapi.com, url=mailto:support@getanyapi.com]
+          text "Contact"
+      anchor "lurk home" [ref=61, url=https://lurk.so/]
+        image
+        text "lurk"
+      text "by"
+      anchor [ref=62, url=https://getanyapi.com/?utm_source=lurk]
+        image
+        text "AnyAPI"
+        svg_root
+      text "MIT licensed. Built on public conversations."
+      anchor [ref=63, loc=href:/privacy, url=https://lurk.so/privacy]
+        text "Privacy"
+      text "·"
+      anchor [ref=64, loc=href:/terms, url=https://lurk.so/terms]
+        text "Terms"
+  alert

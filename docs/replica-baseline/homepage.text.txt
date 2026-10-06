@@ -1,0 +1,515 @@
+lurk
+by
+AnyAPI
+Features
+Data costs
+Self-host
+AnyAPI
+Start free
+Monitor 
+Reddit and 
+X to find customers, get cited by 
+ AI, and rank on 
+Google.
+
+Free. Open source
+
+Find leads for free
+Self-host
+Free, no card
+Never posts or DMs
+Leads
+X leads
+Reddit SEO
+Competitors
+Cal.com
+Saved example project
+DISCOVER
+Leads
+X leads
+Reddit SEO
+UNDERSTAND
+Competitors
+Insights
+WORKSPACE
+Product
+Sources
+Alerts
+Data usage
+Settings
+Data by AnyAPI
+X leads
+Scan now
+30 days
+Saved examples
+Leads · 3 asks + 1 to reply to
+I'm looking for an alternative to Calendly, and the only feature I want is round-robin scheduling.
+@Tmeister · Sep 21
+Good lead
+Anyone found an open-source calendly/cal-com replacement you self host on @CloudflareDev workers?
+@theozero · Sep 14
+Good lead
+yeah I really like an alternative because calendly is crazy.
+@nazanin_ashrafi · Sep 25
+Good lead
+So we vibe coded our own Calendly++. Why the heck would you do this, when Calendly is cheap, proven, and just works well?
+@jasonlk · Sep 27 ·
+16,124 views
+Building their own
+
+Developer needs affordable Calendly alternative for round-robin scheduling, which Cal.com covers with team booking routing and distribution.
+
+Every lead is a person
+Real people, asking in public,
+for what you sell.
+
+Unlike a keyword alert, lurk reads the whole post and the community rules before it calls something a lead. You see who asked, why it matched, and what the community allows - then you decide whether to join the conversation.
+
+Looking for a simpler Jotform alternative
+Tally
+Saved example project
+DISCOVER
+Leads
+X leads
+Reddit SEO
+UNDERSTAND
+Competitors
+Insights
+WORKSPACE
+Product
+Sources
+Alerts
+Data usage
+Settings
+Data by AnyAPI
+Leads
+Scan now
+30 days
+All communities
+Saved examples
+One thread. More than one person asking.
+Saved conversation
+u/driftmoose88
+r/nocode
+Good lead
+Looking for a simpler Jotform alternative
+Post / comparing / Saved Sep 2
+
+They find Jotform overkill for basic surveys and asked for a simpler tool non-technical staff can manage.
+
+Looking for a Jotform alternative that's more focused on surveys/feedback
+
+No blatant self-promotion; contribute value
+u/jordanmiller81
+r/nocode
+Worth a look
+
+I'm actually looking for an alternative too
+
+Leads Every post and comment scored, with a written reason and the phrase that matched.
+Which are the best online form builder and surveying tools?
+Tally
+Saved example project
+DISCOVER
+Leads
+X leads
+Reddit SEO
+UNDERSTAND
+Competitors
+Insights
+WORKSPACE
+Product
+Sources
+Alerts
+Data usage
+Settings
+Data by AnyAPI
+Reddit SEO
+Refresh now
+free form builder
+Saved Google results
+
+Find the conversations people reach from search.
+
+#4
+Looking for a form builder that's actually engaging (but not just another submission box)
+r/Entrepreneur
+Posted 2025-10-13
+Competitor named
+#5
+Which are the best online form builder and surveying tools?&why you're using it?
+r/marketing
+Posted 2024-05-29
+Reddit SEO The threads Google already ranks for your keywords, so one reply keeps working.
+Free typeform alternative?
+Tally
+Saved example project
+DISCOVER
+Leads
+X leads
+Reddit SEO
+UNDERSTAND
+Competitors
+Insights
+WORKSPACE
+Product
+Sources
+Alerts
+Data usage
+Settings
+Data by AnyAPI
+Competitors
+Rescan now
+
+Who gets recommended in the threads your leads sit in, over the last 30 days.
+
+Jotform
+7 mentions
+Typeform
+7 mentions
+Google Forms
+7 mentions
+21 mentions read, 1 negative
+Competitors Who gets recommended in the threads your leads sit in, and how each mention was meant.
+X leads
+Buyers on X say it out loud.
+
+People on 
+X ask for recommendations, complain about what they pay, and post that they built their own. lurk searches 
+X for those posts about your competitors and your category, reads each one, and keeps the ones worth a reply.
+
+Found for Cal.com
+Enrique Chavez
+@Tmeister · Sep 21
+I'm looking for an alternative to Calendly, and the only feature I want is round-robin scheduling.
+Show more
+10
+6
+848
+Theo Ephraim
+@theozero · Sep 14
+Anyone found an open-source calendly/cal-com replacement you self host on @CloudflareDev workers?
+9
+23
+3.9K
+Asking for what you sell Someone wants a tool like yours and says what it has to do.
+Found for Clipy
+Kyle Richardson
+@kylebuildsweb · Sep 1
+what screen recording do people use now? I had screen studio but license ran out
+4
+4
+129
+Varshaa
+@ui_varshaa · Sep 3
+Replying to @bybellarizp
+I use Screen Studio but it's too expensive for me. I wanna find an alternative. What do you use currently?
+1
+1
+174
+Leaving a competitor A license ran out or the price went up, and they are asking what to use instead.
+Found for Cal.com
+Jason Lemkin
+@jasonlk · Sep 27
+So we vibe coded our own Calendly++. Why the heck would you do this, when Calendly is cheap, proven, and just works well?
+Show more
+24
+4
+65
+16K
+Adam
+@adambuildsapps · Sep 28
+Vibe coded my own screen recording software because I don’t wanna pay $30/m for screen studio
+2
+Building their own They built or vibe coded their own. Big posts are ranked by reach, so a reply gets seen.
+Free. No card, no subscription.
+
+The hosted app runs on our own 
+AnyAPI
+ wallet within the limits below. Connect your own wallet for more, or self-host the MIT source with no app limits at all.
+
+lurk
+Reddit and X leads, AI scoring, competitors, Reddit SEO
+Free
+F5Bot
+Email keyword alerts
+Also free, but it only emails you every keyword match. No dashboard, no AI scoring, no competitor tracking, no SEO.
+Free
+ReplyGuy
+Small plan
+$10/mo
+LeadsRover
+Starter plan
+$13.99/mo
+GummySearch
+Starter plan
+$29/mo
+Entry plan, monthly billing, as published on 2026-09-06.
+Hosted free
+Connected wallet
+Self-host
+
+Start on the house wallet, within the hosted free limits.
+
+Projects
+2
+Keywords / project
+25
+Communities / project
+10
+Scan cadence
+Daily, at the hour you pick
+SEO refresh
+Every 7 days
+API reads / day
+1,000
+Daily alerts / Slack and Discord, plus 1 custom webhook
+Scans that read the whole thread.
+
+Every keyword and community is searched on a schedule. Titles are filtered first, then the shortlisted posts and comments are read in full and scored with a written reason and the exact phrase that matched your product.
+
+ai form builder
+reddit.search, sorted new, then r/nocode and r/GPT
+Tally
+Saved example project
+DISCOVER
+Leads
+X leads
+Reddit SEO
+UNDERSTAND
+Competitors
+Insights
+WORKSPACE
+Product
+Sources
+Alerts
+Data usage
+Settings
+Data by AnyAPI
+Leads
+Scan now
+30 days
+All communities
+Saved examples
+One thread. More than one person asking.
+Saved conversation
+u/driftmoose88
+r/nocode
+Good lead
+Looking for a simpler Jotform alternative
+Post / comparing / Saved Sep 2
+
+They find Jotform overkill for basic surveys and asked for a simpler tool non-technical staff can manage.
+
+Looking for a Jotform alternative that's more focused on surveys/feedback
+
+No blatant self-promotion; contribute value
+u/jordanmiller81
+r/nocode
+Worth a look
+
+I'm actually looking for an alternative too
+
+u/TurboKestrel45
+r/GPT
+Sep 1
+Worth a look
+AI form builder that can create forms from training material?
+in r/GPT - solution seeking
+
+They waste time rebuilding training feedback forms and asked for an AI builder that generates editable questions from a doc.
+
+I handle internal training at work and creating a new feedback form after every session gets repetitive. Looking for an AI form builder that can take a training doc, understand the topic, and generate relevant feedback questions that I can tweak afterward. Any recommendations?
+
+Fit
+2
+Intent
+3
+Engagement
+0
+6
+27
+Community policy unavailable. Read the current rules.
+Open on Reddit
+Hide
+Not a fit
+Reddit
+SEO
+A reply can outlive the day you write it.
+
+Google already ranks 
+Reddit threads for what you sell, and 
+Google AI Overviews, 
+ChatGPT and 
+Perplexity cite the same threads when they answer.
+lurk finds them, saves the position, and shows which ones name a competitor.
+
+Typeform alternatives
+Reddit / r/Entrepreneur
+Typeform Alternative
+#1
+Reddit / r/Entrepreneur
+Free typeform alternative?
+#2
+Ranked threads Your keywords, searched on 
+Google, filtered to the 
+Reddit discussions that already rank.
+#4
+Looking for a form builder that's actually engaging (but not just another submission box)
+r/Entrepreneur
+#5
+Which are the best online form builder and surveying tools?&why you're using it?
+r/marketing
+Position, age, comments Saved at the time it was observed, so you can see which threads are still alive.
+Thread	Competitor	
+r/Entrepreneur	
+Typeform
+
+r/Entrepreneur	
+Typeform
+
+r/Entrepreneur	
+Named in thread
+
+r/marketing	
+None named
+Competitor named A thread that already compares tools is where a careful answer is welcome.
+lurk is open source.
+MIT. Run it on your own key,
+with your own model.
+Read the code
+
+Self-host in one command
+Docker starts the app and Postgres. The scoring instructions are a file in src/lib/prompts.ts, not a secret.
+
+Read-only API and MCP
+Your tools and agents read projects, leads and SEO rows. There is no tool for posting or sending a DM.
+
+Terminal
+Data by AnyAPI
+$ git clone https://github.com/getanyapi-com/lurk.git
+$ cd lurk && cp .env.example .env
+$ docker compose up
+Applying database migrations
+migrations applied
+
+$ curl "$APP_URL/api/v1/projects" -H "Authorization: Bearer $KEY"
+API schema
+Agent guide
+Your reply, your decision
+Context first. Nothing sends.
+
+The community rule, the reason it scored and what keeps coming up, all in front of you before you type a word. lurk never posts or DMs on your behalf.
+
+u/TurboDragonX76
+r/nocode
+Tally alternative with better survey analysis?
+r/nocode: contribute value
+No blatant self-promotion without giving value back.
+The rule on the lead Each community's promotion policy, read from its sidebar, sits next to the post.
+u/driftmoose88
+r/nocode
+Looking for a simpler Jotform alternative
+comparing
+They find Jotform overkill for basic surveys and asked for a simpler tool non-technical staff can manage.
+
+“Looking for a Jotform alternative that's more focused on surveys/feedback”
+
+Why it scored The stage they are at, one sentence of reasoning, and the exact words that matched.
+Slack
+Discord
+Email
+Webhook
+u/SenorSmartyPantz
+r/selfhosted
+Monitor and log to find high load process?
+New lead, 2 minutes ago
+The digest comes to you New leads to Slack, Discord, email or a webhook, with the score, reason and link.
+PAIN THEMES
+Simpler Alternative To Jotform
+2 leads
+Repetitive Training Feedback Forms
+1 lead
+COMPETITOR MENTIONS
+7
+7
+7
+What keeps coming up Themes across your saved leads, and who gets named when people compare tools.
+Data by AnyAPI
+Need data from Reddit, TikTok or LinkedIn? Use AnyAPI.
+
+Every thread lurk reads comes through AnyAPI. The same key reads 
+TikTok, 
+Instagram, 
+YouTube, 
+X, 
+LinkedIn, 
+Google Maps and 
+Amazon, and about 70 more platforms, as clean JSON.
+
+Reddit
+Posts, comments, subreddits
+TikTok
+Videos, comments, transcripts
+Instagram
+Profiles, posts, reels
+YouTube
+Videos, comments, transcripts
+One key for every platform No scraper to run, no proxies to rent and no developer account on each site.
+Endpoint	From / 1k req
+
+reddit.search
+$0.38
+
+tiktok.video_comments
+$0.70
+
+amazon.product
+$1.00
+
+instagram.profile
+$1.20
+
+maps.reviews
+$3.50
+
+linkedin.profile
+$4.00
+Pay per request In dollars, with no subscription, and a failed call costs nothing. Prices from the catalog on 2026-09-18.
+About 150 requests on the house
+
+No card. Search the catalog, run a call, see the JSON.
+
+Get your AnyAPI key
+Try it free The same wallet lurk runs on, for whatever you need to read next.
+Good conversations start with listening
+Find the ask.
+Bring something useful.
+Find leads for free
+Self-host
+Discover
+Reddit leads
+X leads
+Reddit SEO
+Competitors
+Understand
+Scores and reasons
+Community rules
+Insights
+Your workflow
+Why it scored
+Alerts
+Data costs
+Build with it
+REST schema
+MCP agent guide
+Self-host
+Get started
+GitHub / at launch
+Hosted free
+AnyAPI
+Contact
+lurk
+by
+AnyAPI
+MIT licensed. Built on public conversations. Privacy · Terms

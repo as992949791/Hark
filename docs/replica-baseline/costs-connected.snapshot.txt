@@ -1,0 +1,103 @@
+[p1 "lurk by AnyAPI" | space "Lurk 原版页面与功能对照"(6): 1 managed, 0 untracked — p1* "lurk by AnyAPI"]
+root
+  container
+    container
+      heading
+        text "Free."
+        text "No card, no subscription."
+      paragraph
+        text "The hosted app runs on our own"
+        anchor [ref=165, url=https://getanyapi.com/?utm_source=lurk]
+          image
+          text "AnyAPI"
+          svg_root
+        text "wallet within the limits below. Connect your own wallet for more, or self-host the MIT source with no app limits at all."
+    table "Entry plan per month"
+      row
+        cell
+          image
+          text "lurk"
+          text "Reddit and X leads, AI scoring, competitors, Reddit SEO"
+        cell
+        cell
+          text "Free"
+      row
+        cell
+          image
+          text "F5Bot"
+          text "Email keyword alerts"
+        cell
+          container
+            svg_root
+            text "Also free, but it only emails you every keyword match. No dashboard, no AI scoring, no competitor tracking, no SEO."
+        cell
+          text "Free"
+      row
+        cell
+          image
+          text "ReplyGuy"
+          text "Small plan"
+        cell
+        cell
+          text "$10/mo"
+      row
+        cell
+          image
+          text "LeadsRover"
+          text "Starter plan"
+        cell
+        cell
+          text "$13.99/mo"
+      row
+        cell
+          image
+          text "GummySearch"
+          text "Starter plan"
+        cell
+        cell
+          text "$29/mo"
+      container
+        text "Entry plan, monthly billing, as published on"
+        text "2026-09-06"
+        text "."
+    tablist "Hosting options"
+      tab [ref=166]
+        text "Hosted free"
+      tab [ref=167]
+        text "Connected wallet"
+      tab [ref=168]
+        text "Self-host"
+    tabpanel "Connected wallet"
+      paragraph
+        text "Connect through AnyAPI, set the spend cap there, and pay per call. Disconnecting revokes it."
+      unordered_list
+        container
+          list_item
+            text "Projects"
+          list_item
+            text "No app limit"
+        container
+          list_item
+            text "Keywords / project"
+          list_item
+            text "No app limit"
+        container
+          list_item
+            text "Communities / project"
+          list_item
+            text "No app limit"
+        container
+          list_item
+            text "Scan cadence"
+          list_item
+            text "Every hour"
+        container
+          list_item
+            text "SEO refresh"
+          list_item
+            text "Every 1 day"
+        container
+          list_item
+            text "API reads / day"
+          list_item
+            text "No app limit"

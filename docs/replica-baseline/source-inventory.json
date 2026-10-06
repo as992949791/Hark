@@ -1,0 +1,545 @@
+{
+  "commit": "44834c83b8aa34f46f17b93806aa1588240d855e",
+  "routes": [
+    {
+      "route_pattern": "/alerts/act",
+      "entry_kind": "page",
+      "source": "src/app/alerts/act/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/alerts/act/page.tsx",
+      "sha256": "9f15fc8536dd00a7a9517fedbfd51d91dc064994c8fe0d3bcac3dab572ccf470",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/alerts/on",
+      "entry_kind": "page",
+      "source": "src/app/alerts/on/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/alerts/on/page.tsx",
+      "sha256": "1d8c6a969cefc185b655061d5a985e2bfad88d0489253de67fe7c96bb18dd4b8",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/api/health",
+      "entry_kind": "handler",
+      "source": "src/app/api/health/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/health/route.ts",
+      "sha256": "2ef87dffed68ab14d267e7032c55d23e54d50fb96014be214a1b8ffff04e169a",
+      "runtime_status": "observed_200"
+    },
+    {
+      "route_pattern": "/api/mcp",
+      "entry_kind": "handler",
+      "source": "src/app/api/mcp/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/mcp/route.ts",
+      "sha256": "a7edb893d6fa8a7fe8efe430eaf11ece35ce4bf3e41a0696df921dc577c1104e",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/api/v1/me",
+      "entry_kind": "handler",
+      "source": "src/app/api/v1/me/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/v1/me/route.ts",
+      "sha256": "778e30ac6c4e10094c4636b8be6e39184a92021fb393fa56805c8b16fc4e8b67",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/api/v1/projects/[id]/leads",
+      "entry_kind": "handler",
+      "source": "src/app/api/v1/projects/[id]/leads/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/v1/projects/[id]/leads/route.ts",
+      "sha256": "337cb9648210737108bd692b459fa262a1847f6a3dab33fc89f406a311179964",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/api/v1/projects/[id]/pain-themes",
+      "entry_kind": "handler",
+      "source": "src/app/api/v1/projects/[id]/pain-themes/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/v1/projects/[id]/pain-themes/route.ts",
+      "sha256": "d7c75644e9c221bce903ba2ce93b9a3e0ea118f15e18911f93ebfcddf3bacf1e",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/api/v1/projects/[id]",
+      "entry_kind": "handler",
+      "source": "src/app/api/v1/projects/[id]/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/v1/projects/[id]/route.ts",
+      "sha256": "045707bbb031426ecaed14b0daf1a9ba38d36585b71f7f348dc249b7ec19860b",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/api/v1/projects/[id]/seo-opportunities",
+      "entry_kind": "handler",
+      "source": "src/app/api/v1/projects/[id]/seo-opportunities/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/v1/projects/[id]/seo-opportunities/route.ts",
+      "sha256": "ea5e5e4592bcceb457c7840ca6a850b4685f3aac54105682e24f151f23202437",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/api/v1/projects/[id]/usage",
+      "entry_kind": "handler",
+      "source": "src/app/api/v1/projects/[id]/usage/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/v1/projects/[id]/usage/route.ts",
+      "sha256": "ac640c311b96a512ad64cc6919a479b249711fdeaea31fb0fbe537a29848aa4a",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/api/v1/projects",
+      "entry_kind": "handler",
+      "source": "src/app/api/v1/projects/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/api/v1/projects/route.ts",
+      "sha256": "6a04149cebfa5836cd7edaacc3308fcb09290b9a1c4a839fdb07e4c8d602b273",
+      "runtime_status": "observed_401_without_key"
+    },
+    {
+      "route_pattern": "/app/competitors",
+      "entry_kind": "page",
+      "source": "src/app/app/competitors/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/competitors/page.tsx",
+      "sha256": "9161a901f569cce3a8661673425d9e94e5a5f0d0b5f06d114f2835cdfb152bcb",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/filters",
+      "entry_kind": "page",
+      "source": "src/app/app/filters/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/filters/page.tsx",
+      "sha256": "8a96ad7bb5998be3fd52b0e553146869b5a7e5975836dd10bf60409a0ed3438b",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/insights",
+      "entry_kind": "page",
+      "source": "src/app/app/insights/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/insights/page.tsx",
+      "sha256": "0c3c1f810e53853b9f239a68c1ad597bea65c9d6d196d5801aa6f92165168cfe",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/leads",
+      "entry_kind": "page",
+      "source": "src/app/app/leads/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/leads/page.tsx",
+      "sha256": "eb451495724d8d37b468093214daafd9c03321e9ba271f917489e7330e4f7ccd",
+      "runtime_status": "observed_redirect_to_sign_in_only"
+    },
+    {
+      "route_pattern": "/app",
+      "entry_kind": "page",
+      "source": "src/app/app/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/page.tsx",
+      "sha256": "6c627bdb939b1e118b2bf369bab72abdbb29de876faeba97518ba0589ecb1dab",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/product",
+      "entry_kind": "page",
+      "source": "src/app/app/product/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/product/page.tsx",
+      "sha256": "fbb66d4a8375b0988c16d3d31ac463c4325ab916667b32f5f93a8f648cf2917b",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/projects/new",
+      "entry_kind": "page",
+      "source": "src/app/app/projects/new/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/projects/new/page.tsx",
+      "sha256": "044506027c42c3609ce5ff9eddb81585a9933f73dc664f24e65ea4f287ee5979",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/seo",
+      "entry_kind": "page",
+      "source": "src/app/app/seo/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/seo/page.tsx",
+      "sha256": "2ae65bc4e3e80d9b458d1e8f463300b47c7fe00e9a6642132ec5aa849c2c4f6c",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/settings/alerts",
+      "entry_kind": "page",
+      "source": "src/app/app/settings/alerts/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/settings/alerts/page.tsx",
+      "sha256": "6af5ccdc9ae4f6f6ef2b31f8ee78a1d92831364349a1efc2298f021836d0e8a9",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/settings/api",
+      "entry_kind": "page",
+      "source": "src/app/app/settings/api/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/settings/api/page.tsx",
+      "sha256": "269ba874c708986dff187d61f1255e14c7cfaf75f8676023249427a9c817f739",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/settings",
+      "entry_kind": "page",
+      "source": "src/app/app/settings/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/settings/page.tsx",
+      "sha256": "a0faa079e37bc47b1b3e0cea4553f5a9672e04f1445d358e658c68c069d0cc01",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/settings/scanning",
+      "entry_kind": "page",
+      "source": "src/app/app/settings/scanning/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/settings/scanning/page.tsx",
+      "sha256": "e00a7909f3b31720c100b624dab8cda2e2921f884607f6c56e2f5f0135d10e8b",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/settings/x",
+      "entry_kind": "page",
+      "source": "src/app/app/settings/x/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/settings/x/page.tsx",
+      "sha256": "a3b8c5106aee43cd2b3429e663f72c99f90ff48d1a2e79fc27b3aea1c32089e2",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/sources",
+      "entry_kind": "page",
+      "source": "src/app/app/sources/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/sources/page.tsx",
+      "sha256": "a5121f7f11d05f6f950c4887ab3b85ed979ba1afd973f11185c9b85b0f3277be",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/usage",
+      "entry_kind": "page",
+      "source": "src/app/app/usage/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/usage/page.tsx",
+      "sha256": "6c9e775684e595a562de387d1977ef79024ab7aeb305ebb73bafd9b03abd1985",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/app/x",
+      "entry_kind": "page",
+      "source": "src/app/app/x/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/x/page.tsx",
+      "sha256": "1e067562e2bc2bff805f64b2357542173b1b025856d41fdf39be3740d3ceb66f",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/connect/callback",
+      "entry_kind": "handler",
+      "source": "src/app/connect/callback/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/connect/callback/route.ts",
+      "sha256": "e609a20e17d4a9534e59b6e090a35c00ce3f5448947489e2226d63360574075a",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/connect/discord/callback",
+      "entry_kind": "handler",
+      "source": "src/app/connect/discord/callback/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/connect/discord/callback/route.ts",
+      "sha256": "293c9e8fe29f3ad57f4c18ef96cb96f8a278d7e8bbc060fe33c42e1ca12ead2f",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/connect/discord",
+      "entry_kind": "handler",
+      "source": "src/app/connect/discord/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/connect/discord/route.ts",
+      "sha256": "356e0cae6b304ad6e02317550664c9c630c42c5aaaf135ad64a629bcbbe0880e",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/connect",
+      "entry_kind": "handler",
+      "source": "src/app/connect/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/connect/route.ts",
+      "sha256": "9d7544702babeb9648c9008e636e55c51c2c4d1b2f99a5b0f813955c0bdd9ffb",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/connect/slack/callback",
+      "entry_kind": "handler",
+      "source": "src/app/connect/slack/callback/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/connect/slack/callback/route.ts",
+      "sha256": "6606b8ff514574b6ee58748c664936338f88f9b2b0f7ac310e5d00c5c4283df6",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/connect/slack",
+      "entry_kind": "handler",
+      "source": "src/app/connect/slack/route.ts",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/connect/slack/route.ts",
+      "sha256": "28685cae38a82510d655027670feb193ca92625907678edfbadc30f57ec7fa57",
+      "runtime_status": "not_executed"
+    },
+    {
+      "route_pattern": "/",
+      "entry_kind": "page",
+      "source": "src/app/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/page.tsx",
+      "sha256": "559909e174c9af295954d2e59c7a74c0367fb14156696149fe62b900c17ef122",
+      "runtime_status": "public_page_captured_no_form_submission"
+    },
+    {
+      "route_pattern": "/privacy",
+      "entry_kind": "page",
+      "source": "src/app/privacy/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/privacy/page.tsx",
+      "sha256": "cb4cc2db012ceedceb30e4567b482398ef10607960708d7dfedfcf1da86b8026",
+      "runtime_status": "public_page_captured_no_form_submission"
+    },
+    {
+      "route_pattern": "/sign-in/[[...sign-in]]",
+      "entry_kind": "page",
+      "source": "src/app/sign-in/[[...sign-in]]/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/sign-in/[[...sign-in]]/page.tsx",
+      "sha256": "d860bb683c65f765584d296c0498446939b28fda6cbc4c8f7e19cb45dfe2a36b",
+      "runtime_status": "public_page_captured_no_form_submission"
+    },
+    {
+      "route_pattern": "/sign-up/[[...sign-up]]",
+      "entry_kind": "page",
+      "source": "src/app/sign-up/[[...sign-up]]/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/sign-up/[[...sign-up]]/page.tsx",
+      "sha256": "129f26274927ff2201ba35810502819c0ddec99d1db7f2e99e7d3fe56a4ae011",
+      "runtime_status": "public_page_captured_no_form_submission"
+    },
+    {
+      "route_pattern": "/terms",
+      "entry_kind": "page",
+      "source": "src/app/terms/page.tsx",
+      "source_url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/terms/page.tsx",
+      "sha256": "d170f8afdbf09959172d3e13ad0b35699190d2ce82e2afeb8f04cd4f6ba2c501",
+      "runtime_status": "public_page_captured_no_form_submission"
+    }
+  ],
+  "static_resources": [
+    "/openapi.json",
+    "/agent-guide.md"
+  ],
+  "reference_files": [
+    {
+      "path": "package.json",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/package.json",
+      "sha256": "d52c4bb26327bb6427b134b25ff2d248588125122d941a2667721f0d4cc2bbea"
+    },
+    {
+      "path": "package-lock.json",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/package-lock.json",
+      "sha256": "a49d6b020cca77211208f8f65ebb1546258654f030d47104ccfdd90df12a97fb"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/LICENSE",
+      "sha256": "c6ae79419976301d72ee638e5685a04fae27083f3704162a9a8c6b616190d18a"
+    },
+    {
+      "path": "README.md",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/README.md",
+      "sha256": "cc7fe73397c7a09a0199968271a670b013182947232a23cc2104c67bde42524c"
+    },
+    {
+      "path": ".env.example",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/.env.example",
+      "sha256": "5070ec6c9a00afc1e950cc7e35acf42ae38b67992fb11893800825945d260895"
+    },
+    {
+      "path": "docker-compose.yml",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/docker-compose.yml",
+      "sha256": "8225225fe7a822df0a1186a3d81154d8643eb9fc3ea88389428c5e1f6c34a40f"
+    },
+    {
+      "path": "src/app/app/layout.tsx",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/app/app/layout.tsx",
+      "sha256": "087b2ecc65bf7c5db23656421db884858835fb46d7ca57e3b9d19f8306e6b6c4"
+    },
+    {
+      "path": "src/lib/jev.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/lib/jev.ts",
+      "sha256": "05f4a4e529c2b29f51e0bdaa778ae2e3b9dcb68ed63111132476b00f0cb837aa"
+    },
+    {
+      "path": "src/lib/scan/gates.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/lib/scan/gates.ts",
+      "sha256": "aae417762ddad90c8f1f62ab9696e6895bc6b53f9b8b6a2357b5b85fdae57b24"
+    },
+    {
+      "path": "src/lib/scan/leadModel.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/lib/scan/leadModel.ts",
+      "sha256": "1ba074a8a1b85e864e4125ccb2315a572ff4b3f9adad0585629d67c55ceabca6"
+    },
+    {
+      "path": "src/lib/scan/questions.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/lib/scan/questions.ts",
+      "sha256": "922452bf10e9286daf3147310d8041cccc8eac68918c6ca1faabbf21214d7a00"
+    },
+    {
+      "path": "src/jobs/scheduler.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/jobs/scheduler.ts",
+      "sha256": "3f3da6b687631b7b4406a475732628452254663962c200322e18cb828b70505e"
+    },
+    {
+      "path": "src/jobs/registry.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/jobs/registry.ts",
+      "sha256": "f2541bd2ae4df72885b7b0a8602f9394d2eb6fe068600c0cec76eac87cc4b745"
+    },
+    {
+      "path": "src/lib/config.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/lib/config.ts",
+      "sha256": "de2d9fd15bc7b49ac1d6a4f052115016bbc944297bc0bf2e7a94a3ec4b67153e"
+    },
+    {
+      "path": "src/lib/tiers.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/lib/tiers.ts",
+      "sha256": "1ddd6425fade305745209dba898093b71adb4509353f6b925bce8667e081c634"
+    },
+    {
+      "path": "src/lib/api/mcpTools.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/lib/api/mcpTools.ts",
+      "sha256": "2dcabb2479651d35cf23464015287322b155b893dd45916902471facb022d1dc"
+    },
+    {
+      "path": "src/components/marketing/MarketingShowcase.tsx",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/components/marketing/MarketingShowcase.tsx",
+      "sha256": "504c7881e375c7d061738a3618296e8fb4156d00fce7c03c40aae023cb664fde"
+    },
+    {
+      "path": "src/components/leads/LeadWorkspace.tsx",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/components/leads/LeadWorkspace.tsx",
+      "sha256": "9b622b4d06ebfe32544cb1d1c445372bffba8c1a51aa963bcb8576367807d435"
+    },
+    {
+      "path": "src/lib/discovery/initial.ts",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/src/lib/discovery/initial.ts",
+      "sha256": "e221010c1c92aa7a3ff8921958f685fb63abdf9d6c578d42f5dc0c8517d2e5ec"
+    },
+    {
+      "path": "public/openapi.json",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/public/openapi.json",
+      "sha256": "bf6abec9701970bbe2827453961f687caa04116c38305fea850122fc69c8479f"
+    },
+    {
+      "path": "public/agent-guide.md",
+      "url": "https://github.com/getanyapi-com/lurk/blob/44834c83b8aa34f46f17b93806aa1588240d855e/public/agent-guide.md",
+      "sha256": "c975f8d1eb748d7a3512e959ba953945cf467cb50e50d9f1c08343083899c4bd"
+    }
+  ],
+  "test_files": [
+    "tests/actionResult.test.ts",
+    "tests/alertInvite.test.ts",
+    "tests/alerts.test.ts",
+    "tests/alertsOffer.test.ts",
+    "tests/alertsX.test.ts",
+    "tests/anyapiPriceCap.test.ts",
+    "tests/api.test.ts",
+    "tests/apiCommentLeads.test.ts",
+    "tests/apiContract.test.ts",
+    "tests/authAdoption.test.ts",
+    "tests/authorFacts.test.ts",
+    "tests/backfill.test.ts",
+    "tests/batches.test.ts",
+    "tests/chatInstall.test.ts",
+    "tests/chipActions.test.ts",
+    "tests/competitors.test.ts",
+    "tests/config.test.ts",
+    "tests/crypto.test.ts",
+    "tests/derive.test.ts",
+    "tests/discovery.test.ts",
+    "tests/discoveryPlan.test.ts",
+    "tests/evaluations.test.ts",
+    "tests/feed.test.ts",
+    "tests/feedPage.test.ts",
+    "tests/fetchShared.test.ts",
+    "tests/format.test.ts",
+    "tests/handledAndMutes.test.ts",
+    "tests/initialDiscovery.test.ts",
+    "tests/insights.test.ts",
+    "tests/insightsLeadSet.test.ts",
+    "tests/jev.test.ts",
+    "tests/jobStatus.test.ts",
+    "tests/jobs.test.ts",
+    "tests/leadFilters.test.ts",
+    "tests/leadSql.test.ts",
+    "tests/leadWorkspace.test.ts",
+    "tests/llm.test.ts",
+    "tests/newProjectAction.test.ts",
+    "tests/oauth.test.ts",
+    "tests/pace.test.ts",
+    "tests/productFacts.test.ts",
+    "tests/profileFast.test.ts",
+    "tests/profilePhrasings.test.ts",
+    "tests/projectActivity.test.ts",
+    "tests/projectFeedCache.test.ts",
+    "tests/projectLimit.test.ts",
+    "tests/prompts.test.ts",
+    "tests/reading.test.ts",
+    "tests/redditSearch.test.ts",
+    "tests/redditStore.test.ts",
+    "tests/rescore.test.ts",
+    "tests/retention.test.ts",
+    "tests/scan.test.ts",
+    "tests/scanCoverage.test.ts",
+    "tests/scanReport.test.ts",
+    "tests/scanRetrieve.test.ts",
+    "tests/scanRun.test.ts",
+    "tests/scanWrites.test.ts",
+    "tests/schedulerWake.test.ts",
+    "tests/score.test.ts",
+    "tests/scoringWeights.test.ts",
+    "tests/searchRuns.test.ts",
+    "tests/seo.test.ts",
+    "tests/seoEndpointRefused.test.ts",
+    "tests/seoScore.test.ts",
+    "tests/settings.test.ts",
+    "tests/sharedFetchKeys.test.ts",
+    "tests/sharedFetchRace.test.ts",
+    "tests/signedLink.test.ts",
+    "tests/siteReading.test.ts",
+    "tests/spans.test.ts",
+    "tests/spend.test.ts",
+    "tests/startOnOpen.test.ts",
+    "tests/stream.test.ts",
+    "tests/threadPolicy.test.ts",
+    "tests/threadReads.test.ts",
+    "tests/throttle.test.ts",
+    "tests/tiers.test.ts",
+    "tests/typography.test.ts",
+    "tests/walletRefresh.test.ts",
+    "tests/watchedCompetitors.test.ts",
+    "tests/widenSearches.test.ts",
+    "tests/words.test.ts",
+    "tests/xFiltered.test.ts",
+    "tests/xGrammar.test.ts",
+    "tests/xJudge.test.ts",
+    "tests/xLanes.test.ts",
+    "tests/xMap.test.ts",
+    "tests/xRead.test.ts",
+    "tests/xRescore.test.ts",
+    "tests/xRetention.test.ts",
+    "tests/xRun.test.ts",
+    "tests/xScreen.test.ts",
+    "tests/xSkus.test.ts",
+    "tests/xTab.test.ts",
+    "tests/xVenue.test.ts"
+  ],
+  "test_file_count": 96,
+  "tests_executed": false,
+  "dependencies": {
+    "@ai-sdk/gateway": "4.0.87",
+    "@azure/communication-email": "^1.1.0",
+    "@base-ui/react": "1.8.0",
+    "@clerk/nextjs": "7.9.1",
+    "@fontsource-variable/instrument-sans": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.2.8",
+    "@getanyapi/sdk": "^0.46.2",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@openrouter/ai-sdk-provider": "3.0.0",
+    "ai": "7.0.107",
+    "class-variance-authority": "0.7.1",
+    "cn": "0.2.5",
+    "croner": "10.0.1",
+    "drizzle-orm": "0.45.2",
+    "lucide-react": "0.552.0",
+    "motion": "^13.2.0",
+    "next": "16.3.4",
+    "nodemailer": "^10.0.10",
+    "postgres": "3.4.9",
+    "posthog-js": "1.434.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "4.5.4"
+  }
+}

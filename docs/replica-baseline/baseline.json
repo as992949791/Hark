@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/getanyapi-com/lurk",
+  "ref": "main",
+  "commit": "44834c83b8aa34f46f17b93806aa1588240d855e",
+  "commit_url": "https://github.com/getanyapi-com/lurk/commit/44834c83b8aa34f46f17b93806aa1588240d855e",
+  "commit_date_utc": "2026-10-01T23:43:23Z",
+  "recorded_at": "2026-10-06T20:20:32.603253+08:00",
+  "archive_url": "https://codeload.github.com/getanyapi-com/lurk/zip/44834c83b8aa34f46f17b93806aa1588240d855e",
+  "archive_sha256": "ebe8c3241270a92a3450d9993cecb7fd3e7e6895f69b5538de388d852cf03795",
+  "live_site": "https://lurk.so",
+  "live_deployment_commit": "unknown",
+  "license": "MIT",
+  "phase": "1 - original baseline inventory",
+  "implementation_started": false,
+  "fork_created": false,
+  "research_inventory_complete": true,
+  "authenticated_screenshots_complete": false,
+  "application_runtime_verified": false,
+  "source_route_count": 38,
+  "screenshot_count": 20,
+  "test_file_count": 96,
+  "tests_executed": false
+}

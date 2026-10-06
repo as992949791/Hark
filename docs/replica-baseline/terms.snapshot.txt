@@ -1,0 +1,61 @@
+[p1 "Terms of Service | lurk" | space "Lurk 原版页面与功能对照"(6): 1 managed, 0 untracked — p1* "Terms of Service | lurk"]
+root
+  container
+    container
+      anchor "lurk home" [ref=134, loc=css:a[aria-label="lurk home"], url=https://lurk.so/]
+        image
+        text "lurk"
+      text "by"
+      anchor [ref=135, loc=href:https://getanyapi.com/?utm_source=lurk, url=https://getanyapi.com/?utm_source=lurk]
+        image
+        text "AnyAPI"
+        svg_root
+    heading
+      text "Terms of Service"
+    paragraph
+      text "Last updated"
+      text "September 18, 2026"
+    paragraph
+      text "These terms cover the hosted"
+      text "lurk"
+      text "service at lurk.so, operated by AnyAPI. By creating an account you agree to them. The open-source code is covered separately by its MIT license."
+    container
+      heading
+        text "Your account"
+      paragraph
+        text "You must give a real email address you control and keep your sign-in secure. One person or company may not open multiple accounts to get around free-tier limits. You are responsible for what happens u..."
+    container
+      heading
+        text "Acceptable use"
+      paragraph
+        text "Do not use lurk to spam, harass or deceive people, to break Reddit's rules or any community's rules, to send alerts to addresses or webhooks you do not control, to probe or overload the service, or to..."
+    container
+      heading
+        text "Free tier and connected wallets"
+      paragraph
+        text "The free tier is provided within limits we set and may change. If you connect an AnyAPI wallet, the data requests your scans make are billed to that wallet under AnyAPI's terms at getanyapi.com/terms."
+    container
+      heading
+        text "Suspension"
+      paragraph
+        text "We may limit, suspend or close accounts that abuse the service, put it at risk, or break these terms. You can stop using the service and ask us to delete your account at any time."
+    container
+      heading
+        text "No warranty"
+      paragraph
+        text "The service is provided as is. Leads, scores and summaries are generated automatically from public content and may be incomplete or wrong. To the extent the law allows, AnyAPI is not liable for indire..."
+    container
+      heading
+        text "Changes and contact"
+      paragraph
+        text "We may update these terms; continuing to use the service after a change means you accept it. Contact support@getanyapi.com."
+    paragraph
+      anchor [ref=136, loc=href:/privacy, url=https://lurk.so/privacy]
+        text "Privacy"
+      text "·"
+      anchor [ref=137, loc=href:/terms, url=https://lurk.so/terms]
+        text "Terms"
+      text "·"
+      anchor [ref=138, loc=href:mailto:support@getanyapi.com, url=mailto:support@getanyapi.com]
+        text "support@getanyapi.com"
+  alert

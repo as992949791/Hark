@@ -1,0 +1,426 @@
+{
+  "captured_on": "2026-10-06",
+  "note": "saved_at is file save time. Long page images may contain untriggered viewport animations. Public marketing examples do not verify authenticated workflows.",
+  "screenshots": [
+    {
+      "file": "screenshots/app-leads-access-desktop-dark.png",
+      "url": "https://lurk.so/sign-in",
+      "requested_url": "https://lurk.so/app/leads",
+      "theme": "dark",
+      "tab": null,
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:27:00.244612+08:00",
+      "sha256": "c7a17bbd07f513993f507917629904a1a39cf282cf1fa6f952c4b2e0f4e1a332",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-costs-connected-desktop-dark.png",
+      "url": "https://lurk.so/#costs",
+      "requested_url": "https://lurk.so/#costs",
+      "theme": "dark",
+      "tab": "Connected wallet",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:35:28.054544+08:00",
+      "sha256": "ad7ee6bc79381dfe8204b4483986af0ea7493c872ee724802ab46da600ad7dcf",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-costs-free-desktop-dark.png",
+      "url": "https://lurk.so/#costs",
+      "requested_url": "https://lurk.so/#costs",
+      "theme": "dark",
+      "tab": "Hosted free",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:35:24.883799+08:00",
+      "sha256": "f647d13d223785e4ddbbac41d3fea82c9cff85aa2f7b453be49c2d04eb3387ee",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-costs-selfhost-desktop-dark.png",
+      "url": "https://lurk.so/#costs",
+      "requested_url": "https://lurk.so/#costs",
+      "theme": "dark",
+      "tab": "Self-host",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:35:30.765302+08:00",
+      "sha256": "55959b9bb2a7f9f6925740869948245e0d75d66dcc835756c7f4aae69a122e32",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-desktop-dark.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "dark",
+      "tab": "Leads",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1695,
+        "height": 9194
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:20:48.568908+08:00",
+      "sha256": "7201270b17d5274c2fac557e6873aed97d0c04bf88a05378de1c22882e39767f",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-desktop-light.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "light",
+      "tab": "Competitors",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1695,
+        "height": 9194
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:23:18.459053+08:00",
+      "sha256": "ee7152fd3bc6490353e075214f733927d30df3d18c5dd1d4d765487d78130f66",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-hero-competitors-dark.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "dark",
+      "tab": "Competitors",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:27:11.760630+08:00",
+      "sha256": "322482d6cd6f90b7e74c255364ad61ec790f7bf75c79e4dfb4512ca98d497ce3",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-hero-leads-dark.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "dark",
+      "tab": "Leads",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:27:07.318768+08:00",
+      "sha256": "2e8c6c29851e499884afa7706bbc72c34969cca197238b007451c928fa7ad9ce",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-hero-seo-dark.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "dark",
+      "tab": "Reddit SEO",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:27:09.982007+08:00",
+      "sha256": "00778488a66f1f0f488b56a392c80361fef80d1772d613ba910abd84c06531e5",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-hero-x-dark.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "dark",
+      "tab": "X leads",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:27:08.561066+08:00",
+      "sha256": "8c1e32e1417d20d40b3ee1bd4b8f2391b462aaf5aefe44fa06f2bc0f9599cf80",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-hero-x-light.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "light",
+      "tab": "X leads",
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:36:05.342674+08:00",
+      "sha256": "8e1da3549072d18a2b4d1d3227024a26a1e2b4d3022d2c15906f5c0cdb7b26e6",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-mobile-dark.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "dark",
+      "tab": "Competitors",
+      "viewport_css": {
+        "width": 390,
+        "height": 844
+      },
+      "image_px": {
+        "width": 390,
+        "height": 14819
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:23:26.274903+08:00",
+      "sha256": "32e2e9e27234a9205173ff44560d095b1a69b28a213209ad4fba6c440ba13156",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-mobile-hero-dark.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "dark",
+      "tab": "Competitors",
+      "viewport_css": {
+        "width": 390,
+        "height": 844
+      },
+      "image_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:24:59.981256+08:00",
+      "sha256": "73d5b0838a56623a4df63c3394e66e1ad815045c68da557ee86d5c8f4beb4de3",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-mobile-hero-light.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "light",
+      "tab": "X leads",
+      "viewport_css": {
+        "width": 390,
+        "height": 844
+      },
+      "image_px": {
+        "width": 390,
+        "height": 844
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:36:07.728139+08:00",
+      "sha256": "b39e6bdd8acf6b98acd81c604e1d9f447eba464fcc58a0e29d31cc365cb952b4",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-mobile-light.png",
+      "url": "https://lurk.so/",
+      "requested_url": "https://lurk.so/",
+      "theme": "light",
+      "tab": "Competitors",
+      "viewport_css": {
+        "width": 390,
+        "height": 844
+      },
+      "image_px": {
+        "width": 390,
+        "height": 14819
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:23:23.449202+08:00",
+      "sha256": "62ebd7d3a5b1c531da719d58701eca6f4cda8a37ca7439d254cbf89a5112e494",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/home-selfhost-desktop-dark.png",
+      "url": "https://lurk.so/#self-host",
+      "requested_url": "https://lurk.so/#self-host",
+      "theme": "dark",
+      "tab": null,
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": false,
+      "saved_at": "2026-10-06T20:35:31.487059+08:00",
+      "sha256": "18de0920ab8871d4873129571b91bcb85015bc2741284fb83f51e854df20dda9",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/privacy-desktop-dark.png",
+      "url": "https://lurk.so/privacy",
+      "requested_url": "https://lurk.so/privacy",
+      "theme": "dark",
+      "tab": null,
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1695,
+        "height": 1580
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:27:01.821878+08:00",
+      "sha256": "62fcd6a3884e90439346bb3bd781aa1783024e4bcc1a1a8271efe61888cd7864",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/sign-in-desktop-dark.png",
+      "url": "https://lurk.so/sign-in",
+      "requested_url": "https://lurk.so/sign-in",
+      "theme": "dark",
+      "tab": null,
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:26:56.455555+08:00",
+      "sha256": "efdcbcd993643da563dc364dfabc02fb182254c16c441b582a0e7cd25c259e64",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/sign-up-desktop-dark.png",
+      "url": "https://lurk.so/sign-up",
+      "requested_url": "https://lurk.so/sign-up",
+      "theme": "dark",
+      "tab": null,
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1710,
+        "height": 896
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:26:58.174561+08:00",
+      "sha256": "41f27e1bd845a4cc50a30ec39bde7a01724c842cd3dc53a86f8b7230a9114a89",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    },
+    {
+      "file": "screenshots/terms-desktop-dark.png",
+      "url": "https://lurk.so/terms",
+      "requested_url": "https://lurk.so/terms",
+      "theme": "dark",
+      "tab": null,
+      "viewport_css": {
+        "width": 1710,
+        "height": 896
+      },
+      "image_px": {
+        "width": 1695,
+        "height": 1236
+      },
+      "device_scale_factor": 1,
+      "full_page": true,
+      "saved_at": "2026-10-06T20:27:04.154362+08:00",
+      "sha256": "61702e3e475ba74be5663dbd1ce098947e59950d9dc9b18cccb9d89607e58726",
+      "evidence_type": "public_site_observation",
+      "workspace_function_verified": false
+    }
+  ]
+}
