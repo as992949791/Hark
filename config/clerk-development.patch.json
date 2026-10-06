@@ -1,0 +1,7 @@
+{
+  "auth_phone": {
+    "required_for_sign_up": false,
+    "used_for_sign_up": false,
+    "verify_at_sign_up": false
+  }
+}

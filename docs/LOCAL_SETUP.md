@@ -55,6 +55,14 @@ Inspect CLI changes before accepting any scaffold modifications: this fork alrea
 
 Keep the publishable and secret keys in an ignored local environment file. The secret key is server-only. Do not include CLI credentials or environment files in an archive.
 
+Hark's development instance uses email verification without requiring a phone number at sign-up. Apply the tracked partial configuration after linking your own application:
+
+```sh
+clerk config patch --instance dev --file config/clerk-development.patch.json
+```
+
+This patch is applied to Clerk's hosted configuration; the app does not load it automatically from Git. It changes only the phone sign-up fields. Email verification and existing phone sign-in/MFA settings are preserved. Refresh an open sign-up page after applying it. Clerk's SMS country allowlist is a separate setting; see the [official sign-up/sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options).
+
 ## Verification and development
 
 With PostgreSQL running:
