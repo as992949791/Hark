@@ -1,5 +1,5 @@
-/** The product name. Always lowercase, including at the start of a sentence. */
-export const PRODUCT_NAME = "lurk";
+/** The product name, including its displayed capitalization. */
+export const PRODUCT_NAME = "Hark";
 
 /** The public origin of the hosted instance. */
 export const PRODUCT_URL = "https://lurk.so";

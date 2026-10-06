@@ -33,3 +33,10 @@ Every completed development version is committed, tagged, and pushed to [as99294
 - Verified the patch against Clerk's instance schema, then read back the hosted configuration. Only the three intended phone flags and the generated config version changed. Clerk's fresh frontend environment reports phone `enabled=false`, `required=false`, `verify_at_sign_up=false`, and email `enabled=true`, `required=true`, `verify_at_sign_up=true`.
 - Updated local setup instructions so this hosted configuration change can be reproduced. No application source, dependency or test changed; the 900-test suite was not rerun for this configuration-only fix.
 - Pending: the user's refreshed sign-up attempt and first authenticated workspace. No SMS verification or message was sent by this fix.
+
+## v0.1.3-brand-name — Hark in the shared header and page titles
+
+- The user reported successful registration and reaching the new-project page, where the shared header still displayed the upstream name.
+- Changed the shared `PRODUCT_NAME` to `Hark`, with its intended capitalization. The homepage and app header share Wordmark; page titles, accessible home labels, and other consumers of the brand constant now use Hark. Preserved the original layout, assets and upstream attribution.
+- Passed: production build including TypeScript, ESLint for the changed module, Impeccable's scoped detector, and Git whitespace checks. The rebuilt homepage returns `Hark by AnyAPI` as its title, `Hark` as its wordmark, and `Hark home` as the accessible link label. Health returns 200 with `status=ok`.
+- Restarted the local PostgreSQL and standalone application after the interrupted turn. The production server now serves the updated build. No database migration, authentication configuration or scan logic changed; the full business test suite was not rerun for this display-name change.
