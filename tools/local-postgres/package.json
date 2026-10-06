@@ -1,0 +1,14 @@
+{
+  "name": "hark-local-postgres",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node start.mjs"
+  },
+  "dependencies": {
+    "embedded-postgres": "17.10.0-beta.17"
+  },
+  "allowScripts": {
+    "@embedded-postgres/darwin-arm64@17.10.0-beta.17": true
+  }
+}

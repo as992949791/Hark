@@ -27,22 +27,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // Signing in lands on the leads page itself: /app only redirects there, and
-    // would draw the whole app layout, every read behind the rail included, first.
-    <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      signInFallbackRedirectUrl="/app/leads"
-      signUpFallbackRedirectUrl="/app/leads"
-    >
-      <html lang="en" suppressHydrationWarning>
-        <head>
-          <ThemeScript />
-        </head>
-        <body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
+      <body>
+        {/* Signing in lands on the leads page itself: /app only redirects there, and
+            would draw the whole app layout, every read behind the rail included, first. */}
+        <ClerkProvider
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+          signInFallbackRedirectUrl="/app/leads"
+          signUpFallbackRedirectUrl="/app/leads"
+        >
           <PostHogIdentify />
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
