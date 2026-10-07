@@ -116,7 +116,7 @@ export function WalletPanel({ connectedAt, selfHosted, scope = "general", xWalle
             Your plan
           </h2>
           <p className="text-body text-fg-muted">
-            {selfHosted
+            {selfHosted && !connected
               ? "This instance uses your own API keys. Hosted plan limits do not apply."
               : connected
                 ? `AnyAPI wallet connected on ${connectedAt.toISOString().slice(0, 10)}. Scans bill your wallet per request, up to the spend cap you set when you authorized ${PRODUCT_NAME}.`
@@ -140,7 +140,7 @@ export function WalletPanel({ connectedAt, selfHosted, scope = "general", xWalle
         </div>
       )}
 
-      {selfHosted || (connected && scope !== "general") ? null : connected ? (
+      {(connected && scope !== "general") || (selfHosted && !connected) ? null : connected ? (
         <form action={disconnectWalletAction} className="self-start">
           <Button type="submit" variant="outline" size="lg">
             Disconnect wallet
