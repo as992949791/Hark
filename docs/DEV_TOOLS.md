@@ -15,6 +15,10 @@ npm run verify
 
 Quick verification runs TypeScript and ESLint. Complete verification adds the existing tests with two workers / 30-second timeouts, then a production build. Existing test setup selects a sibling `_test` database and removes provider keys. It resets local trial sweep/cap overrides to the application defaults; cap-specific tests set their own limits. Verification disables tracing and scheduling. Development caps remain unchanged. Failure stops subsequent stages. Local data and generated files are excluded from lint.
 
+## Provider connections through a local proxy
+
+If the browser signs in but the server logs `api.clerk.com` connection timeouts and repeated authentication redirects, check Node network access before replacing Clerk keys. On Node 24+, set `NODE_USE_ENV_PROXY=1`, `HTTPS_PROXY` and `HTTP_PROXY` to your existing proxy in ignored `.env.local`; keep `NO_PROXY=localhost,127.0.0.1,::1`. Restart `dev:local` or `preview:local`: the proxy is read when the child Node process starts. An unavailable proxy must be started or removed from this local configuration. These settings are optional and do not change application keys or paid-call budgets. See the [Node 24 environment proxy documentation](https://nodejs.org/download/release/v24.20.0/docs/api/cli.html#node_use_env_proxy1).
+
 ## Capture and replay a profile
 
 ```sh

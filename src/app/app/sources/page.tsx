@@ -21,7 +21,7 @@ export default async function SourcesPage({ searchParams }: SourcesPageProps) {
           Sources
         </h1>
         <p className="text-body text-fg-muted">
-          Where lurk looks for your buyers on Reddit.
+          Where Hark looks for your buyers on Reddit.
         </p>
       </div>
       <Suspense fallback={<ListSkeleton rows={5} />}>
