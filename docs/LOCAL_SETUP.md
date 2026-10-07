@@ -63,6 +63,23 @@ clerk config patch --instance dev --file config/clerk-development.patch.json
 
 This patch is applied to Clerk's hosted configuration; the app does not load it automatically from Git. It changes only the phone sign-up fields. Email verification and existing phone sign-in/MFA settings are preserved. Refresh an open sign-up page after applying it. Clerk's SMS country allowlist is a separate setting; see the [official sign-up/sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options).
 
+## Data and models
+
+Set `ANYAPI_HOUSE_API_KEY` and `OPENROUTER_API_KEY` in the ignored `.env` file. Jev can use the same OpenRouter key as the generation model; a separate Gateway key is optional.
+
+The upstream default, `meta/muse-spark-1.3-contributor`, returned a regional availability error on this machine. The following local override passed a real structured-output call through Hark's existing model adapter:
+
+```dotenv
+OPENROUTER_MODEL=qwen/qwen3-30b-a3b-instruct-2507
+JEV_MODEL=~typesafe/jev-latest
+```
+
+This changes the generation model used for product profiles and discovery. Jev still makes the lead decisions. The application defaults remain upstream; configure the override in your own environment.
+
+An authenticated API key is not proof of available account credit or model access. Check a small actual model request before starting a scan. A balance endpoint can return 403 for a valid key; the actual model request is the decisive check.
+
+For a local trial, keep `RUN_SCHEDULER=false` and `SCHEDULER_SEED=false`, and use a separate Node/tsx task process with `SWEEP_SCALE=small`. The upstream `smallSweep()` ignores this setting when `NODE_ENV=production`. Do not enable the standalone server's scheduler expecting a small scan. Give trial keys their own provider spending limits; the application's daily caps check recorded spend and are not atomic reservations for requests already in flight.
+
 ## Verification and development
 
 With PostgreSQL running:
