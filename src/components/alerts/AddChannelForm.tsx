@@ -59,7 +59,7 @@ export function AddChannelForm({
     <form action={submit} className="flex flex-col gap-3 rounded-card border bg-surface p-4">
       <input type="hidden" name="channel" value={channel} />
       <PillTabs
-        className="self-start"
+        className="max-w-full flex-wrap self-start"
         activeId={channel}
         onSelect={(id) => setChannel(id as AlertChannel)}
         tabs={ALERT_CHANNELS.map((one) => ({

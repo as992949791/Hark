@@ -52,8 +52,8 @@ export default async function XSettingsPage({ searchParams }: XSettingsPageProps
   const payer = selfHosted
     ? "Your own keys paid for all of it."
     : paid
-      ? "X data came from your wallet; lurk paid for the model."
-      : "lurk paid for all of it.";
+      ? "X data came from your wallet; Hark paid for the model."
+      : "Hark paid for all of it.";
 
   return (
     <div key={project.id} className="flex max-w-3xl flex-col gap-6">
@@ -62,7 +62,7 @@ export default async function XSettingsPage({ searchParams }: XSettingsPageProps
       </h1>
       <SettingsTabs active="x" showX project={project.id} />
       <p className="text-body text-fg-muted">
-        lurk searches X for people asking for what {project.name} does, leaving the products you compete with, or
+        Hark searches X for people asking for what {project.name} does, leaving the products you compete with, or
         building their own. The searches are written from your{" "}
         <Link href={`/app/product${query}`} className="underline">
           Product page

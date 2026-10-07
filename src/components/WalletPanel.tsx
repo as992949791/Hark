@@ -5,6 +5,7 @@ import { AnyapiMark } from "@/components/AnyapiMark";
 import { Button } from "@/components/ui/button";
 import { disconnectWalletAction } from "@/app/app/settings/actions";
 import { TIERS, type TierName } from "@/lib/tiers";
+import { PRODUCT_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 /** Which settings tab the panel sits on: each lists only its own limits. */
@@ -34,7 +35,7 @@ function rowsFor(name: TierName, scope: PlanScope, xWalletCost?: string): string
       unlimited(t.subredditsPerProject, "subreddits per project"),
       free ? "Reads replies on the 20 best fresh threads a scan" : "Reads every thread a scan can use",
       free ? "Skips older lead threads" : "Reads older lead threads once",
-      free ? "lurk pays for every scan" : "About $0.03 for a first scan of 12 keywords",
+      free ? `${PRODUCT_NAME} pays for every scan` : "About $0.03 for a first scan of 12 keywords",
     ];
   }
   if (scope === "x") {
@@ -42,11 +43,11 @@ function rowsFor(name: TierName, scope: PlanScope, xWalletCost?: string): string
     const scanNow = t.actions.presses.x_scan_now;
     return [
       free ? "Checks X once a day" : `Checks X every hour, quiet searches every ${x.maxBackoffHours} hours`,
-      "Every search lurk writes for a project",
+      `Every search ${PRODUCT_NAME} writes for a project`,
       free ? "Reads the newest page of each search" : "Reads two pages of each search",
       scanNow === 0 ? "No Scan now" : `Scan now ${scanNow} times a day`,
       "A first look at the last 30 days",
-      free ? "lurk pays for every search" : `X data ${xWalletCost ?? "about $0.02 to $0.04 a day a project"}`,
+      free ? `${PRODUCT_NAME} pays for every search` : `X data ${xWalletCost ?? "about $0.02 to $0.04 a day a project"}`,
     ];
   }
   return [
@@ -116,9 +117,9 @@ export function WalletPanel({ connectedAt, selfHosted, scope = "general", xWalle
           </h2>
           <p className="text-body text-fg-muted">
             {selfHosted
-              ? "This instance is self-hosted, so every limit below is off."
+              ? "This instance uses your own API keys. Hosted plan limits do not apply."
               : connected
-                ? `AnyAPI wallet connected on ${connectedAt.toISOString().slice(0, 10)}. Scans bill your wallet per request, up to the spend cap you set when you authorized lurk.`
+                ? `AnyAPI wallet connected on ${connectedAt.toISOString().slice(0, 10)}. Scans bill your wallet per request, up to the spend cap you set when you authorized ${PRODUCT_NAME}.`
                 : "Free runs on a shared wallet with daily scans. Connect your own AnyAPI wallet and every scan is billed per request to your account, with the limits below lifted."}
           </p>
           <AnyapiLink mark={false} className="self-start text-small text-fg-muted hover:text-fg">
@@ -127,17 +128,19 @@ export function WalletPanel({ connectedAt, selfHosted, scope = "general", xWalle
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <TierColumn title="Free" price="$0, shared wallet" current={!connected} rows={rowsFor("free", scope)} />
-        <TierColumn
-          title="Connected wallet"
-          price="Pay per request from your AnyAPI wallet"
-          current={connected}
-          rows={rowsFor("connected", scope, xWalletCost)}
-        />
-      </div>
+      {selfHosted ? null : (
+        <div className="grid gap-4 md:grid-cols-2">
+          <TierColumn title="Free" price="$0, shared wallet" current={!connected} rows={rowsFor("free", scope)} />
+          <TierColumn
+            title="Connected wallet"
+            price="Pay per request from your AnyAPI wallet"
+            current={connected}
+            rows={rowsFor("connected", scope, xWalletCost)}
+          />
+        </div>
+      )}
 
-      {connected && scope !== "general" ? null : connected ? (
+      {selfHosted || (connected && scope !== "general") ? null : connected ? (
         <form action={disconnectWalletAction} className="self-start">
           <Button type="submit" variant="outline" size="lg">
             Disconnect wallet

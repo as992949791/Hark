@@ -12,6 +12,7 @@ import { errorFrom } from "@/lib/actionError";
 import type { ActionResult } from "@/lib/actionResult";
 import type { AlertsOffer as Offer, OfferPreview } from "@/lib/alerts/offer";
 import { EMAIL_COLORS } from "@/lib/alerts/tokens";
+import { PRODUCT_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 type AlertsOfferProps = {
@@ -104,7 +105,7 @@ function EmailPreview({ html, subject, from, to }: EmailPreviewProps) {
           <img src="/lurk-mark.svg" alt="" width={32} height={32} className="shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col text-[12px] leading-4">
             <span className="truncate">
-              <span style={{ fontWeight: 600 }}>lurk</span> <span style={{ color: MAIL.muted }}>&lt;{from}&gt;</span>
+              <span style={{ fontWeight: 600 }}>{PRODUCT_NAME}</span> <span style={{ color: MAIL.muted }}>&lt;{from}&gt;</span>
             </span>
             <span className="truncate" style={{ color: MAIL.muted }}>
               to {to ?? "me"}
@@ -163,7 +164,7 @@ function SlackPreview({ payload }: { payload: OfferPreview["slack"] }) {
       <img src="/lurk-mark.svg" alt="" width={36} height={36} className="shrink-0 self-start rounded-[8px]" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span className="flex items-baseline gap-1.5">
-          <span style={{ fontWeight: 700, color: SLACK.strong }}>lurk</span>
+          <span style={{ fontWeight: 700, color: SLACK.strong }}>{PRODUCT_NAME}</span>
           <span className="rounded-[3px] px-1 text-[10px]" style={{ background: "#ffffff1a", color: SLACK.muted }}>
             APP
           </span>
@@ -389,7 +390,7 @@ export function AlertsOffer({ projectId, offer, preview, slackInstall, discordIn
           </div>
           <h2 className="text-h3" style={{ fontWeight: 500 }}>Hear about new leads while the thread is still open.</h2>
           <p className="text-small text-fg-muted">
-            Most threads go quiet within a day, and the first useful replies get the clicks. lurk keeps
+            Most threads go quiet within a day, and the first useful replies get the clicks. {PRODUCT_NAME} keeps
             checking after you close this tab and sends only new leads worth a reply, with what each
             person wrote. It&rsquo;s free, and you can turn it off any time.
           </p>

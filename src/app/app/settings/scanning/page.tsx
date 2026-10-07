@@ -29,8 +29,8 @@ export default async function ScanningSettingsPage({ searchParams }: ScanningSet
       </h1>
       <SettingsTabs active="reddit" showX={xEnabledFor(user.id)} project={project} />
       <p className="text-body text-fg-muted">
-        How often lurk looks on Reddit for new leads, and which threads it pays to read the replies of, for all your
-        projects. With a wallet, Reddit data is billed to your AnyAPI balance; lurk still pays for the model.
+        How often Hark looks on Reddit for new leads, and which threads it pays to read the replies of, for all your
+        projects. With a wallet, Reddit data is billed to your AnyAPI balance; Hark still pays for the model.
       </p>
       <WalletPanel connectedAt={connection?.connectedAt ?? null} selfHosted={config().SELF_HOSTED} scope="reddit" />
       <ScanSettingsForm

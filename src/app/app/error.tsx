@@ -39,7 +39,7 @@ export default function AppError({
   return (
     <div className="flex max-w-2xl flex-col gap-4 rounded-card border bg-surface p-8">
       <h2 className="text-h3" style={{ fontWeight: 500 }}>
-        {stale ? "lurk was updated" : "Something went wrong"}
+        {stale ? "Hark was updated" : "Something went wrong"}
       </h2>
       <p className="text-body text-fg-muted">
         {stale
