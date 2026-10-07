@@ -10,4 +10,4 @@ Initial finding: archive checked only staged paths and omitted obvious database/
 
 Initial findings: committed private paths bypassed archive, inherited `.env.local` configuration failed without `.env`, and capture omitted the effective fallback model. All three are resolved and regression-tested. Native Git transport replaces unnecessary API object reconstruction after the system-proxy issue was diagnosed. Test environment normalization, helper dependency installation in CI and the old brief-fixture correction support the approved verification workflow. The final Next flag fits scope. No missing implementation, scope creep or remaining Spec defects were found; reviewers did not independently rerun the full suite.
 
-Final counts: Standards 0 unresolved findings; Spec 0 unresolved findings. Full local verification and runtime smoke checks are recorded in DEVELOPMENT.md; GitHub CI remains a separate integration check.
+Final counts: Standards 0 unresolved findings; Spec 0 unresolved findings. Full local verification and runtime smoke checks are recorded in DEVELOPMENT.md; GitHub CI separately passed for the reviewed code at 38740a1 (see DEVELOPMENT.md).
