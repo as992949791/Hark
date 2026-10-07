@@ -11,6 +11,7 @@ import { BRIEF_INSTRUCTIONS, briefSchema, storedBrief, usableBrief, type Product
 import { COMPETITORS_SYSTEM, FAST_READING_SYSTEM, PROFILE_SYSTEM } from "./prompts";
 import { recordUsage } from "./reddit/fetch";
 import { capped, limitsForUser } from "./tier";
+import { profileGenerator } from "./profileTrace";
 import { assertHouseDataUnderCap } from "./usage";
 
 /**
@@ -332,10 +333,11 @@ class InvalidProfileError extends Error {
 /** Retry an unreadable or empty answer once; provider retries and spend checks stay in the LLM adapter. */
 async function generateProfileReading<T extends Pick<SiteReading, "name" | "solution" | "capabilities" | "brief">>(
   call: LlmCall<T>,
+  generate = generateStructured,
 ): Promise<T> {
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const reading = await generateStructured({
+      const reading = await generate({
         ...call,
         prompt: attempt === 0 ? call.prompt : `${call.prompt}\n\nThe previous response was unusable. Read the supplied content again. Return the product name, what it does, and a usable brief with its kind and at least two neighbours. Keep unsupported facts empty; do not invent product claims.`,
       });
@@ -378,8 +380,9 @@ const competitorsSchema = z.object({
 export async function competitorsFromPage(
   projectId: string,
   page: SitePage,
+  generate = generateStructured,
 ): Promise<{ name: string; domain: string }[]> {
-  const answer = await generateStructured({
+  const answer = await generate({
     purpose: "competitors",
     model: config().OPENROUTER_PROFILE_MODEL,
     projectId,
@@ -391,7 +394,8 @@ export async function competitorsFromPage(
 }
 
 /** What the site's pages say the product is. Reads them and writes nothing. */
-export async function profileFromPage(projectId: string, page: SitePage): Promise<SiteReading> {
+export async function profileFromPage(projectId: string, page: SitePage, generate = generateStructured): Promise<SiteReading> {
+  const generator = await profileGenerator(page, "full", generate);
   requirePageContent(page);
   const [reading, rivals] = await Promise.all([
     generateProfileReading({
@@ -401,9 +405,9 @@ export async function profileFromPage(projectId: string, page: SitePage): Promis
       schema: readingSchema,
       system: READING_SYSTEM,
       prompt: pagePrompt(page),
-    }),
+    }, generator),
     // The reading still names competitors of its own, kept for when this fails.
-    competitorsFromPage(projectId, page).catch((error: unknown) => {
+    competitorsFromPage(projectId, page, generator).catch((error: unknown) => {
       console.warn(`[profile] the competitor reading failed, keeping the page's: ${messageOf(error)}`);
       return [];
     }),
@@ -420,7 +424,8 @@ export async function profileFromPage(projectId: string, page: SitePage): Promis
  * The fast reading of the same pages (FAST_READING_SYSTEM), as a SiteReading
  * with the fields it does not ask for left empty.
  */
-export async function fastProfileFromPage(projectId: string, page: SitePage): Promise<SiteReading> {
+export async function fastProfileFromPage(projectId: string, page: SitePage, generate = generateStructured): Promise<SiteReading> {
+  const generator = await profileGenerator(page, "fast", generate);
   requirePageContent(page);
   const reading = await generateProfileReading({
     purpose: "profile_fast",
@@ -430,7 +435,7 @@ export async function fastProfileFromPage(projectId: string, page: SitePage): Pr
     system: FAST_READING_SYSTEM,
     effort: "minimal",
     prompt: pagePrompt(page),
-  });
+  }, generator);
   return {
     name: reading.name,
     pain: reading.pain,

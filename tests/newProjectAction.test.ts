@@ -60,6 +60,14 @@ const profile = {
   sellsPlatformData: false,
   competitors: [{ name: "Typeform", domain: "typeform.com" }],
   budgetFit: "Under $50 a month",
+  brief: {
+    kind: "conditional form builder",
+    neighbours: [
+      { kind: "survey tool", whyNot: "No branching logic" },
+      { kind: "paper form", whyNot: "Manual" },
+    ],
+    buyers: ["ops teams"], nonBuyers: [], price: "", goodAsks: [], nearMisses: [],
+  },
 };
 
 describeDb("creating a project", () => {

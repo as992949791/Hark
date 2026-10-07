@@ -2,8 +2,9 @@ name: Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, "codex/**"]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
@@ -29,16 +30,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tools/local-postgres/package-lock.json
       - run: npm ci
-      - run: npm run check
+      - run: npm --prefix tools/local-postgres ci
+      - run: npm run verify
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/lurk
           # What a local .env gives the same suites. The key is 32 zero bytes.
           APP_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           SELF_HOSTED: "true"
-      # Main's image is built by the deploy, which fails before it pushes when
-      # the build does, so building here as well only pays off on a pull request.
-      - run: npx next build
-        if: github.event_name == 'pull_request'
-        env:
           NEXT_TELEMETRY_DISABLED: "1"

@@ -21,3 +21,6 @@ deploy/
 
 # Conductor machine-local settings, which override the shared ones.
 .conductor/settings.local.toml
+
+# Python development tooling
+__pycache__/

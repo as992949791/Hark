@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "mode": "fast",
+  "page": { "url": "https://formcraft.test", "title": "Formcraft", "markdown": "Forms that branch. No free plan for students." },
+  "calls": [{
+    "purpose": "profile_fast",
+    "response": {
+      "name": "Formcraft", "pain": "", "solution": "Forms with branching logic.", "targetUsers": "",
+      "budgetFit": "", "capabilities": ["Skip irrelevant questions"], "problemPhrasings": [], "exclusions": [],
+      "notBuyers": [{ "text": "students wanting a free plan", "sourceText": "No free plan for students" }],
+      "brief": {
+        "kind": "conditional form builder",
+        "neighbours": [{ "kind": "survey tool", "whyNot": "No branching" }, { "kind": "paper form", "whyNot": "Manual" }],
+        "buyers": [], "nonBuyers": [], "price": "", "goodAsks": [], "nearMisses": []
+      }
+    }
+  }]
+}

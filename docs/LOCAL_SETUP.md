@@ -87,6 +87,8 @@ For a local trial, keep `RUN_SCHEDULER=false` and `SCHEDULER_SEED=false`, and us
 
 ## Verification and development
 
+Use the supported startup, replay, validation and archive commands in [DEV_TOOLS.md](DEV_TOOLS.md). `npm run dev:local` and `npm run preview:local` load the root environment and keep scheduling off. The commands below describe the original lower-level tools.
+
 With PostgreSQL running:
 
 ```sh

@@ -3,7 +3,8 @@ import { fileURLToPath } from "node:url";
 import EmbeddedPostgres from "embedded-postgres";
 
 const root = new URL("../../", import.meta.url);
-process.loadEnvFile(fileURLToPath(new URL(".env", root)));
+const envFile = fileURLToPath(new URL(".env", root));
+if (existsSync(envFile)) process.loadEnvFile(envFile);
 const url = new URL(process.env.DATABASE_URL);
 if (url.hostname !== "127.0.0.1") {
   throw new Error("The local PostgreSQL helper requires a 127.0.0.1 DATABASE_URL.");

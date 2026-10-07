@@ -16,3 +16,14 @@ Hark is a personal project based on the Lurk fork. Preserve the upstream MIT lic
 - The user permits Astra for code review. Do not delegate unrelated work without authorization.
 
 See docs/DEVELOPMENT.md for the version log and docs/LOCAL_SETUP.md for setup.
+
+## Agent skills
+
+### Issue tracker
+Work is tracked in GitHub Issues. Read docs/agents/issue-tracker.md and docs/agents/triage-labels.md when planning or changing ticket state.
+
+### Domain docs
+Use root GLOSSARY.md and docs/adr/. Read docs/agents/domain.md before specs or architecture changes.
+
+### Development tools
+Use the supported commands in docs/DEV_TOOLS.md for startup, verification, profile replay and version archive.

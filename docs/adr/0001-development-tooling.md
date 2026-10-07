@@ -1,0 +1,3 @@
+# ADR-0001: Standardize existing development operations
+
+Accepted 2026-10-08. Use GitHub Issues with explicit blocking edges. Provide local commands for startup, verification, offline replay and archive; keep scheduler/seeding off in local tools. Preserve provider-backed generation as the default, and permit a caller-supplied generator for replay. Capture private profile inputs and responses only when local tracing is enabled. Use atomic native Git pushes with the system HTTPS proxy, verify remote ref hashes and resume safely after interruption. Native Git transport was confirmed once given the system proxy, superseding the initial API-upload proposal. This addresses observed operational failures without reorganizing the application's business modules.
