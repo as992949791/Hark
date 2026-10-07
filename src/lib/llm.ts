@@ -144,6 +144,8 @@ export function withoutNulCharacters(value: unknown): unknown {
 
 export type LlmCall<T> = {
   purpose: string;
+  /** A caller's model override; absent, the instance's generation model is used. */
+  model?: string;
   projectId: string | null;
   schema: z.ZodType<T>;
   system: string;
@@ -253,6 +255,7 @@ function isSchemaFailure(error: unknown): boolean {
  */
 export async function generateStructured<T>(call: LlmCall<T>): Promise<T> {
   const { OPENROUTER_API_KEY, OPENROUTER_MODEL } = config();
+  const model = call.model ?? OPENROUTER_MODEL;
   if (!OPENROUTER_API_KEY) {
     throw new LlmNotConfiguredError();
   }
@@ -263,7 +266,7 @@ export async function generateStructured<T>(call: LlmCall<T>): Promise<T> {
   try {
     result = await withCallTimeout((abortSignal) =>
       generateObject({
-        model: openrouter.chat(OPENROUTER_MODEL, { usage: { include: true } }),
+        model: openrouter.chat(model, { usage: { include: true } }),
         schema: call.schema,
         system: call.system,
         prompt: call.prompt,
@@ -279,7 +282,7 @@ export async function generateStructured<T>(call: LlmCall<T>): Promise<T> {
       outputTokens: spent.output,
       billedUsd: null,
       reasoningTokens: spent.reasoning,
-      model: OPENROUTER_MODEL,
+      model,
       provider: null,
       latencyMs: Date.now() - startedAt,
       finishReason: error instanceof Error ? error.name : null,
@@ -294,7 +297,7 @@ export async function generateStructured<T>(call: LlmCall<T>): Promise<T> {
     outputTokens: result.usage.outputTokens ?? 0,
     billedUsd: billedOf(result.providerMetadata),
     reasoningTokens: result.usage.outputTokenDetails.reasoningTokens ?? null,
-    model: result.response?.modelId ?? OPENROUTER_MODEL,
+    model: result.response?.modelId ?? model,
     provider: providerOf(result.providerMetadata),
     latencyMs: Date.now() - startedAt,
     finishReason: result.finishReason ?? null,

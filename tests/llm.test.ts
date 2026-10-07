@@ -64,6 +64,35 @@ function answered(object: unknown, billedUsd?: number) {
 }
 
 describe("what the language model boundary hands on", () => {
+  it("uses a caller's model without changing later calls that use the default", async () => {
+    recorded.length = 0;
+    generateObject.mockReset();
+    const result = answered({ verdict: { quote: "hi" }, reasons: [] });
+    generateObject.mockResolvedValue({ ...result, response: {} });
+    const call = { purpose: "profile", projectId: null, schema, system: "s", prompt: "p" };
+
+    await generateStructured({ ...call, model: "analysis-model" });
+    await generateStructured({ ...call, purpose: "insights" });
+
+    expect(generateObject.mock.calls.map(([args]) => args.model.model)).toEqual([
+      "analysis-model", "test-model",
+    ]);
+    expect(recorded.map((row) => row.model)).toEqual(["analysis-model", "test-model"]);
+  });
+
+  it("records the requested model when an overridden call fails", async () => {
+    recorded.length = 0;
+    generateObject.mockReset();
+    generateObject.mockRejectedValue(new Error("provider unavailable"));
+
+    await expect(generateStructured({
+      purpose: "profile", model: "analysis-model", projectId: null, schema, system: "s", prompt: "p",
+    })).rejects.toThrow("provider unavailable");
+
+    expect(recorded).toHaveLength(1);
+    expect(recorded[0].model).toBe("analysis-model");
+  });
+
   /**
    * A model that means an apostrophe sometimes writes the JSON escape for NUL,
    * and the character that lands in the answer is the one Postgres refuses in a

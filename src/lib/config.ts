@@ -44,6 +44,8 @@ const schema = z.object({
     blankIsAbsent,
     z.string().default("meta/muse-spark-1.3-contributor"),
   ),
+  /** Product profiles, their competitor reading and their brief can use a different model. */
+  OPENROUTER_PROFILE_MODEL: optional(z.string()),
 
   /**
    * TypeSafe's Jev judges every candidate the scan reads: through Vercel's AI

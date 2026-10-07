@@ -79,6 +79,35 @@ const fullReading = {
   brief: { ...brief, kind: "form builder with branching" },
 };
 
+it("uses the product model for both profile readings, competitors and the brief", async () => {
+  vi.stubEnv("DATABASE_URL", "postgres://test@localhost:5433/test_test");
+  vi.stubEnv("APP_ENCRYPTION_KEY", Buffer.alloc(32).toString("base64"));
+  vi.stubEnv("OPENROUTER_PROFILE_MODEL", "analysis-model");
+  generateStructured.mockReset();
+  generateStructured.mockImplementation(async ({ purpose }: { purpose: string }) => {
+    if (purpose === "profile_fast") return fastReading;
+    if (purpose === "competitors") return { competitors: fullReading.competitors };
+    if (purpose === "brief") return brief;
+    return fullReading;
+  });
+  try {
+    const { profileFromPage, fastProfileFromPage } = await import("@/lib/profile");
+    const { briefFromPage } = await import("@/lib/brief");
+    const page = { url: "https://formcraft.test", markdown: "Forms that branch." };
+    const reading = await profileFromPage("project", page);
+    await fastProfileFromPage("project", page);
+    await briefFromPage("project", page, {
+      ...reading, url: page.url, competitors: reading.competitors.map((item) => item.name),
+    });
+    expect(generateStructured.mock.calls.map(([call]) => [call.purpose, call.model])).toEqual([
+      ["profile", "analysis-model"], ["competitors", "analysis-model"],
+      ["profile_fast", "analysis-model"], ["brief", "analysis-model"],
+    ]);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});
+
 /** A call held until the test lets it answer. */
 function held<T>(value: T | Error) {
   let release = () => {};

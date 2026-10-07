@@ -71,10 +71,13 @@ The upstream default, `meta/muse-spark-1.3-contributor`, returned a regional ava
 
 ```dotenv
 OPENROUTER_MODEL=qwen/qwen3-30b-a3b-instruct-2507
+OPENROUTER_PROFILE_MODEL=deepseek/deepseek-v4.1-flash
 JEV_MODEL=~typesafe/jev-latest
 ```
 
-This changes the generation model used for product profiles and discovery. Jev still makes the lead decisions. The application defaults remain upstream; configure the override in your own environment.
+`OPENROUTER_PROFILE_MODEL` overrides only the fast/full product readings, their competitor identification, and the product brief. If blank, they use `OPENROUTER_MODEL`. Other generation calls keep `OPENROUTER_MODEL`; Jev still makes the lead decisions. The application defaults remain upstream; configure the overrides in your own environment.
+
+The local DeepSeek configuration passed a real CapCut profile comparison. See [the measured comparison](model-evaluation/capcut-2026-10-07.md) for its cost, latency and observed limitations, including a later empty rebuild. Changing the environment does not rewrite stored profiles or evaluations: `buildProfile` writes a new profile, and a queued `rescore` job reconciles its stored verdicts. Verify the resulting product facts; schema validity alone does not establish useful content. The scheduler remains off during this operation.
 
 An authenticated API key is not proof of available account credit or model access. Check a small actual model request before starting a scan. A balance endpoint can return 403 for a valid key; the actual model request is the decisive check.
 

@@ -48,4 +48,11 @@ describe("the base URLs the config hands out", () => {
     vi.stubEnv("ALERTS_ALLOW_PRIVATE_WEBHOOKS", "true");
     expect(config().ALERTS_ALLOW_PRIVATE_WEBHOOKS).toBe(true);
   });
+
+  it("accepts a separate product model and treats a blank override as unset", () => {
+    vi.stubEnv("OPENROUTER_PROFILE_MODEL", "deepseek/deepseek-v4.1-flash");
+    expect(config().OPENROUTER_PROFILE_MODEL).toBe("deepseek/deepseek-v4.1-flash");
+    vi.stubEnv("OPENROUTER_PROFILE_MODEL", "");
+    expect(config().OPENROUTER_PROFILE_MODEL).toBeUndefined();
+  });
 });

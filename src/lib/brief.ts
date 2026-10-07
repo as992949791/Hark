@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
 import { generateStructured } from "./llm";
+import { config } from "./config";
 import type { ProductFacts } from "./product";
 
 /**
@@ -85,6 +86,7 @@ export async function briefFromPage(
 ): Promise<ProductBrief> {
   return generateStructured({
     purpose: "brief",
+    model: config().OPENROUTER_PROFILE_MODEL,
     projectId,
     schema: briefSchema,
     system: BRIEF_SYSTEM,

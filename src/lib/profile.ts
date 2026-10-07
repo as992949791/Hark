@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { projectCompetitors, projects } from "@/db/schema";
 import { clientForUser } from "./anyapi";
 import { competitorHost } from "./competitors/host";
+import { config } from "./config";
 import { generateStructured } from "./llm";
 import { BRIEF_INSTRUCTIONS, briefSchema, storedBrief, type ProductBrief } from "./brief";
 import { COMPETITORS_SYSTEM, FAST_READING_SYSTEM, PROFILE_SYSTEM } from "./prompts";
@@ -341,6 +342,7 @@ export async function competitorsFromPage(
 ): Promise<{ name: string; domain: string }[]> {
   const answer = await generateStructured({
     purpose: "competitors",
+    model: config().OPENROUTER_PROFILE_MODEL,
     projectId,
     schema: competitorsSchema,
     system: COMPETITORS_SYSTEM,
@@ -354,6 +356,7 @@ export async function profileFromPage(projectId: string, page: SitePage): Promis
   const [reading, rivals] = await Promise.all([
     generateStructured({
       purpose: "profile",
+      model: config().OPENROUTER_PROFILE_MODEL,
       projectId,
       schema: readingSchema,
       system: READING_SYSTEM,
@@ -380,6 +383,7 @@ export async function profileFromPage(projectId: string, page: SitePage): Promis
 export async function fastProfileFromPage(projectId: string, page: SitePage): Promise<SiteReading> {
   const reading = await generateStructured({
     purpose: "profile_fast",
+    model: config().OPENROUTER_PROFILE_MODEL,
     projectId,
     schema: fastReadingSchema,
     system: FAST_READING_SYSTEM,
