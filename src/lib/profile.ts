@@ -1,12 +1,13 @@
 import { and, eq, sql } from "drizzle-orm";
+import { NoObjectGeneratedError, TypeValidationError } from "ai";
 import { z } from "zod";
 import { db } from "@/db";
 import { projectCompetitors, projects } from "@/db/schema";
 import { clientForUser } from "./anyapi";
 import { competitorHost } from "./competitors/host";
 import { config } from "./config";
-import { generateStructured } from "./llm";
-import { BRIEF_INSTRUCTIONS, briefSchema, storedBrief, type ProductBrief } from "./brief";
+import { generateStructured, type LlmCall } from "./llm";
+import { BRIEF_INSTRUCTIONS, briefSchema, storedBrief, usableBrief, type ProductBrief } from "./brief";
 import { COMPETITORS_SYSTEM, FAST_READING_SYSTEM, PROFILE_SYSTEM } from "./prompts";
 import { recordUsage } from "./reddit/fetch";
 import { capped, limitsForUser } from "./tier";
@@ -315,6 +316,44 @@ async function writePageCompetitors(
 /** A page as readSite returns it, which is what every reading of the site is asked about. */
 type SitePage = { url: string; title?: string | null; description?: string | null; markdown?: string | null };
 
+function requirePageContent(page: SitePage): void {
+  if (!page.markdown?.trim() && !page.description?.trim()) {
+    throw new Error("The website has no readable product content. Try a page that describes the product.");
+  }
+}
+
+class InvalidProfileError extends Error {
+  constructor() {
+    super("The model did not return a usable product profile. A name, product facts and a brief are required.");
+    this.name = "InvalidProfileError";
+  }
+}
+
+/** Retry an unreadable or empty answer once; provider retries and spend checks stay in the LLM adapter. */
+async function generateProfileReading<T extends Pick<SiteReading, "name" | "solution" | "capabilities" | "brief">>(
+  call: LlmCall<T>,
+): Promise<T> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const reading = await generateStructured({
+        ...call,
+        prompt: attempt === 0 ? call.prompt : `${call.prompt}\n\nThe previous response was unusable. Read the supplied content again. Return the product name, what it does, and a usable brief with its kind and at least two neighbours. Keep unsupported facts empty; do not invent product claims.`,
+      });
+      if (!reading.name.trim() ||
+        (!reading.solution.trim() && !reading.capabilities.some((item) => item.trim())) ||
+        !usableBrief(reading.brief)) {
+        throw new InvalidProfileError();
+      }
+      return reading;
+    } catch (error) {
+      if (attempt !== 0 || !(error instanceof InvalidProfileError ||
+        NoObjectGeneratedError.isInstance(error) || TypeValidationError.isInstance(error))) {
+        throw error;
+      }
+    }
+  }
+}
+
 /** What the model is shown of the site: where it is, its title and description, and its pages. */
 function pagePrompt(page: SitePage): string {
   return [`Website: ${page.url}`, `Title: ${page.title}`, `Description: ${page.description}`, "", page.markdown ?? ""].join("\n");
@@ -353,8 +392,9 @@ export async function competitorsFromPage(
 
 /** What the site's pages say the product is. Reads them and writes nothing. */
 export async function profileFromPage(projectId: string, page: SitePage): Promise<SiteReading> {
+  requirePageContent(page);
   const [reading, rivals] = await Promise.all([
-    generateStructured({
+    generateProfileReading({
       purpose: "profile",
       model: config().OPENROUTER_PROFILE_MODEL,
       projectId,
@@ -381,7 +421,8 @@ export async function profileFromPage(projectId: string, page: SitePage): Promis
  * with the fields it does not ask for left empty.
  */
 export async function fastProfileFromPage(projectId: string, page: SitePage): Promise<SiteReading> {
-  const reading = await generateStructured({
+  requirePageContent(page);
+  const reading = await generateProfileReading({
     purpose: "profile_fast",
     model: config().OPENROUTER_PROFILE_MODEL,
     projectId,

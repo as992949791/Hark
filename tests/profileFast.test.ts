@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { describeDb, makeProject, makeUser } from "./fixtures/db";
 
 /**
@@ -78,6 +78,77 @@ const fullReading = {
   budgetFit: "Under $50 a month",
   brief: { ...brief, kind: "form builder with branching" },
 };
+
+const emptyReading = {
+  ...fullReading,
+  name: "Formcraft",
+  pain: "",
+  solution: " ",
+  targetUsers: "",
+  capabilities: [" "],
+  brief: { ...brief, kind: "", neighbours: [] },
+};
+
+describe("usable product readings", () => {
+  beforeEach(() => {
+    generateStructured.mockReset();
+  });
+
+  it.each(["profile", "profile_fast"])("retries an empty %s once using the same page and model", async (purpose) => {
+    const { profileFromPage, fastProfileFromPage } = await import("@/lib/profile");
+    // Competitors run separately from the full reading; do not count them as retries.
+    let attempts = 0;
+    generateStructured.mockImplementation(async (call: { purpose: string }) => {
+      if (call.purpose === "competitors") return { competitors: [] };
+      attempts += 1;
+      return attempts === 1 ? emptyReading : fullReading;
+    });
+    const read = purpose === "profile" ? profileFromPage : fastProfileFromPage;
+    const result = await read("project", { url: "https://formcraft.test", markdown: "Forms that branch." });
+    expect(result.solution).toBe(fullReading.solution);
+    const calls = generateStructured.mock.calls.filter(([call]) => call.purpose === purpose).map(([call]) => call);
+    expect(calls).toHaveLength(2);
+    expect(calls[1].model).toBe(calls[0].model);
+    expect(calls[1].prompt).toContain(calls[0].prompt);
+  });
+
+  it("accepts supported product facts when pain and audience are unknown", async () => {
+    generateStructured.mockResolvedValue({ ...fastReading, pain: "", targetUsers: "" });
+    const { fastProfileFromPage } = await import("@/lib/profile");
+    const result = await fastProfileFromPage("project", { url: "https://formcraft.test", markdown: "Forms that branch." });
+    expect(result.targetUsers).toBe("");
+    expect(generateStructured).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call a model when the page has only a name", async () => {
+    const { profileFromPage, fastProfileFromPage } = await import("@/lib/profile");
+    const page = { url: "https://formcraft.test", title: "Formcraft", markdown: " " };
+    await expect(profileFromPage("project", page)).rejects.toThrow("no readable product content");
+    await expect(fastProfileFromPage("project", page)).rejects.toThrow("no readable product content");
+    expect(generateStructured).not.toHaveBeenCalled();
+  });
+
+  it("retries a response that cannot be parsed, but not a budget error", async () => {
+    const { NoObjectGeneratedError } = await import("ai");
+    const { fastProfileFromPage } = await import("@/lib/profile");
+    const page = { url: "https://formcraft.test", markdown: "Forms that branch." };
+    generateStructured.mockRejectedValueOnce(new NoObjectGeneratedError({
+      message: "Could not parse JSON", text: "not JSON", response: { id: "test", timestamp: new Date(), modelId: "test" },
+      usage: {
+        inputTokens: 1, outputTokens: 1, totalTokens: 2,
+        inputTokenDetails: { noCacheTokens: undefined, cacheReadTokens: undefined, cacheWriteTokens: undefined },
+        outputTokenDetails: { reasoningTokens: undefined, textTokens: undefined },
+      }, finishReason: "stop",
+    })).mockResolvedValueOnce(fastReading);
+    await expect(fastProfileFromPage("project", page)).resolves.toMatchObject({ name: "Formcraft" });
+    expect(generateStructured).toHaveBeenCalledTimes(2);
+    generateStructured.mockReset();
+    const failure = new Error("Today's language model budget is used up");
+    generateStructured.mockRejectedValue(failure);
+    await expect(fastProfileFromPage("project", page)).rejects.toBe(failure);
+    expect(generateStructured).toHaveBeenCalledTimes(1);
+  });
+});
 
 it("uses the product model for both profile readings, competitors and the brief", async () => {
   vi.stubEnv("DATABASE_URL", "postgres://test@localhost:5433/test_test");
@@ -284,6 +355,52 @@ describeDb("a new project's fast reading", () => {
 describeDb("rebuilding a profile", () => {
   beforeEach(() => {
     generateStructured.mockReset();
+  });
+
+  it("preserves the existing profile, brief, versions and competitors after two empty answers", async () => {
+    const { user, project, row, competitors } = await fixture();
+    const { buildProfile } = await import("@/lib/profile");
+    generateStructured.mockResolvedValue(fullReading);
+    await buildProfile(project.id, user.id, project.url!);
+    const before = await row();
+    const beforeCompetitors = await competitors();
+    generateStructured.mockReset();
+    generateStructured.mockImplementation(async (call: { purpose: string }) =>
+      call.purpose === "competitors" ? { competitors: [{ name: "Other", domain: "other.test" }] } : emptyReading,
+    );
+    await expect(buildProfile(project.id, user.id, project.url!)).rejects.toThrow("usable product profile");
+    expect(generateStructured.mock.calls.filter(([call]) => call.purpose === "profile")).toHaveLength(2);
+    expect(await row()).toEqual(before);
+    expect(await competitors()).toEqual(beforeCompetitors);
+  });
+
+  it("keeps a valid fast reading when both full answers have an empty brief", async () => {
+    const { user, project, row } = await fixture();
+    const { buildProfileFast } = await import("@/lib/profile");
+    const fast = held(fastReading);
+    const full = held({ ...fullReading, brief: emptyReading.brief });
+    generateStructured.mockImplementation(async (call: { purpose: string }) =>
+      call.purpose === "profile_fast" ? fast.answer() : call.purpose === "competitors" ? { competitors: [] } : full.answer(),
+    );
+    fast.release();
+    const built = await buildProfileFast(project.id, user.id, project.url!);
+    const before = await row();
+    full.release();
+    expect(await built.full).toBe(false);
+    expect(await row()).toEqual(before);
+    expect(generateStructured.mock.calls.filter(([call]) => call.purpose === "profile")).toHaveLength(2);
+  });
+
+  it("leaves a new project untouched when both reading paths remain empty", async () => {
+    const { user, project, row, competitors } = await fixture();
+    const { buildProfileFast } = await import("@/lib/profile");
+    const before = await row();
+    generateStructured.mockImplementation(async (call: { purpose: string }) =>
+      call.purpose === "competitors" ? { competitors: [] } : emptyReading,
+    );
+    await expect(buildProfileFast(project.id, user.id, project.url!)).rejects.toThrow("usable product profile");
+    expect(await row()).toEqual(before);
+    expect(await competitors()).toEqual([]);
   });
 
   it("reads the tier during a new profile's model call and still caps its competitors", async () => {
