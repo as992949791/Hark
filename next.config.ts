@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   typedRoutes: false,
+  // Keep startup from rewriting the project's reviewed agent instructions.
+  agentRules: false,
   // PostHog is reached through /ingest (see src/instrumentation-client.ts). Its
   // API paths end in a slash, which Next would otherwise redirect away.
   skipTrailingSlashRedirect: true,
