@@ -85,6 +85,10 @@ An authenticated API key is not proof of available account credit or model acces
 
 For a local trial, keep `RUN_SCHEDULER=false` and `SCHEDULER_SEED=false`, and use a separate Node/tsx task process with `SWEEP_SCALE=small`. The upstream `smallSweep()` ignores this setting when `NODE_ENV=production`. Do not enable the standalone server's scheduler expecting a small scan. Give trial keys their own provider spending limits; the application's daily caps check recorded spend and are not atomic reservations for requests already in flight.
 
+## Email alerts
+
+Reuse the existing SMTP sender and digest pipeline with your own mailbox. See [SMTP_SETUP.md](SMTP_SETUP.md) for local credentials, the optional SMTP proxy, the Alerts form and delivery/window checks. Connecting a channel does not enable the disabled local scheduler. The QQ pilot verified sample and real X digest receipt; [acceptance and limits](acceptance/05-smtp-alerts.md).
+
 ## Verification and development
 
 Use the supported startup, replay, validation and archive commands in [DEV_TOOLS.md](DEV_TOOLS.md). `npm run dev:local` and `npm run preview:local` load the root environment and keep scheduling off. The commands below describe the original lower-level tools.
