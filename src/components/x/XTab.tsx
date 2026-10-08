@@ -184,7 +184,7 @@ function ArrivingLeads() {
   return (
     <div className="flex flex-col">
       <p className="text-small border-b p-3 text-fg-muted">
-        lurk is reading the last 30 days of X for people asking for what you do, leaving the products you compete with or
+        Hark is reading the last 30 days of X for people asking for what you do, leaving the products you compete with or
         building their own, and popular posts showing how people do what you sell, and keeps watching from here. X
         matches words exactly, so this is a short list, not a feed: a few posts a week is normal, and some products see
         none.
@@ -204,7 +204,7 @@ function emptySentence(
   canScanNow: boolean,
 ): string {
   if (laneCount === 0 && status.lastScanAt) {
-    return "lurk has no X searches for this product yet. Adding the products you compete with on the Product page gives it more to look for.";
+    return "Hark has no X searches for this product yet. Adding the products you compete with on the Product page gives it more to look for.";
   }
   if (filter.status !== "new") {
     return filter.status === "hidden"
@@ -214,7 +214,7 @@ function emptySentence(
         : "No X leads you marked a miss in this window.";
   }
   if (!status.lastScanAt && status.lastFailure) {
-    return "lurk's first read of the last 30 days on X stopped before it finished, so this list is not complete yet. lurk tries again on its own and shows anyone it finds here. Your Reddit leads are unaffected.";
+    return "Hark's first read of the last 30 days on X stopped before it finished, so this list is not complete yet. Hark tries again on its own and shows anyone it finds here. Your Reddit leads are unaffected.";
   }
   // Only a spent budget or an empty wallet explains an empty list; a lookup that failed does not.
   const partial = status.lastRun?.partialReason ?? "";
@@ -227,7 +227,7 @@ function emptySentence(
       status.quiet.days >= 1
         ? `${status.quiet.posts} posts on X from the last ${status.quiet.days} days`
         : `${status.quiet.posts} recent posts on X`;
-    return `X is quiet for ${name}. lurk read ${read}, and nobody asked for what you do, left a competitor, built their own or showed how they do what you sell: the people who buy this may not talk about it on X. lurk checks again each week you open this tab, or while your alerts are on, and shows anyone who turns up.${sooner} Your Reddit leads are unaffected.`;
+    return `X is quiet for ${name}. Hark read ${read}, and nobody asked for what you do, left a competitor, built their own or showed how they do what you sell: the people who buy this may not talk about it on X. Hark checks again each week you open this tab, or while your alerts are on, and shows anyone who turns up.${sooner} Your Reddit leads are unaffected.`;
   }
   if (activeCount === 0) {
     return "Your X searches are paused: they found nothing worth showing, or nothing at all for days. Quiet ones are tried again each week, and changing your product or competitors on the Product page starts them all again.";

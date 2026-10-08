@@ -197,7 +197,7 @@ export function XThread({ thread, quote, now = new Date() }: { thread: XThreadDa
 
       {thread.below ? (
         <div className="pt-3">
-          <ThreadRow post={thread.below} now={now} joinBelow={false} context="lurk found this thread through this reply" />
+          <ThreadRow post={thread.below} now={now} joinBelow={false} context="Hark found this thread through this reply" />
         </div>
       ) : null}
     </div>

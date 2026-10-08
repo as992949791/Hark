@@ -110,8 +110,8 @@ function XDetailRail({ card, engagement, reply = false, unscored = false, moment
             <>
               <p className="text-small text-fg-muted">
                 {card.foundBy
-                  ? `lurk also reached it through a reply in its thread by @${card.via.author}.`
-                  : `lurk reached it through a reply in its thread by @${card.via.author}${card.via.phrase ? ", which used these words" : ""}.`}
+                  ? `Hark also reached it through a reply in its thread by @${card.via.author}.`
+                  : `Hark reached it through a reply in its thread by @${card.via.author}${card.via.phrase ? ", which used these words" : ""}.`}
               </p>
               <a
                 href={card.via.url}
@@ -194,7 +194,7 @@ export function XLeadDetail({
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 xl:flex-row">
           <div className="flex min-w-0 flex-col gap-3 xl:flex-1">
             <Called
-              label={warm ? "Why lurk is unsure" : "Why lurk left it out"}
+              label={warm ? "Why Hark is unsure" : "Why Hark left it out"}
               sentence={filtered ? filteredSentence(filtered) : item.reason}
             />
             {thread ? (

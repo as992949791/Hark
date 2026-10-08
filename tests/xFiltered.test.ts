@@ -24,7 +24,7 @@ describe("the filtered-out words", () => {
 
   it("says a screened post was never read by the judge, and names both ways a search's words can be missing", () => {
     const screened = filteredSentence({ kind: "screened", code: "no_visible_term", reason: null, replyChecked: false, closeCall: false });
-    expect(screened).toMatch(/^The words lurk searched for are not together in one sentence the author wrote: X matched it on words sentences apart, or on something the author did not write/u);
+    expect(screened).toMatch(/^The words Hark searched for are not together in one sentence the author wrote: X matched it on words sentences apart, or on something the author did not write/u);
     expect(screened).toMatch(/before the judge reads anything\.$/u);
   });
 
@@ -37,7 +37,7 @@ describe("the filtered-out words", () => {
       closeCall: true,
     });
     expect(judged).toBe(
-      "Looks like an automated account (80% yes). It still reads as someone needing this kind of product and close to acting, so check it yourself. lurk also checked whether it was worth a reply, and it was not.",
+      "Looks like an automated account (80% yes). It still reads as someone needing this kind of product and close to acting, so check it yourself. Hark also checked whether it was worth a reply, and it was not.",
     );
   });
 
@@ -62,13 +62,13 @@ describe("the filtered-out words", () => {
       "Read and set aside. Each row says why; the bar is the judge's score.",
     );
     expect(filteredSummary({ ...none, items: listed(100), judged: 40, screened: 120, unfinished: 1, closeCalls: 2, pending: 3 })).toBe(
-      "Read and set aside. Each row says why; the bar is the judge's score. lurk is still reading 3 more. The first 100 are listed.",
+      "Read and set aside. Each row says why; the bar is the judge's score. Hark is still reading 3 more. The first 100 are listed.",
     );
   });
 
   it("points the empty list at Maybe when it has posts, or else at Left out", () => {
     expect(filteredPointer(none)).toBeNull();
-    expect(filteredPointer({ ...none, items: listed(3), screened: 3 })).toBe("What lurk read and set aside, and why, is under Left out below.");
+    expect(filteredPointer({ ...none, items: listed(3), screened: 3 })).toBe("What Hark read and set aside, and why, is under Left out below.");
     expect(filteredPointer({ ...none, items: listed(3), judged: 3, closeCalls: 1, worth: 1 })).toBe(
       "One post under Maybe below is worth checking yourself.",
     );

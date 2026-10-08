@@ -42,7 +42,7 @@ export function XMaybeSection({
   return (
     <XGroupDetails selected={selected}>
       <GroupSummary label="Maybe" count={held.length + filtered.worth} warm />
-      <p className="text-small border-t px-3 py-2 text-fg-muted">Could be leads, but lurk isn&apos;t sure. Worth a quick look.</p>
+      <p className="text-small border-t px-3 py-2 text-fg-muted">Could be leads, but Hark isn&apos;t sure. Worth a quick look.</p>
       {held.map((item) => (
         <XLeadRow
           key={item.entryId}

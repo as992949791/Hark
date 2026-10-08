@@ -36,7 +36,7 @@ const SCREEN: Record<string, Words> = {
   no_visible_term: {
     word: "no match",
     sentence:
-      "The words lurk searched for are not together in one sentence the author wrote: X matched it on words sentences apart, or on something the author did not write, such as a username, a link card or a quoted post.",
+      "The words Hark searched for are not together in one sentence the author wrote: X matched it on words sentences apart, or on something the author did not write, such as a username, a link card or a quoted post.",
   },
 };
 
@@ -71,13 +71,13 @@ export function filteredStrength(score: number | null): number | null {
 /** The pane's sentence for why it was left out. */
 export function filteredSentence(card: Pick<XFilteredCard, "kind" | "code" | "reason" | "replyChecked" | "closeCall">): string {
   if (card.kind === "screened") {
-    const rule = SCREEN[card.code ?? ""]?.sentence ?? "Set aside by one of lurk's rules.";
-    const set = `${rule} lurk sets posts like this aside by rule, before the judge reads anything.`;
+    const rule = SCREEN[card.code ?? ""]?.sentence ?? "Set aside by one of Hark's rules.";
+    const set = `${rule} Hark sets posts like this aside by rule, before the judge reads anything.`;
     // rescore.ts gives a screened post one read afterwards, only to rank it here.
     return card.reason ? `${set} A quick read afterwards, used only to order this list: ${card.reason}` : set;
   }
   if (card.kind === "unfinished") {
-    return "It passed the judge's first read, but lurk never finished checking it (its author's profile and a second read) before it aged out, so it was never shown. Check it yourself.";
+    return "It passed the judge's first read, but Hark never finished checking it (its author's profile and a second read) before it aged out, so it was never shown. Check it yourself.";
   }
   const parts = [card.reason ?? "The judge read it and turned it away."];
   if (card.closeCall) {
@@ -88,7 +88,7 @@ export function filteredSentence(card: Pick<XFilteredCard, "kind" | "code" | "re
     );
   }
   if (card.replyChecked) {
-    parts.push("lurk also checked whether it was worth a reply, and it was not.");
+    parts.push("Hark also checked whether it was worth a reply, and it was not.");
   }
   return parts.join(" ");
 }
@@ -98,7 +98,7 @@ export function filteredSummary({ items, judged, screened, unfinished, worth, pe
   const parts = ["Read and set aside. Each row says why; the bar is the judge's score."];
   const listed = items.filter((item) => item.band !== "worth").length;
   if (pending > 0) {
-    parts.push(`lurk is still reading ${pending} more.`);
+    parts.push(`Hark is still reading ${pending} more.`);
   }
   if (listed < judged + screened + unfinished - worth) {
     parts.push(`The first ${listed} are listed.`);
@@ -112,5 +112,5 @@ export function filteredPointer({ items, worth }: XFiltered, held = 0): string |
   if (maybe > 0) {
     return `${maybe === 1 ? "One post" : `${maybe} posts`} under Maybe below ${maybe === 1 ? "is" : "are"} worth checking yourself.`;
   }
-  return items.length > 0 ? "What lurk read and set aside, and why, is under Left out below." : null;
+  return items.length > 0 ? "What Hark read and set aside, and why, is under Left out below." : null;
 }
