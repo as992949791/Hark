@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { kickScheduler } from "@/jobs/scheduler";
+import { dispatchJob } from "@/jobs/dispatch";
+import { nextQueuedJob } from "@/jobs/enqueue";
 import type { ActionResult } from "@/lib/actionResult";
 import { markThreadReplied, reopenThread } from "@/lib/handled";
 import { requireXProject } from "@/lib/owned";
@@ -17,7 +19,12 @@ import { setXLeadStatus, xLeadConversation } from "@/lib/x/write";
  */
 export async function openXAction(projectId: string) {
   await requireXProject(projectId);
-  if ((await openX(projectId)) !== "none") {
+  const opened = await openX(projectId);
+  const queued = await nextQueuedJob("x_scan", projectId);
+  if (queued) {
+    await dispatchJob(queued);
+  }
+  if (opened !== "none") {
     kickScheduler();
     revalidatePath("/app", "layout");
   }
@@ -29,8 +36,9 @@ export async function openXAction(projectId: string) {
  */
 export async function scanXNowAction(projectId: string) {
   const { user } = await requireXProject(projectId);
-  await pressForJob(user.id, "x_scan_now", "x_scan", projectId);
+  const job = await pressForJob(user.id, "x_scan_now", "x_scan", projectId);
   await markLanesDue(projectId);
+  await dispatchJob(job);
   kickScheduler();
   revalidatePath("/app/x");
 }

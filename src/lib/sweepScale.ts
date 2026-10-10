@@ -1,12 +1,20 @@
 import { config } from "@/lib/config";
+import { AsyncLocalStorage } from "node:async_hooks";
+
+const workerTrial = new AsyncLocalStorage<boolean>();
+
+/** Explicit personal-test workers may use the existing small sweep in production. */
+export function withWorkerTrial<T>(run: () => Promise<T>): Promise<T> {
+  return workerTrial.run(true, run);
+}
 
 /**
- * Whether this instance runs a new project at trial size. Never in production:
- * a customer's first sweep is not something an env var left behind should be
- * able to shrink.
+ * Normal production stays full size. Only the explicit worker trial context
+ * may opt into the small setting; an environment variable alone cannot do it.
  */
 export function smallSweep(): boolean {
-  return process.env.NODE_ENV !== "production" && config().SWEEP_SCALE === "small";
+  return (process.env.NODE_ENV !== "production" || workerTrial.getStore() === true) &&
+    config().SWEEP_SCALE === "small";
 }
 
 /** What a trial-size project reads. About $0.02 of Reddit and scoring, against $0.20. */

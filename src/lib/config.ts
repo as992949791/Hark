@@ -34,6 +34,9 @@ const schema = z.object({
   ALERTS_ALLOW_PRIVATE_WEBHOOKS: z.preprocess(blankIsAbsent, bool),
   APP_ENCRYPTION_KEY: z.string().min(1),
   SELF_HOSTED: z.preprocess(blankIsAbsent, bool),
+  BACKGROUND_WORKER_ENABLED: z.preprocess(blankIsAbsent, bool),
+  BACKGROUND_WORKER_SECRET: optional(z.string().min(32)),
+  BACKGROUND_WORKER_USER_ID: optional(z.uuid()),
 
   ANYAPI_BASE_URL: baseUrl("https://api.getanyapi.com"),
   ANYAPI_OAUTH_CLIENT_ID: optional(z.string()),
@@ -90,7 +93,8 @@ const schema = z.object({
    * "small" makes a new project cost a cent or two: a few Google queries, four
    * Reddit searches a page deep, 300 posts, and no SEO or competitor pass. It
    * is the real pipeline at a size for trying the signup flow over and over,
-   * and it is ignored in production whatever it is set to.
+   * and ordinary production requests ignore it. A dedicated personal-test
+   * background worker can explicitly opt in through withWorkerTrial.
    */
   SWEEP_SCALE: z.preprocess(blankIsAbsent, z.enum(["full", "small"]).default("full")),
   /** How many new-project setups and first sweeps run at once, on top of the routine workers. */

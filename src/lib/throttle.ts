@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { userActions } from "@/db/schema";
-import { enqueueJob, nextQueuedJob } from "@/jobs/enqueue";
+import { enqueueJob, nextQueuedJob, type JobRow } from "@/jobs/enqueue";
 import { limitsForUser } from "./tier";
 import type { ActionWindow, PaidAction } from "./tiers";
 
@@ -120,11 +120,11 @@ export async function pressForJob(
   action: PaidAction,
   kind: string,
   projectId: string,
-): Promise<void> {
+): Promise<JobRow> {
   const queued = await nextQueuedJob(kind, projectId);
   if (queued && queued.runAt.getTime() <= Date.now()) {
-    return;
+    return queued;
   }
   await spendAllowance(userId, action);
-  await enqueueJob(kind, projectId);
+  return enqueueJob(kind, projectId);
 }

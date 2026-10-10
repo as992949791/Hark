@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { describeDb, makeProject, makeUser } from "./fixtures/db";
 
 /**
@@ -37,10 +37,12 @@ async function fixture(discovered: Date | null = null) {
 
 describeDb("the initial discovery", () => {
   beforeEach(() => {
-    process.env.SELF_HOSTED = "false";
+    vi.stubEnv("SELF_HOSTED", "false");
+    vi.stubEnv("X_LEADS", "false");
     runDiscovery.mockClear();
     resolveActiveSubreddits.mockClear();
   });
+  afterEach(() => vi.unstubAllEnvs());
 
   it("publishes a plan and books every first job once", async () => {
     const { db, schema, user, project } = await fixture();

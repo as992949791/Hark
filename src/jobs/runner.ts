@@ -91,31 +91,40 @@ function attendedOrUnheld(now: Date) {
 export async function claimNextJob(
   now = new Date(),
   only?: "watched" | "routine",
+  scope?: { projectId: string; jobId: string },
 ): Promise<Job | null> {
   const leaseCutoff = new Date(now.getTime() - LEASE_MS);
-  const candidate = db()
-    .select({ id: jobs.id })
-    .from(jobs)
-    .where(
-      and(
-        isNull(jobs.finishedAt),
-        lte(jobs.runAt, now),
-        or(isNull(jobs.startedAt), lt(jobs.startedAt, leaseCutoff)),
-        noSiblingRunning(leaseCutoff),
-        attendedOrUnheld(now),
-        only === "watched" ? inArray(jobs.kind, WATCHED_KINDS) : undefined,
-        only === "routine" ? notInArray(jobs.kind, WATCHED_KINDS) : undefined,
-      ),
-    )
-    .orderBy(sql`${inArray(jobs.kind, WATCHED_KINDS)} desc`, asc(jobs.runAt))
-    .limit(1)
-    .for("update", { skipLocked: true });
-  const claimed = await db()
-    .update(jobs)
-    .set({ startedAt: now, finishedAt: null, error: null })
-    .where(inArray(jobs.id, candidate))
-    .returning();
-  return claimed[0] ?? null;
+  return db().transaction(async (tx) => {
+    // Independent serverless invocations must serialize sibling lease checks.
+    if (scope) {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`worker:${scope.projectId}`}))`);
+    }
+    const candidate = tx
+      .select({ id: jobs.id })
+      .from(jobs)
+      .where(
+        and(
+          isNull(jobs.finishedAt),
+          lte(jobs.runAt, now),
+          or(isNull(jobs.startedAt), lt(jobs.startedAt, leaseCutoff)),
+          noSiblingRunning(leaseCutoff),
+          attendedOrUnheld(now),
+          only === "watched" ? inArray(jobs.kind, WATCHED_KINDS) : undefined,
+          only === "routine" ? notInArray(jobs.kind, WATCHED_KINDS) : undefined,
+          scope ? eq(jobs.projectId, scope.projectId) : undefined,
+          scope ? eq(jobs.id, scope.jobId) : undefined,
+        ),
+      )
+      .orderBy(sql`${inArray(jobs.kind, WATCHED_KINDS)} desc`, asc(jobs.runAt))
+      .limit(1)
+      .for("update", { skipLocked: true });
+    const claimed = await tx
+      .update(jobs)
+      .set({ startedAt: now, finishedAt: null, error: null })
+      .where(inArray(jobs.id, candidate))
+      .returning();
+    return claimed[0] ?? null;
+  });
 }
 
 /** What a driver puts under its own error: the database's own complaint. */

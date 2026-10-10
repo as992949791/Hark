@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { enqueueJob } from "@/jobs/enqueue";
+import { dispatchJob } from "@/jobs/dispatch";
 import { kickScheduler } from "@/jobs/scheduler";
 import { errorMessage, failure } from "@/lib/actionResult";
 import { requireLocalUser } from "@/lib/auth";
@@ -58,7 +59,7 @@ export async function createProjectAndProfileAction(
   }
 
   try {
-    await enqueueJob("discovery_initial", projectId);
+    await dispatchJob(await enqueueJob("discovery_initial", projectId));
     kickScheduler();
   } catch (error) {
     return { error: `${name} was created but its setup could not be queued: ${errorMessage(error, FALLBACK)}` };

@@ -1,5 +1,6 @@
 import { enqueueJob, lastRunJob } from "@/jobs/enqueue";
 import { kickScheduler } from "@/jobs/scheduler";
+import { dispatchJob } from "@/jobs/dispatch";
 import { clusterableFoundAfter } from "@/lib/insights/themes";
 import { requireOwnedProject } from "@/lib/owned";
 import { smallSweep } from "@/lib/sweepScale";
@@ -16,7 +17,7 @@ export async function startOnOpen(kind: "seo_refresh" | "competitor_scan", proje
   if (smallSweep() || (await lastRunJob(kind, projectId))) {
     return false;
   }
-  await enqueueJob(kind, projectId);
+  await dispatchJob(await enqueueJob(kind, projectId));
   kickScheduler();
   return true;
 }
@@ -36,7 +37,7 @@ export async function regroupOnOpen(projectId: string): Promise<boolean> {
   if (!(await clusterableFoundAfter(projectId, last?.startedAt ?? null))) {
     return false;
   }
-  await enqueueJob("insights", projectId);
+  await dispatchJob(await enqueueJob("insights", projectId));
   kickScheduler();
   return true;
 }

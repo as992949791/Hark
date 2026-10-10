@@ -11,6 +11,7 @@ import {
   projects,
 } from "@/db/schema";
 import { enqueueJob } from "@/jobs/enqueue";
+import { dispatchJob } from "@/jobs/dispatch";
 import { failure } from "@/lib/actionResult";
 import { competitorHost } from "@/lib/competitors/host";
 import type { Destination } from "@/lib/discovery/queries";
@@ -98,7 +99,7 @@ export async function saveProfileAction(
     // The brief was written for the product as it was. A new one is read, and
     // the verdicts are judged again once it is written.
     if (edited) {
-      await enqueueJob("brief", project.id);
+      await dispatchJob(await enqueueJob("brief", project.id));
     }
     revalidatePath("/app", "layout");
     return { error: null, saved: true };
@@ -474,7 +475,7 @@ export async function rebuildProfileAction(formData: FormData) {
   }
   await spendAllowance(user.id, "rebuild_profile");
   await buildProfile(project.id, user.id, project.url);
-  await enqueueJob("discovery_initial", project.id);
+  await dispatchJob(await enqueueJob("discovery_initial", project.id));
   revalidatePath("/app", "layout");
 }
 

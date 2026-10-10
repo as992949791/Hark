@@ -5,6 +5,7 @@ import { requireOwnedProject } from "@/lib/owned";
 import { regroupOnOpen, startOnOpen } from "@/lib/startOnOpen";
 import { pressForJob } from "@/lib/throttle";
 import type { PaidAction } from "@/lib/tiers";
+import { dispatchJob } from "@/jobs/dispatch";
 
 // The buttons that queue one of a project's jobs, and the tabs that queue
 // their first one when they are opened.
@@ -12,7 +13,7 @@ import type { PaidAction } from "@/lib/tiers";
 /** One press of a paid button, for a project that has to be the caller's. */
 async function press(action: PaidAction, kind: string, projectId: string): Promise<void> {
   const { user } = await requireOwnedProject(projectId);
-  await pressForJob(user.id, action, kind, projectId);
+  await dispatchJob(await pressForJob(user.id, action, kind, projectId));
 }
 
 /** Queues a scan for one of the caller's projects, replacing any queued scan. */

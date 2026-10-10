@@ -2,6 +2,9 @@
   command = "npm run db:migrate && npm run build"
   publish = ".next"
 
+[functions]
+  node_bundler = "esbuild"
+
 [build.environment]
 # These are build defaults. Set the same controls in the project's Functions
 # environment settings; TOML alone does not configure function runtime values.
