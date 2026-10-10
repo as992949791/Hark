@@ -1,0 +1,14 @@
+[build]
+  command = "npm run db:migrate && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24.20.0"
+  RUN_SCHEDULER = "false"
+  SCHEDULER_SEED = "false"
+  ALERT_INVITES = "false"
+  HOUSE_DATA_CAP_USD_PER_DAY = "0"
+  HOUSE_LLM_CAP_USD_PER_DAY = "0"
+  HOUSE_X_DATA_CAP_USD_PER_DAY = "0"
+  HOUSE_X_LLM_CAP_USD_PER_DAY = "0"
+  NETLIFY_NEXT_SKEW_PROTECTION = "true"
