@@ -22,7 +22,7 @@ Before copying data, make a private local backup and require the cloud database 
 
 ## Background work and cost
 
-Keep `RUN_SCHEDULER=false`, `SCHEDULER_SEED=false`, `ALERT_INVITES=false` and all four `HOUSE_*_CAP_USD_PER_DAY` limits at `0`. The initial web deployment omits paid provider credentials. The serverless host does not run the original persistent scheduler. Queueing a scan does not mean it has executed, and a saved Daily email channel does not mean automatic delivery is active.
+Set `RUN_SCHEDULER=false`, `SCHEDULER_SEED=false`, `ALERT_INVITES=false`, `HOUSE_DATA_CAP_USD_PER_DAY=0`, `HOUSE_LLM_CAP_USD_PER_DAY=0`, `HOUSE_X_DATA_CAP_USD_PER_DAY=0` and `HOUSE_X_LLM_CAP_USD_PER_DAY=0` in the Netlify project's environment settings for both builds and Functions. The TOML values are build defaults; they do not establish function runtime configuration. Check the saved variable scopes and values before deployment. The initial web deployment omits paid provider credentials. This runtime configuration disables the original persistent scheduler; serverless hosting alone does not disable it. Queueing a scan does not mean it has executed, and a saved Daily email channel does not mean automatic delivery is active.
 
 Manual background execution is a separate integration step. Until it is connected and verified, this deployment supports inspecting existing data and settings, while paid generation, scanning and automatic notifications remain disabled. The original cumulative $1 provider-test budget is separate from free hosting and is not reset by deployment.
 

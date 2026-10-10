@@ -3,6 +3,8 @@
   publish = ".next"
 
 [build.environment]
+# These are build defaults. Set the same controls in the project's Functions
+# environment settings; TOML alone does not configure function runtime values.
   NODE_VERSION = "24.20.0"
   RUN_SCHEDULER = "false"
   SCHEDULER_SEED = "false"
