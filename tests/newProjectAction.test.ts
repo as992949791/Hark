@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { describeDb, makeUser } from "./fixtures/db";
 
 /**
@@ -14,7 +14,7 @@ const redirect = vi.fn();
 let signedIn: { id: string } = { id: "" };
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, unstable_rethrow: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ requireLocalUser: async () => signedIn }));
 vi.mock("@/lib/llm", () => ({ generateStructured }));
 vi.mock("@/lib/discovery/run", () => ({
@@ -76,6 +76,35 @@ describeDb("creating a project", () => {
     redirect.mockClear();
     generateStructured.mockReset();
     generateStructured.mockResolvedValue(profile);
+  });
+  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+
+  it("retries failed dispatch using the same project and setup job", async () => {
+    const { db } = await import("@/db");
+    const schema = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const { createProjectAndProfileAction } = await import("@/app/app/projects/new/actions");
+    const user = await makeUser(); signedIn = { id: user.id };
+    vi.stubEnv("BACKGROUND_WORKER_ENABLED", "true");
+    vi.stubEnv("BACKGROUND_WORKER_USER_ID", user.id);
+    vi.stubEnv("BACKGROUND_WORKER_SECRET", "synthetic-worker-secret-32-characters");
+    const fetch = vi.fn().mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockResolvedValue(new Response(null, { status: 202 }));
+    vi.stubGlobal("fetch", fetch);
+    const form = new FormData(); form.set("url", "https://www.formcraft.test");
+    const failed = await createProjectAndProfileAction({ error: null }, form);
+    expect(failed.error).toMatch(/Retry/); expect(failed.projectId).toBeDefined();
+    await createProjectAndProfileAction(failed, form);
+    const made = await db().select().from(schema.projects).where(eq(schema.projects.userId, user.id));
+    const queued = await db().select().from(schema.jobs).where(eq(schema.jobs.projectId, made[0].id));
+    expect(made).toHaveLength(1); expect(queued).toHaveLength(1);
+    expect(fetch.mock.calls.map(([, init]) => JSON.parse(init.body).jobId)).toEqual([queued[0].id, queued[0].id]);
+    expect(redirect).toHaveBeenCalledOnce();
+    expect(generateStructured).not.toHaveBeenCalled();
+    signedIn = { id: (await makeUser()).id };
+    const denied = await createProjectAndProfileAction(failed, form);
+    expect(denied.error).toMatch(/not yours/);
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it("answers the browser without reading Google, and queues the setup instead", async () => {

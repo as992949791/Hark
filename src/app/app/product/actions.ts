@@ -10,7 +10,7 @@ import {
   projectSubreddits,
   projects,
 } from "@/db/schema";
-import { enqueueJob } from "@/jobs/enqueue";
+import { enqueueJob, nextQueuedJob } from "@/jobs/enqueue";
 import { dispatchJob } from "@/jobs/dispatch";
 import { failure } from "@/lib/actionResult";
 import { competitorHost } from "@/lib/competitors/host";
@@ -100,6 +100,11 @@ export async function saveProfileAction(
     // the verdicts are judged again once it is written.
     if (edited) {
       await dispatchJob(await enqueueJob("brief", project.id));
+    } else {
+      const queued = await nextQueuedJob("brief", project.id);
+      if (queued) {
+        await dispatchJob(queued);
+      }
     }
     revalidatePath("/app", "layout");
     return { error: null, saved: true };
@@ -473,9 +478,14 @@ export async function rebuildProfileAction(formData: FormData) {
   if (!project.url) {
     throw new Error("This project has no product URL to read.");
   }
-  await spendAllowance(user.id, "rebuild_profile");
-  await buildProfile(project.id, user.id, project.url);
-  await dispatchJob(await enqueueJob("discovery_initial", project.id));
+  const queued = await nextQueuedJob("discovery_initial", project.id);
+  if (queued && queued.runAt.getTime() <= Date.now()) {
+    await dispatchJob(queued);
+  } else {
+    await spendAllowance(user.id, "rebuild_profile");
+    await buildProfile(project.id, user.id, project.url);
+    await dispatchJob(await enqueueJob("discovery_initial", project.id));
+  }
   revalidatePath("/app", "layout");
 }
 
@@ -484,7 +494,7 @@ export async function scanAndOpenLeadsAction(formData: FormData) {
   const { user, project } = await requireOwnedProject(
     String(formData.get("projectId") ?? ""),
   );
-  await pressForJob(user.id, "scan_now", "scan", project.id);
+  await dispatchJob(await pressForJob(user.id, "scan_now", "scan", project.id));
   revalidatePath("/app", "layout");
   redirect(`/app/leads?project=${project.id}`);
 }

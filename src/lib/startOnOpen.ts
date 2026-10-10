@@ -1,4 +1,4 @@
-import { enqueueJob, lastRunJob } from "@/jobs/enqueue";
+import { enqueueJob, lastRunJob, nextQueuedJob } from "@/jobs/enqueue";
 import { kickScheduler } from "@/jobs/scheduler";
 import { dispatchJob } from "@/jobs/dispatch";
 import { clusterableFoundAfter } from "@/lib/insights/themes";
@@ -14,7 +14,14 @@ import { smallSweep } from "@/lib/sweepScale";
 export async function startOnOpen(kind: "seo_refresh" | "competitor_scan", projectId: string): Promise<boolean> {
   await requireOwnedProject(projectId);
   // A trial-size project buys its sweep and nothing after it.
-  if (smallSweep() || (await lastRunJob(kind, projectId))) {
+  if (smallSweep()) {
+    return false;
+  }
+  if (await lastRunJob(kind, projectId)) {
+    const queued = await nextQueuedJob(kind, projectId);
+    if (queued) {
+      await dispatchJob(queued);
+    }
     return false;
   }
   await dispatchJob(await enqueueJob(kind, projectId));
@@ -32,6 +39,9 @@ export async function regroupOnOpen(projectId: string): Promise<boolean> {
   await requireOwnedProject(projectId);
   const last = await lastRunJob("insights", projectId);
   if (last && !last.finishedAt) {
+    if (!last.startedAt) {
+      await dispatchJob(last);
+    }
     return false;
   }
   if (!(await clusterableFoundAfter(projectId, last?.startedAt ?? null))) {
