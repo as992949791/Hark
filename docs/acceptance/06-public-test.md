@@ -25,4 +25,4 @@ Ticket: [11](https://github.com/as992949791/Hark/issues/11). Setup: [Netlify and
 - The original persistent scheduler stays off. Manual cloud background execution is not yet connected; this release supports existing data/settings, while new paid analysis, queued scans and automatic digests do not run. Large/recurring workloads and formal Clerk production deployment remain unverified.
 - This stage made no paid data/model requests. The last reconciled cumulative provider spend remains $0.230851669 of the original $1 authorization; balances were not polled again. Free hosting still has resource quotas and can pause when exhausted.
 
-Independent review, archive references and final CI are recorded separately after completion. Ticket 11 remains open until its outstanding acceptance checks are addressed.
+Independent review is recorded in [the review report](../reviews/public-test.md). Archive references and final CI are recorded on ticket 11 after execution. Ticket 11 remains open until its outstanding acceptance checks are addressed.
