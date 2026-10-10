@@ -115,4 +115,6 @@ This Mac resolves `localhost` to IPv6 first and also uses a system HTTP proxy. L
 
 The original test setup creates and migrates a sibling `hark_test` database and removes paid API keys from test workers. It does not use the development database for test fixtures.
 
+For the free public test environment, use [Netlify and Neon setup](NETLIFY_SETUP.md). Keep the cloud and local database URLs separate; never replace the local test database with the cloud URL.
+
 Open `http://localhost:3000`. Verify the landing page, `/api/health`, sign-in and sign-up screens, then sign in with your own test account to inspect the empty workspace. AnyAPI, model calls, scanning and alerts require separate configuration and verification later.
