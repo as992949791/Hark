@@ -5,7 +5,7 @@ import { config } from "@/lib/config";
 import type { Job } from "./registry";
 
 /** The existing authenticated action queues first, then wakes only that job. */
-export async function dispatchJob(job: Pick<Job, "id" | "projectId" | "runAt">): Promise<void> {
+export async function dispatchJob(job: Pick<Job, "id" | "projectId" | "runAt">, scheduled = false): Promise<void> {
   const settings = config();
   if (!settings.BACKGROUND_WORKER_ENABLED || !job.projectId || job.runAt.getTime() > Date.now()) {
     return;
@@ -21,7 +21,7 @@ export async function dispatchJob(job: Pick<Job, "id" | "projectId" | "runAt">):
   const response = await fetch(`${settings.APP_URL}/.netlify/functions/queue-worker`, {
     method: "POST",
     headers: { authorization: `Bearer ${settings.BACKGROUND_WORKER_SECRET}`, "content-type": "application/json" },
-    body: JSON.stringify({ jobId: job.id }),
+    body: JSON.stringify({ jobId: job.id, ...(scheduled ? { scheduled: true } : {}) }),
     signal: AbortSignal.timeout(10_000),
   });
   if (response.status !== 202) {

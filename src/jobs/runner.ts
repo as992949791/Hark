@@ -78,6 +78,16 @@ function attendedOrUnheld(now: Date) {
   )`;
 }
 
+/** The dispatcher reads the same eligibility that the atomic claim enforces. */
+export function claimableJob(now: Date) {
+  const leaseCutoff = new Date(now.getTime() - LEASE_MS);
+  return and(
+    isNull(jobs.finishedAt), lte(jobs.runAt, now),
+    or(isNull(jobs.startedAt), lt(jobs.startedAt, leaseCutoff)),
+    noSiblingRunning(leaseCutoff), attendedOrUnheld(now),
+  );
+}
+
 /**
  * Takes one due job, a watched one first. The scheduler asks for only one sort
  * when the other has no room left to run. The UPDATE ... RETURNING is the claim: a second worker
@@ -93,7 +103,6 @@ export async function claimNextJob(
   only?: "watched" | "routine",
   scope?: { projectId: string; jobId: string },
 ): Promise<Job | null> {
-  const leaseCutoff = new Date(now.getTime() - LEASE_MS);
   return db().transaction(async (tx) => {
     // Independent serverless invocations must serialize sibling lease checks.
     if (scope) {
@@ -104,11 +113,7 @@ export async function claimNextJob(
       .from(jobs)
       .where(
         and(
-          isNull(jobs.finishedAt),
-          lte(jobs.runAt, now),
-          or(isNull(jobs.startedAt), lt(jobs.startedAt, leaseCutoff)),
-          noSiblingRunning(leaseCutoff),
-          attendedOrUnheld(now),
+          claimableJob(now),
           only === "watched" ? inArray(jobs.kind, WATCHED_KINDS) : undefined,
           only === "routine" ? notInArray(jobs.kind, WATCHED_KINDS) : undefined,
           scope ? eq(jobs.projectId, scope.projectId) : undefined,

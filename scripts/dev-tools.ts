@@ -17,6 +17,7 @@ async function loadEnvironment() {
   Object.assign(process.env, local, { ...process.env });
   process.env.RUN_SCHEDULER = "false";
   process.env.SCHEDULER_SEED = "false";
+  process.env.SCHEDULED_WORKER_ENABLED = "false";
 
 }
 

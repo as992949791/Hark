@@ -19,6 +19,10 @@ import { limitsForUser } from "@/lib/tier";
 import type { TierLimits } from "@/lib/tiers";
 import { xEnabledFor } from "@/lib/x/enabled";
 import { enqueueOnce } from "./enqueue";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { projects } from "@/db/schema";
+import type { Job } from "./registry";
 
 /** How many channels are delivered to at once. */
 const SEND_CONCURRENCY = 5;
@@ -76,13 +80,16 @@ export async function digestFor(
  * One pass over every alert channel in the instance. A channel with nothing new
  * sends nothing and keeps its window open, so the leads land in the next one.
  */
-export async function sendDueDigests(now = new Date()): Promise<number> {
+export async function sendDueDigests(
+  now = new Date(),
+  scope?: { projectId: string; userId: string },
+): Promise<number> {
   const limitsFor = await limitsCache();
   const failures: string[] = [];
   let sent = 0;
   // A few at a time, so one slow receiver holds up its own lane and not the hour.
   await inFlight(
-    await allChannels(),
+    await allChannels(scope),
     async (channel) => {
       try {
         const digest = await digestFor(channel, await limitsFor(channel.userId), now);
@@ -108,10 +115,17 @@ export async function sendDueDigests(now = new Date()): Promise<number> {
  * The scheduled job. It reschedules itself one hour out, which is the shortest
  * cadence any tier can ask for.
  */
-export async function runDigest(): Promise<void> {
+export async function runDigest(job?: Pick<Job, "projectId">): Promise<void> {
+  const projectId = job?.projectId ?? null;
+  let scope: { projectId: string; userId: string } | undefined;
+  if (projectId) {
+    const [project] = await db().select({ userId: projects.userId }).from(projects).where(eq(projects.id, projectId));
+    if (!project) return;
+    scope = { projectId, userId: project.userId };
+  }
   try {
-    await sendDueDigests();
+    await sendDueDigests(new Date(), scope);
   } finally {
-    await enqueueOnce("digest", new Date(Date.now() + CADENCE_MS.hourly));
+    await enqueueOnce("digest", new Date(Date.now() + CADENCE_MS.hourly), projectId);
   }
 }

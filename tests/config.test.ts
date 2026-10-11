@@ -55,4 +55,12 @@ describe("the base URLs the config hands out", () => {
     vi.stubEnv("OPENROUTER_PROFILE_MODEL", "");
     expect(config().OPENROUTER_PROFILE_MODEL).toBeUndefined();
   });
+
+  it("keeps scheduled dispatch off and validates a bounded project allowlist", () => {
+    vi.stubEnv("SCHEDULED_WORKER_ENABLED", ""); vi.stubEnv("SCHEDULED_PROJECT_IDS", "");
+    expect(config().SCHEDULED_WORKER_ENABLED).toBe(false);
+    expect(config().SCHEDULED_PROJECT_IDS).toEqual([]);
+    vi.stubEnv("SCHEDULED_PROJECT_IDS", "not-a-project-id");
+    expect(() => config()).toThrow(/SCHEDULED_PROJECT_IDS/);
+  });
 });

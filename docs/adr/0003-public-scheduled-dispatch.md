@@ -1,0 +1,9 @@
+# ADR-0003: Dispatch bounded public schedules into the existing worker
+
+Accepted 2026-10-11. Netlify's 30-second scheduled function dispatches at most two exact jobs every 15 minutes; the existing background function runs them with original handlers/leases. Use a default-off switch, the existing owner/secret and an explicit allowlist of at most three project UUIDs. Recheck scheduled admission and recorded budgets in the worker. The resident scheduler, boot seeding, retention and invites remain off.
+
+Project-scoped digest jobs reuse the original email/channel selection and hourly successor rule. Channel queries require the scoped owner and project, while the original instance-wide local digest continues to behave as before. A transaction with the same project advisory lock seeds one unfinished scoped digest, preventing concurrent ticks from duplicating it. Normal claims enforce live-lease/family exclusion and expired-lease recovery. Delivery failures do not advance the channel's sent marker.
+
+The dispatcher reads at most twelve eligible candidates and stops handing out work after eighteen elapsed seconds or two successful dispatches. These bounds do not guarantee interruption of a slow database statement or one long background handler. A 202 means accepted, not finished. SMTP delivery followed by a crash before markSent remains an at-least-once boundary; this version does not promise exactly-once email delivery. Default-off application gating does not remove the platform's scheduled invocation: a disabled tick still consumes platform compute, but returns before querying the database or dispatching any work.
+
+See [spec](../specs/public-schedule.md), [ADR-0002](0002-public-background-worker.md) and [platform documentation](https://docs.netlify.com/build/functions/scheduled-functions/).

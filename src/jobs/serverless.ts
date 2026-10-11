@@ -7,8 +7,9 @@ import { config } from "@/lib/config";
 import { nextQueuedJob } from "./enqueue";
 import { claimNextJob, runClaimedJob } from "./runner";
 import { handlerFor } from "./registry";
+import { scheduledJobAllowed } from "./scheduled";
 
-const requestBody = z.object({ jobId: z.uuid() });
+const requestBody = z.object({ jobId: z.uuid(), scheduled: z.boolean().default(false) });
 
 /** Invalid background requests have no effects, even though Netlify replies 202. */
 export async function runBackgroundRequest(request: Request): Promise<void> {
@@ -29,9 +30,11 @@ export async function runBackgroundRequest(request: Request): Promise<void> {
     .innerJoin(projects, eq(projects.id, jobs.projectId))
     .where(and(eq(jobs.id, parsed.data.jobId), eq(projects.userId, settings.BACKGROUND_WORKER_USER_ID)));
   if (!row?.job.projectId || !handlerFor(row.job.kind) ||
-    ["digest", "retention", "alert_invites"].includes(row.job.kind)) {
+    ["retention", "alert_invites"].includes(row.job.kind) ||
+    (row.job.kind === "digest" && !parsed.data.scheduled)) {
     return;
   }
+  if (parsed.data.scheduled && !(await scheduledJobAllowed(row.job))) return;
   const projectId = row.job.projectId;
   const job = await claimNextJob(new Date(), undefined, { projectId, jobId: row.job.id });
   if (!job) {

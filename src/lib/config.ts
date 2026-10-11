@@ -37,6 +37,11 @@ const schema = z.object({
   BACKGROUND_WORKER_ENABLED: z.preprocess(blankIsAbsent, bool),
   BACKGROUND_WORKER_SECRET: optional(z.string().min(32)),
   BACKGROUND_WORKER_USER_ID: optional(z.uuid()),
+  SCHEDULED_WORKER_ENABLED: z.preprocess(blankIsAbsent, bool),
+  SCHEDULED_PROJECT_IDS: z.preprocess(
+    (value) => typeof value === "string" && value.trim() ? value.split(",").map((id) => id.trim()) : [],
+    z.array(z.uuid()).max(3),
+  ),
 
   ANYAPI_BASE_URL: baseUrl("https://api.getanyapi.com"),
   ANYAPI_OAUTH_CLIENT_ID: optional(z.string()),

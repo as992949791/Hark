@@ -195,11 +195,12 @@ export type ScheduledChannel = ProjectChannel & {
 };
 
 /** Every channel in the instance with the project and owner the job needs. */
-export async function allChannels(): Promise<ScheduledChannel[]> {
+export async function allChannels(scope?: { projectId: string; userId: string }): Promise<ScheduledChannel[]> {
   const rows = await db()
     .select({ alert: alerts, projectName: projects.name, userId: projects.userId })
     .from(alerts)
     .innerJoin(projects, eq(projects.id, alerts.projectId))
+    .where(scope ? and(eq(projects.id, scope.projectId), eq(projects.userId, scope.userId)) : undefined)
     .orderBy(asc(alerts.id));
   return rows.map((row) => ({
     ...typed(row.alert),
