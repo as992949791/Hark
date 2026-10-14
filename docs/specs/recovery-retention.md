@@ -1,0 +1,13 @@
+# Worker recovery and isolated cloud retention
+
+Ticket: [14](https://github.com/as992949791/Hark/issues/14). Baseline: `v0.1.18-schedule-receipt`.
+
+The user requested recovery, cloud retention and presentation together, then deferred presentation: finish the first two, work on frontend next, add features afterward, and prepare presentation last. This ticket implements only recovery and retention verification. Preserve Clerk, upstream attribution, existing data and Free hosting. Wallet stays deferred.
+
+- Kill an actual synthetic child worker after it claims a fixture job. Verify live leases prevent early reclaim, an advanced eligibility clock permits recovery, concurrent exact claims have one winner and a finished job cannot be claimed again. Do not represent a simulated clock as a real Netlify timeout test.
+- Exercise temporary heartbeat database failures and the existing transient handler retry, recurring failure and notification retry rules. Fix reproduced defects only. Tests must not call providers or send external notifications. A crash after an external side effect may still cause repeat delivery; do not claim exactly-once SMTP.
+- Run the original Reddit, X and finished-job retention checks on an independently named Neon test database, applying existing migrations. Require a test database identity before writing or deleting; remove only the newly created test database afterward. Verify referenced Reddit posts, latest/unfinished jobs and cost ledgers survive while obsolete rows cascade according to original rules. Do not run unrestricted retention against the application database or add a global production schedule.
+- Read back production default-off controls and assert original project/profile/lead/channel/pending-job preservation before and after. A browser visit may change the owner's last-seen time; this is not a full all-table equality claim. No paid key/cap changes, hosting upgrades, new recipients or scans.
+- Run supported complete verification, independent Standards/Spec review and Git archive/remote SHA/exact-commit CI checks. Publish any necessary source fix with paid keys absent, caps zero and schedules/seeding/invites off; verify its deployed commit/configuration and health.
+
+Acceptance must distinguish local subprocess execution, tests using a cloud database, and actual hosted application execution. These checks do not establish a killed Netlify runtime, multi-period enabled scheduling, real SMTP failure or whole-instance production retention automation. Frontend redesign, README demonstration materials and new product features are outside this stage.

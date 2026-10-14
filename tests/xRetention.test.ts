@@ -17,6 +17,46 @@ const NOW = new Date("2010-01-01T00:00:00Z");
  * Reddit's do: they hold a query and a cost, no X content.
  */
 describeDb("deleting expired X data", () => {
+  it("prunes stale authors and run history while keeping active or recently used lanes", async () => {
+    const { db } = await import("@/db");
+    const schema = await import("@/db/schema");
+    const { eq, inArray } = await import("drizzle-orm");
+    const { deleteExpiredXData } = await import("@/lib/x/retention");
+    const user = await makeUser();
+    const project = await makeProject(user.id);
+    const ago = (days: number) => new Date(NOW.getTime() - days * 24 * 3_600_000);
+    const staleAuthor = `retention_old_${randomUUID()}`;
+    const freshAuthor = `retention_fresh_${randomUUID()}`;
+    try {
+      await db().insert(schema.xAuthors).values([
+        { username: staleAuthor, fetchedAt: ago(40) },
+        { username: freshAuthor, fetchedAt: NOW },
+      ]);
+      const runs = await db().insert(schema.xRuns).values([
+        { projectId: project.id, startedAt: ago(100) },
+        { projectId: project.id, startedAt: ago(90) },
+      ]).returning({ id: schema.xRuns.id });
+      const lanes = await db().insert(schema.xLanes).values([
+        { projectId: project.id, family: "rival", seeds: [], body: "stale", state: "retired", createdAt: ago(100) },
+        { projectId: project.id, family: "rival", seeds: [], body: "active", state: "active", createdAt: ago(100) },
+        { projectId: project.id, family: "rival", seeds: [], body: "recently-used", state: "retired", createdAt: ago(100), lastRunAt: NOW },
+      ]).returning({ id: schema.xLanes.id });
+
+      await deleteExpiredXData(NOW);
+
+      const authors = await db().select({ username: schema.xAuthors.username }).from(schema.xAuthors)
+        .where(inArray(schema.xAuthors.username, [staleAuthor, freshAuthor]));
+      expect(authors.map((row) => row.username)).toEqual([freshAuthor]);
+      const keptRuns = await db().select({ id: schema.xRuns.id }).from(schema.xRuns).where(eq(schema.xRuns.projectId, project.id));
+      expect(keptRuns.map((row) => row.id)).toEqual([runs[1].id]);
+      const keptLanes = await db().select({ id: schema.xLanes.id }).from(schema.xLanes).where(eq(schema.xLanes.projectId, project.id));
+      expect(keptLanes.map((row) => row.id).sort()).toEqual([lanes[1].id, lanes[2].id].sort());
+    } finally {
+      await db().delete(schema.xAuthors).where(inArray(schema.xAuthors.username, [staleAuthor, freshAuthor]));
+      await db().delete(schema.users).where(eq(schema.users.id, user.id));
+    }
+  });
+
   it("drops old posts with their leads, keeps fresh ones and parents bought lately, and leaves every run", async () => {
     const { db } = await import("@/db");
     const schema = await import("@/db/schema");

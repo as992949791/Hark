@@ -261,6 +261,9 @@ function startHeartbeat(job: Job): { lease: Lease; stop: () => void } {
       if (!held) {
         clearInterval(timer);
       }
+    }).catch(() => {
+      // Keep the last lease stamp; the next heartbeat can retry a temporary outage.
+      console.warn("Job heartbeat renewal failed; retrying at the next interval.");
     });
   }, HEARTBEAT_MS);
   timer.unref?.();

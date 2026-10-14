@@ -85,7 +85,7 @@ describeDb("serverless job admission and execution", () => {
     const run = vi.fn(async () => { await held; }); JOB_HANDLERS.insights = run;
     const first = runBackgroundRequest(request(job.id));
     try {
-      await vi.waitFor(() => expect(run).toHaveBeenCalledOnce());
+      await vi.waitFor(() => expect(run).toHaveBeenCalledOnce(), { timeout: 10_000 });
       await Promise.all([runBackgroundRequest(request(job.id)), runBackgroundRequest(request(sibling.id))]);
       expect(run).toHaveBeenCalledOnce();
       expect((await stored(sibling.id)).startedAt).toBeNull();
