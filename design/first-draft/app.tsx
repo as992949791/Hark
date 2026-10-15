@@ -448,13 +448,6 @@ function Home({ openWorkspace }: { openWorkspace: () => void }) {
             <a href="#features">Features</a>
             <a href="#how-it-works">How it works</a>
             <a href="#data-costs">Data costs</a>
-            <a
-              href="https://github.com/as992949791/Hark"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open source <ArrowUpRight size={13} />
-            </a>
           </nav>
           <button className="button small dark-button" onClick={openWorkspace}>
             Open workspace <ArrowUpRight size={15} />
