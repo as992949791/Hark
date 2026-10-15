@@ -106,7 +106,7 @@ input {
 }
 ::selection {
   color: var(--ink);
-  background: #b9d4ff;
+  background: var(--blue-soft);
 }
 svg {
   flex-shrink: 0;
@@ -1203,6 +1203,7 @@ button:active:not(:disabled) {
   color: var(--muted);
 }
 .match-verdict > p {
+  max-width: 72ch;
   font-size: 12px;
   line-height: 1.7;
   color: var(--ink);
@@ -1222,6 +1223,7 @@ button:active:not(:disabled) {
   gap: 4px;
 }
 .original-conversation {
+  max-width: 72ch;
   padding-top: 26px;
 }
 .conversation-label {
@@ -1239,12 +1241,14 @@ button:active:not(:disabled) {
   color: var(--muted);
 }
 .original-conversation > p {
+  max-width: 72ch;
   font-size: 13px;
   color: var(--muted);
   line-height: 1.8;
   margin-top: 16px;
 }
 .original-conversation > blockquote {
+  max-width: 72ch;
   font-size: 14px;
   line-height: 1.8;
   margin: 15px 0;

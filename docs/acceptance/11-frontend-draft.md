@@ -10,9 +10,12 @@ Scope: [issue 15](https://github.com/as992949791/Hark/issues/15), baseline `v0.1
 - Revised mobile drawer focus containment, inert workspace background, Escape and focus return passed. Mobile list/detail navigation and Back to leads checked. This is targeted keyboard verification, not an exhaustive screen-reader audit.
 - Captured and inspected 1440px desktop and 390px mobile homepage/workspace, 390px detail, current 1710px homepage and 1710px dark workspace. Captures are full-page unless the workspace is constrained by its viewport layout. Measured 390/390 mobile homepage and 1710/1710 workspace widths; no horizontal overflow in those observations. Theme captures wait for the color transition to complete. Reduced motion is implemented in CSS; an operating-system preference toggle was not exercised live.
 - Browser resource origins were only `http://127.0.0.1:4173`; the final server serves only the HTML, generated JS/CSS and two font files. External documentation links were inspected as hrefs, not treated as live provider checks.
+- Local HTTP checks passed for HTML/JS/CSS/two-font GET routes; environment and repository paths return 404 and POST returns 405.
 - Supported quick verification (TypeScript + ESLint) passed after removing one unused import and correcting the drawer cleanup-ref warning. The Impeccable detector ran once on the TSX/CSS and returned no findings. Formatter used ephemerally; no package/lockfile dependency change.
 
 The initial pre-revision browser interaction round passed source filtering, unmatched-search empty state, replied/hidden undo, project switching, error retry and loading completion. The revised round exercised all six feature controls, navigation focus and mobile detail. The initial dark screenshot caught an in-flight theme transition; it was replaced after waiting for the computed row background to reach its target, rather than changing correct colors to fit a transient capture.
+
+The first design finish review requested two changes: dark text-selection contrast and wide-screen reading measure. Selection now follows theme foreground/soft-background tokens; conversation paragraphs/quotes and the fit reason have a 72ch maximum. Post-fix captures and scoring are recorded after execution. The initial Astra code-review attempts stopped at their account usage limit, so fresh independent reviewers use the current model.
 
 ## Limits and next step
 
