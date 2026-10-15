@@ -32,7 +32,7 @@ Users sign in, select or create a project, inspect ranked conversations and thei
 
 ## Brand Commitments
 
-The confirmed product name is Hark. Preserve the upstream MIT license and attribution. The installed design-taste-frontend and impeccable skills should guide the frontend work. The user requested a Lurk-inspired blue sky and white cloud homepage, light gradients, and richer feature controls. The first interactive draft remains a local proposal; the logo, typography and replacement layout have not yet been approved; the incumbent Lurk-derived visuals are evidence, not a newly approved Hark identity.
+The confirmed product name is Hark. Preserve the upstream MIT license and attribution. The installed design-taste-frontend and impeccable skills should guide the frontend work. The user requested a Lurk-inspired blue sky and white cloud homepage, light gradients, and richer feature controls. The user subsequently requested gradient headline typography and desktop/phone screen framing with an overall iPhone-inspired appearance, supplying a Lurk device-composition screenshot. The first interactive draft remains a local proposal; the logo, typography and replacement layout have not yet been approved; the incumbent Lurk-derived visuals are evidence, not a newly approved Hark identity.
 
 ## Sequence
 

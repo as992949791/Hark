@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-15T14:02:03.817761Z",
+  "generatedAt": "2026-10-15T14:23:50.937928+00:00",
   "title": "Design System: Hark — first design draft",
   "extensions": {
     "colorMeta": {
@@ -554,21 +554,43 @@
       "description": "A selected conversation pairs source context, a readable title and a fit measurement.",
       "html": "<button class=\"ds-lead\" aria-pressed=\"true\"><span class=\"ds-lead-meta\">r/VideoEditing <time>2h ago</time></span><strong class=\"ds-lead-title\">Is there a better way to caption short videos?</strong><span class=\"ds-lead-bottom\"><span>Asking for a tool · example</span><strong>91<small> fit</small></strong></span></button>",
       "css": ".ds-lead{display:block;width:100%;padding:16px;border:0;border-bottom:1px solid var(--line,#e0e6ed);background:var(--paper,#fff);color:var(--ink,#172b3b);text-align:left;cursor:pointer;font-family:var(--font,Instrument,\"PingFang SC\",sans-serif);transition:background .16s,color .16s,box-shadow .16s;}.ds-lead:hover{background:var(--ground,#f5f7fa)}.ds-lead[aria-pressed=true]{background:linear-gradient(110deg,var(--blue-soft,#edf3ff),var(--cyan-soft,#e9f9fb))}.ds-lead[aria-pressed=true] .ds-lead-title{color:var(--blue,#2458d5)}.ds-lead:focus-visible{outline:2px solid var(--blue,#2458d5);outline-offset:4px;}.ds-lead:active{transform:translateY(1px)}.ds-lead-meta{display:flex;gap:6px;color:var(--muted,#596b7b);font-size:11px}.ds-lead-meta time{margin-left:auto}.ds-lead-title{display:block;max-width:310px;margin-top:8px;font-size:14px;line-height:1.5;font-weight:550}.ds-lead-bottom{display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:11px;color:var(--muted,#596b7b)}.ds-lead-bottom>strong{font:500 11px JetBrains,monospace;color:var(--green,#247052)}.ds-lead-bottom small{font:9px var(--font,Instrument,sans-serif)}@media(prefers-reduced-motion:reduce){.ds-primary,.ds-dark,.ds-subtle,.ds-link,.ds-filter,.ds-nav button,.ds-lead{transition:none;}}"
+    },
+    {
+      "name": "Gradient Display Emphasis",
+      "kind": "custom",
+      "description": "User-requested headline emphasis; body text remains solid.",
+      "html": "<span class=\"ds-gradient-title\">For what you build.</span>",
+      "css": ".ds-gradient-title{font:620 44px/1.07 Instrument,sans-serif;letter-spacing:-.04em;color:var(--blue,#2458d5)}@supports(background-clip:text){.ds-gradient-title{background-image:var(--title-gradient,linear-gradient(110deg,#1749c7,#6535c4,#b51d69));background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent}}@media(forced-colors:active){.ds-gradient-title{background:none;color:CanvasText;-webkit-text-fill-color:CanvasText}}"
+    },
+    {
+      "name": "Homepage Capsule Action",
+      "kind": "button",
+      "description": "Capsule treatment for homepage actions; working UI actions retain existing corners.",
+      "html": "<button class=\"ds-home-action\">Explore the workspace</button>",
+      "css": ".ds-home-action{padding:13px 23px;border:0;border-radius:999px;background:var(--accent-gradient,linear-gradient(115deg,#2458d5,#156f97));color:var(--paper,#fff);font:600 14px Instrument,sans-serif;min-height:46px;cursor:pointer}.ds-home-action:hover{background:var(--blue-hover,#1745b6)}.ds-home-action:focus-visible{outline:2px solid var(--blue,#2458d5);outline-offset:4px}.ds-home-action:active{transform:translateY(1px)}"
+    },
+    {
+      "name": "Phone Preview Frame",
+      "kind": "custom",
+      "description": "Geometric marketing hardware frame; content is local synthetic HTML.",
+      "html": "<div class=\"ds-phone\"><span class=\"ds-island\" aria-hidden=\"true\"></span><div class=\"ds-phone-content\" tabindex=\"0\" role=\"region\" aria-label=\"Sample phone screen\">Synthetic conversation preview</div></div>",
+      "css": ".ds-phone{position:relative;width:240px;height:380px;padding:7px;border:1px solid var(--device-edge,#737985);border-radius:42px;background:var(--device-metal,#272933)}.ds-island{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:77px;height:22px;border-radius:20px;background:#090b10}.ds-phone-content{height:100%;box-sizing:border-box;overflow:auto;border-radius:34px;background:var(--paper,#fff);color:var(--ink,#172b3b);padding:58px 18px 20px;font:14px/1.6 Instrument,sans-serif}.ds-phone-content:focus-visible{outline:2px solid var(--blue,#2458d5);outline-offset:-5px}"
     }
   ],
   "narrative": {
     "northStar": "Open sky, attentive listening (provisional)",
-    "overview": "This is a local code-first proposal, not an approved production identity. It records the implemented `app.tsx` and `style.css` within this directory only (source baseline `26d0368`). The user-confirmed direction is a Lurk-inspired blue sky, white clouds, subtle gradients, fuller homepage controls and a shared workspace. The metaphor above describes that direction; it does not establish a new brand name or commitment.\n\nAn airy sky introduces the product; cool paper carries conversations and their evidence. Navy navigation, blue actions, restrained green fit signals and the same type families connect the public and working surfaces. The prototype's logo, typography and replacement layout remain proposals. Surface composition belongs to the root surface brief; this document records reusable visual behavior.",
+    "overview": "This is a local code-first proposal, not an approved production identity. It records the implemented `app.tsx` and `style.css` within this directory only. This revision follows the user’s device-composition reference after `v0.1.20-frontend-draft`. The user-confirmed direction is a Lurk-inspired blue sky, white clouds, subtle gradients, fuller homepage controls and a shared workspace. The user then explicitly requested gradient lettering, computer/phone screen examples and an overall iPhone-inspired appearance. These requirements authorize the display gradient, frosted navigation and geometric hardware frames; they do not create a native iOS app. The metaphor above describes that direction; it does not establish a new brand name or commitment.\n\nAn airy sky introduces the product; cool paper carries conversations and their evidence. Navy navigation, blue actions, restrained green fit signals and the same type families connect the public and working surfaces. The prototype's logo, typography and replacement layout remain proposals. Surface composition belongs to the root surface brief; this document records reusable visual behavior.",
     "keyCharacteristics": [
       "Diffuse CSS clouds and bounded blue-to-cyan gradients.",
       "Opaque reading surfaces with compact, clearly selected controls.",
       "Instrument Sans for language; JetBrains Mono for fit measurements.",
-      "Theme-aware color pairs and responsive list/detail navigation."
+      "Theme-aware color pairs and responsive list/detail navigation.",
+      "User-requested gradient lettering and iPhone-inspired device framing."
     ],
     "rules": [
       {
         "name": "The Bounded Gradient Rule",
-        "body": "Gradients remain bounded by sky stages, actions and supporting surfaces. Long conversation text stays on opaque paper; text itself is not gradient-filled.",
+        "body": "Gradients remain bounded by sky stages, actions and supporting surfaces. Long conversation text stays solid on opaque paper. User-requested display emphasis uses a blue/violet/rose gradient, with themed dark stops, solid-color fallback and forced-colors recovery.",
         "section": "colors"
       },
       {
@@ -589,9 +611,9 @@
       "**Do** identify synthetic examples near the content they describe."
     ],
     "donts": [
-      "**Don't** fill text with gradients or let cloud decoration reduce reading contrast.",
+      "**Don't** apply headline gradients to long body text or let cloud decoration reduce reading contrast.",
       "**Don't** present this local proposal's mark, font selection or layout as an approved Hark identity.",
-      "**Don't** promote tiny preview metadata, decorative source glyphs or border-plus-shadow preview frames into reusable component defaults."
+      "**Don't** promote tiny preview metadata, decorative source glyphs or hardware-frame shadows into reusable component defaults."
     ]
   }
 }

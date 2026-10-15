@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   AudioLines,
   Bell,
+  BatteryFull,
   Check,
   ChevronDown,
   CircleHelp,
@@ -28,6 +29,7 @@ import {
   Target,
   Undo2,
   Wallet,
+  Wifi,
   X,
 } from "lucide-react";
 import "./style.css";
@@ -245,7 +247,8 @@ function FeatureExplorer({ openWorkspace }: { openWorkspace: () => void }) {
       <div className="section-intro">
         <h2>
           A wider view.
-          <br />A more useful next step.
+          <br />
+          <span className="gradient-text">A more useful next step.</span>
         </h2>
         <p>
           From the first request to the patterns behind it. Explore the tools in
@@ -462,7 +465,7 @@ function Home({ openWorkspace }: { openWorkspace: () => void }) {
             <h1>
               Find people asking
               <br />
-              for what <span>you build.</span>
+              <span className="gradient-text">for what you build.</span>
             </h1>
             <p className="hero-description">
               Turn conversations on Reddit and X into relevant leads. See the
@@ -493,66 +496,179 @@ function Home({ openWorkspace }: { openWorkspace: () => void }) {
               reply
             </p>
           </div>
-          <div
-            className="hero-product"
-            aria-label="Interactive sample of lead matching"
+          <figure
+            className="device-showcase"
+            aria-label="Interactive desktop and phone product previews"
           >
-            <div className="product-topline">
-              <Brand />
-              <span className="sample-label">Sample project</span>
-              <span className="project-corner">
-                CapCut <ChevronDown size={13} />
-              </span>
-            </div>
-            <div className="mini-work">
-              <div className="mini-heading">
-                <span>Conversations worth a closer look</span>
-                <span>Reddit + X</span>
+            <div className="desktop-device">
+              <div className="desktop-camera" aria-hidden="true">
+                <i />
               </div>
-              <div className="mini-rows">
-                {examples.slice(0, 3).map((item, i) => (
-                  <button
-                    key={item.id}
-                    className={`mini-row ${sample === i ? "selected" : ""}`}
-                    onClick={() => setSample(i)}
-                    aria-pressed={sample === i}
-                  >
-                    <Source lead={item} />
-                    <span>
-                      <strong>{item.title}</strong>
-                      <small>
-                        {item.source === "Reddit"
-                          ? `r/${item.community}`
-                          : `@${item.author}`}{" "}
-                        <span>·</span> {item.age} ago
-                      </small>
-                    </span>
-                    <span className="mini-score">
-                      {item.score}
-                      <small>fit</small>
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <div className="mini-evidence">
-                <div>
-                  <Target size={15} />
-                  <strong>Why it matches</strong>
+              <div className="desktop-display">
+                <div className="device-app-rail" aria-hidden="true">
+                  <Brand />
+                  <span className="device-project">
+                    C <strong>CapCut</strong>
+                  </span>
+                  <span className="device-nav-item selected">
+                    <MessageSquare size={14} /> Leads
+                  </span>
+                  <span className="device-nav-item">
+                    <Search size={14} /> X leads
+                  </span>
+                  <span className="device-nav-item">
+                    <Compass size={14} /> Reddit SEO
+                  </span>
+                  <span className="device-nav-item">
+                    <Lightbulb size={14} /> Insights
+                  </span>
+                  <span className="device-nav-item">
+                    <Target size={14} /> Competitors
+                  </span>
+                  <span className="device-nav-item">
+                    <Bell size={14} /> Alerts
+                  </span>
+                  <span className="device-rail-note">Sample workspace</span>
                 </div>
-                <p key={lead.id}>{lead.fit}</p>
-                <span className="evidence-link">
-                  The request, in their words <ArrowDown size={12} />
-                </span>
-                <blockquote>“{lead.match}”</blockquote>
+                <div
+                  className="hero-product"
+                  aria-label="Interactive sample of lead matching"
+                >
+                  <div className="product-topline">
+                    <Brand />
+                    <span className="sample-label">Sample project</span>
+                    <span className="project-corner">
+                      CapCut <ChevronDown size={13} />
+                    </span>
+                  </div>
+                  <div className="mini-work">
+                    <div className="mini-heading">
+                      <span>Conversations worth a closer look</span>
+                      <span>Reddit + X</span>
+                    </div>
+                    <div className="mini-rows">
+                      {examples.slice(0, 3).map((item, i) => (
+                        <button
+                          key={item.id}
+                          className={`mini-row ${sample === i ? "selected" : ""}`}
+                          onClick={() => setSample(i)}
+                          aria-pressed={sample === i}
+                        >
+                          <Source lead={item} />
+                          <span>
+                            <strong>{item.title}</strong>
+                            <small>
+                              {item.source === "Reddit"
+                                ? `r/${item.community}`
+                                : `@${item.author}`}{" "}
+                              <span>·</span> {item.age} ago
+                            </small>
+                          </span>
+                          <span className="mini-score">
+                            {item.score}
+                            <small>fit</small>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mini-evidence">
+                      <div>
+                        <Target size={15} />
+                        <strong>Why it matches</strong>
+                      </div>
+                      <p key={lead.id}>{lead.fit}</p>
+                      <span className="evidence-link">
+                        The request, in their words <ArrowDown size={12} />
+                      </span>
+                      <blockquote>“{lead.match}”</blockquote>
+                    </div>
+                  </div>
+                  <div className="product-bottomline">
+                    <span>Synthetic examples for this design draft</span>
+                    <button onClick={openWorkspace}>
+                      Take a closer look <ArrowUpRight size={13} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="laptop-base" aria-hidden="true">
+                <i />
               </div>
             </div>
-            <div className="product-bottomline">
-              <span>Synthetic examples for this design draft</span>
-              <button onClick={openWorkspace}>
-                Take a closer look <ArrowUpRight size={13} />
-              </button>
+            <div className="phone-device">
+              <div className="phone-island" aria-hidden="true" />
+              <div className="phone-screen">
+                <div className="phone-status" aria-hidden="true">
+                  <span>9:41</span>
+                  <span>
+                    <Wifi size={13} />
+                    <BatteryFull size={16} />
+                  </span>
+                </div>
+                <div className="phone-app-nav">
+                  <Brand />
+                  <span className="phone-avatar" aria-hidden="true">
+                    C
+                  </span>
+                </div>
+                <div
+                  className="phone-content"
+                  role="region"
+                  aria-label="Phone screen preview"
+                  tabIndex={0}
+                >
+                  <h2>
+                    Good conversations.
+                    <br />
+                    <span className="gradient-text">Within reach.</span>
+                  </h2>
+                  <p className="phone-project-label">
+                    CapCut · Synthetic examples
+                  </p>
+                  <div
+                    className="phone-leads"
+                    role="group"
+                    aria-label="Phone sample conversations"
+                  >
+                    {examples.slice(0, 3).map((item, i) => (
+                      <button
+                        key={item.id}
+                        className={sample === i ? "selected" : ""}
+                        aria-pressed={sample === i}
+                        onClick={() => setSample(i)}
+                      >
+                        <Source lead={item} />
+                        <span>
+                          <strong>{item.title}</strong>
+                          <small>
+                            {item.score} fit · {item.source}
+                          </small>
+                        </span>
+                        <ArrowUpRight size={13} />
+                      </button>
+                    ))}
+                  </div>
+                  <div className="phone-match">
+                    <span>
+                      <Target size={14} /> Why it matches
+                    </span>
+                    <p>{lead.fit}</p>
+                  </div>
+                  <button
+                    className="button primary phone-open"
+                    onClick={openWorkspace}
+                  >
+                    Open sample workspace <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="phone-home-indicator" aria-hidden="true" />
             </div>
-          </div>
+            <figcaption>
+              One workspace. Every screen.{" "}
+              <span>Synthetic examples · no live requests</span>
+            </figcaption>
+          </figure>
         </section>
       </div>
       <main>

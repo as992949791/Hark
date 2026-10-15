@@ -16,6 +16,14 @@ colors:
   sky-top: "#9bd4f4"
   sky-bottom: "#edfaff"
   cloud: "#ffffffdc"
+  title-blue: "#1749c7"
+  title-violet: "#6535c4"
+  title-rose: "#b51d69"
+  dark-title-blue: "#9bc5ff"
+  dark-title-violet: "#d1b6ff"
+  dark-title-rose: "#f6abc8"
+  device-metal: "#272933"
+  device-edge: "#737985"
   dark-paper: "#172837"
   dark-ground: "#10212e"
   dark-line: "#314858"
@@ -33,9 +41,9 @@ colors:
 typography:
   display:
     fontFamily: 'Instrument, "PingFang SC", sans-serif'
-    fontSize: "clamp(40px, 4.5vw, 66px)"
-    fontWeight: 580
-    lineHeight: 1.08
+    fontSize: "clamp(44px, 5.3vw, 76px)"
+    fontWeight: 620
+    lineHeight: 1.07
     letterSpacing: "-0.04em"
   headline:
     fontFamily: 'Instrument, "PingFang SC", sans-serif'
@@ -71,6 +79,9 @@ rounded:
   control: "8px"
   radius: "12px"
   stage: "18px"
+  pill: "999px"
+  phone: "44px"
+  phone-screen: "35px"
 spacing:
   tight: "8px"
   control-gap: "10px"
@@ -129,7 +140,7 @@ components:
 
 **Creative North Star: "Open sky, attentive listening (provisional)"**
 
-This is a local code-first proposal, not an approved production identity. It records the implemented `app.tsx` and `style.css` within this directory only (source baseline `26d0368`). The user-confirmed direction is a Lurk-inspired blue sky, white clouds, subtle gradients, fuller homepage controls and a shared workspace. The metaphor above describes that direction; it does not establish a new brand name or commitment.
+This is a local code-first proposal, not an approved production identity. It records the implemented `app.tsx` and `style.css` within this directory only. This revision follows the user’s device-composition reference after `v0.1.20-frontend-draft`. The user-confirmed direction is a Lurk-inspired blue sky, white clouds, subtle gradients, fuller homepage controls and a shared workspace. The user then explicitly requested gradient lettering, computer/phone screen examples and an overall iPhone-inspired appearance. These requirements authorize the display gradient, frosted navigation and geometric hardware frames; they do not create a native iOS app. The metaphor above describes that direction; it does not establish a new brand name or commitment.
 
 An airy sky introduces the product; cool paper carries conversations and their evidence. Navy navigation, blue actions, restrained green fit signals and the same type families connect the public and working surfaces. The prototype's logo, typography and replacement layout remain proposals. Surface composition belongs to the root surface brief; this document records reusable visual behavior.
 
@@ -161,7 +172,7 @@ Cool blues and white define the atmosphere; navy anchors navigation and green id
 - **Divider:** quiet borders, row separators and themed scrollbars.
 - **Navigation Navy:** persistent navigation; its supporting text remains a lighter blue-gray from the source stylesheet.
 
-**The Bounded Gradient Rule.** Gradients remain bounded by sky stages, actions and supporting surfaces. Long conversation text stays on opaque paper; text itself is not gradient-filled.
+**The Bounded Gradient Rule.** Gradients remain bounded by sky stages, actions and supporting surfaces. Long conversation text stays solid on opaque paper. User-requested display emphasis uses a blue/violet/rose gradient, with themed dark stops, solid-color fallback and forced-colors recovery.
 
 Dark theme substitutes the matching dark tokens. The primary action uses a pale blue-to-cyan gradient with dark text; text selection pairs Ink with Blue Mist in both themes. Exact gradient recipes and hover colors remain in the component snippets and source stylesheet, since gradients are not color primitives.
 
@@ -175,7 +186,7 @@ Dark theme substitutes the matching dark tokens. The primary action uses a pale 
 
 ### Hierarchy
 
-- **Display:** the frontmatter clamp and tight tracking carry the main homepage statement. Source breakpoints replace it with medium-screen and mobile sizes, ending at 42px on phones.
+- **Display:** the frontmatter clamp and tight tracking carry the main homepage statement. Source breakpoints replace it with medium-screen and mobile sizes, ending at a 34–45px fluid size on phones. Only headline emphasis and the phone demonstration heading receive gradient text.
 - **Headline:** section headings step down to 34px at the tablet breakpoint and 33px on phones.
 - **Title:** conversation detail headings; workspace page headings use a separate 27px, weight 600 treatment.
 - **Body:** general interface language. Homepage explanation uses a larger 17px, line-height 1.65 treatment on wide screens.
@@ -189,13 +200,13 @@ Dark theme substitutes the matching dark tokens. The primary action uses a pale 
 
 The homepage wrapper has an outer maximum width of 1264px with 40px inline padding. Its padding becomes 28px at 1120px and 22px on phones. Groups use the recurring tight, group and section-gap values in frontmatter; section separation is deliberately larger than control spacing. Do not derive a new universal spacing scale from every one-off inset.
 
-Wide homepage content uses paired columns. The main pair stacks at 820px; feature controls wrap, then form two columns at 600px. The feature container uses a more generous inset than its working controls. These are observed draft layouts, not a mandated page template.
+The homepage centers copy above a desktop/phone composition. The 1120px device stage reserves 665px for overlap and caption; at intermediate widths it reserves 620–650px. Below 600px the desktop frame is hidden and the phone becomes a readable 300px maximum-width, 640px-high preview. Its content scrolls inside a focusable labelled region. Feature content uses paired columns that stack at 820px; feature controls wrap, then form two columns at 600px. The feature container uses a more generous inset than its working controls. These are observed draft layouts, not a mandated page template.
 
 The workspace uses a 208px navigation rail and a flexible main area. List/detail columns start at `minmax(260px, 0.85fr)` and `minmax(0, 1.25fr)`, separated by 18px. Above 1600px the rail becomes 220px and the detail pane gains space. Below 820px navigation becomes a drawer; below 600px the list and detail become successive views with a back control. Evidence measure stays bounded as panes widen.
 
 ## Elevation & Depth
 
-Tonal layering and fine dividers provide everyday structure. Soft offset shadows lift primary actions, preview examples and the undo notice; ordinary evidence containers remain bordered and flat. The sky uses blurred radial CSS gradients for atmosphere, without placing blur on readable evidence.
+Tonal layering and fine dividers provide everyday structure. Soft offset shadows lift primary actions, preview examples and the undo notice; ordinary evidence containers remain bordered and flat. The sky uses blurred radial CSS gradients for atmosphere, without placing blur on readable evidence. The user-requested navigation bar has a translucent paper background and an 18px backdrop blur; native device framing uses neutral bezels and soft offset shadows, not a production card convention.
 
 ### Shadow Vocabulary
 
@@ -208,13 +219,13 @@ State transitions are short (0.16s). Evidence changes have one brief 0.18s ease-
 
 ## Shapes
 
-Controls are gently rectangular; fields are slightly tighter, tags smaller and evidence containers roomier. The frontmatter records the repeated radii. Thin borders define the working containers. Small fit tags are compact rounded rectangles, not large pill panels. The homepage sky frame and large feature containers use broader corners; their responsive dimensions remain surface-specific.
+Controls are gently rectangular; fields are slightly tighter, tags smaller and evidence containers roomier. The frontmatter records the repeated radii. Thin borders define the working containers. Small fit tags are compact rounded rectangles, not large pill panels. Homepage action and feature controls use capsule corners. The phone has a 42px case and 34px viewport on desktop, expanding to the frontmatter phone radii on mobile; its island and home indicator remain geometric frame details. The homepage sky frame and large feature containers use broader corners; their responsive dimensions remain surface-specific.
 
 ## Components
 
 ### Buttons
 
-Direct, compact actions. Primary buttons use the source accent gradient, with solid blue hover, a small soft shadow and a one-pixel press displacement. Standard buttons have a 46px minimum height; small actions use 38px. Dark actions invert Ink and Paper; subtle actions use Paper with a fine Divider border and a soft hover surface. Text actions carry blue sans labels and gain an underline on hover. Disabled buttons use reduced opacity. Keyboard focus is a 2px blue outline with 4px offset.
+Direct, compact actions. Primary buttons use the source accent gradient, with solid blue hover, a small soft shadow and a one-pixel press displacement. Standard buttons have a 46px minimum height; small actions use 38px. Dark actions invert Ink and Paper; subtle actions use Paper with a fine Divider border and a soft hover surface. Text actions carry blue sans labels and gain an underline on hover. Disabled buttons use reduced opacity. Keyboard focus is a 2px blue outline with 4px offset. Homepage CTAs alone use capsule corners; working UI actions retain the compact existing shape.
 
 ### Chips
 
@@ -232,6 +243,10 @@ Search fields combine an inline drawn icon, Paper background and fine Divider st
 
 Navy navigation uses light blue-gray labels and consistent line icons. The active item has a pale blue-to-cyan fill, dark blue text and a slightly stronger weight in both themes. Source controls use a compact segmented group with a paper selected segment. At the drawer breakpoint, the same navigation receives focus containment, Escape dismissal and focus return.
 
+### Device Showcase
+
+Centered desktop and phone previews contain real HTML and share the selected synthetic lead. Neutral hardware framing, a laptop base, phone island and home indicator follow the user’s screenshot reference. Decorative hardware and the desktop rail are hidden from accessibility APIs. Phone content scrolls, is keyboard focusable and labelled, and retains a real workspace action. These are marketing preview frames, not the working application’s navigation.
+
 ### Conversation Evidence
 
 A source, title and fit score make rows scannable. The detail pane separates the reason for the match from the original request and highlighted quotation. Highlighted text keeps the Ink foreground on Blue Mist in either theme. Local sample disclosures identify illustrative data; they are not promotional badges or brand elements.
@@ -247,6 +262,6 @@ A source, title and fit score make rows scannable. The detail pane separates the
 
 ### Don't:
 
-- **Don't** fill text with gradients or let cloud decoration reduce reading contrast.
+- **Don't** apply headline gradients to long body text or let cloud decoration reduce reading contrast.
 - **Don't** present this local proposal's mark, font selection or layout as an approved Hark identity.
-- **Don't** promote tiny preview metadata, decorative source glyphs or border-plus-shadow preview frames into reusable component defaults.
+- **Don't** promote tiny preview metadata, decorative source glyphs or hardware-frame shadows into reusable component defaults.

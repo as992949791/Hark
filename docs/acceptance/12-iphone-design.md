@@ -1,0 +1,19 @@
+# iPhone-inspired frontend refinement
+
+Scope: continued visual feedback on [issue 15](https://github.com/as992949791/Hark/issues/15), baseline `v0.1.20-frontend-draft`. The user explicitly requested gradient lettering, examples framed as computer/phone screens like the supplied Lurk screenshot, and an overall iPhone-inspired appearance. This authorizes those devices even where earlier prototype guidance preferred solid display type or flatter surfaces. This remains a local web proposal, not a native iOS application or approved production identity.
+
+## Implementation
+
+- Centered existing headline/copy above a desktop-and-phone composition, retaining the blue sky and white clouds. Display emphasis uses themed blue/violet/rose gradients with solid-color and forced-colors fallback; conversation prose remains solid.
+- Reused the existing real HTML desktop conversation sample in a neutral laptop frame with decorative camera/base and static rail. Added an interactive phone with island/home-indicator and a labelled keyboard-focusable, scrollable screen. Both samples share the selected fixture, and the phone's workspace action navigates the existing local draft.
+- Frosted homepage navigation, capsule homepage actions/feature controls and framed lower feature examples support the requested style. Existing workspace business and navigation behavior, main application, auth, stored data, providers and public deployment are unchanged.
+- Updated the prototype-local design record, sidecar, surface brief and reusable prompts to reflect the user's newer instruction instead of retaining the old no-gradient rule. No dependency or raster asset was added.
+
+## Checks and evidence
+
+- Ego Lite captures: 1440px desktop, 390px mobile, 768px tablet, 1710px user width and 1710px dark. Full-page captures stored privately under `.local/design/iphone-*.png`. No horizontal overflow observed: 1425/1440 and 1695/1710 document/viewport widths reflect vertical scrollbars; mobile/tablet are 390/390 and 768/768. Desktop frame yields to the readable phone below 600px.
+- Passed desktop→phone and phone→desktop selection synchronization; phone action enters sample workspace at desktop and mobile widths; labelled phone screen receives keyboard focus and can scroll to its action; all six feature controls still change their panels. Resource origins remained loopback only. No provider request, message or production data access.
+- Supported quick TypeScript/ESLint verification passed during implementation; final quick verification also passed without warnings. YAML frontmatter, JSON schema and all thirteen component records parsed successfully with the installed js-yaml/JSON parsers. The existing preview builder compiled the standalone entry successfully.
+- Detector output had two gradient-text warnings, explicitly requested by the user, and 285 advisory comparisons against the earlier prototype palette/type/radius record. No other warning category. Initial output was truncated; the identical scan was rerun solely to retain complete JSON and aggregate its findings before updating metadata. No repeated detector-driven styling loop or clean-detector claim.
+
+The finish reviewer noticed the first desktop capture caught the existing 180ms evidence reveal before opacity reached one. The same five screenshot paths were replaced after observable opacity/theme settlement; this was an evidence correction, not another styling change. Review and remote archive/CI identity follow execution. The full local database suite and Next production build are not repeated for this isolated marketing revision; exact-commit CI is inspected after archive. Safari, exhaustive accessibility, a native iPhone device and production integration are not claimed.
