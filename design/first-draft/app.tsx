@@ -749,6 +749,9 @@ function Workspace({
   const [search, setSearch] = useState("");
   const menuTrigger = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLElement>(null);
+  const leadList = useRef<HTMLElement>(null);
+  const mobileBack = useRef<HTMLButtonElement>(null);
+  const openedRow = useRef<HTMLButtonElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [undo, setUndo] = useState<{
@@ -788,19 +791,40 @@ function Workspace({
     document.addEventListener("keydown", keepFocus);
     return () => {
       document.removeEventListener("keydown", keepFocus);
-      trigger?.focus();
+      if (trigger?.getClientRects().length) trigger.focus();
     };
   }, [menuOpen]);
   useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 821px)");
+    const closeDrawer = () => {
+      if (desktop.matches) setMenuOpen(false);
+    };
+    desktop.addEventListener("change", closeDrawer);
+    return () => desktop.removeEventListener("change", closeDrawer);
+  }, []);
+  useEffect(() => {
+    if (!detailOpen || !window.matchMedia("(max-width: 600px)").matches) return;
+    const row = openedRow.current;
+    const list = leadList.current;
+    mobileBack.current?.focus();
+    return () => {
+      const target =
+        row?.isConnected && row.getClientRects().length
+          ? row
+          : list?.querySelector<HTMLElement>("button");
+      if (target?.isConnected && target.getClientRects().length) target.focus();
+    };
+  }, [detailOpen, viewState]);
+  useEffect(() => {
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setMenuOpen(false);
-        setDetailOpen(false);
+        if (menuOpen) setMenuOpen(false);
+        else setDetailOpen(false);
       }
     };
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
-  }, []);
+  }, [menuOpen]);
   const projectLeads = leads.filter((lead) => lead.project === project);
   const filtered =
     viewState === "empty"
@@ -1068,7 +1092,11 @@ function Workspace({
             </div>
           ) : (
             <div className="lead-workspace">
-              <section className="lead-list" aria-label="Conversations">
+              <section
+                ref={leadList}
+                className="lead-list"
+                aria-label="Conversations"
+              >
                 <div className="list-heading">
                   <span>
                     {filtered.length}{" "}
@@ -1081,7 +1109,8 @@ function Workspace({
                     <button
                       className={`lead-row ${selected?.id === lead.id ? "selected" : ""}`}
                       key={lead.id}
-                      onClick={() => {
+                      onClick={(event) => {
+                        openedRow.current = event.currentTarget;
                         setSelectedId(lead.id);
                         setDetailOpen(true);
                       }}
@@ -1141,6 +1170,7 @@ function Workspace({
                 {selected ? (
                   <>
                     <button
+                      ref={mobileBack}
                       className="mobile-back text-link"
                       onClick={() => setDetailOpen(false)}
                     >

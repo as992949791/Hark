@@ -57,7 +57,15 @@ const server = createServer(async (req, res) => {
     res.end();
     return;
   }
-  const file = files.get(new URL(req.url, "http://localhost").pathname);
+  let requestUrl;
+  try {
+    requestUrl = new URL(req.url, "http://localhost");
+  } catch {
+    res.writeHead(400);
+    res.end("Invalid request target");
+    return;
+  }
+  const file = files.get(requestUrl.pathname);
   if (!file) {
     res.writeHead(404);
     res.end("Not found");
