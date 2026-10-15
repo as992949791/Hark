@@ -653,6 +653,9 @@ function Home({ openWorkspace }: { openWorkspace: () => void }) {
                       <Target size={14} /> Why it matches
                     </span>
                     <p>{lead.fit}</p>
+                    <blockquote aria-label="Selected conversation quote">
+                      “{lead.match}”
+                    </blockquote>
                   </div>
                   <button
                     className="button primary phone-open"

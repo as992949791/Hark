@@ -245,7 +245,7 @@ Navy navigation uses light blue-gray labels and consistent line icons. The activ
 
 ### Device Showcase
 
-Centered desktop and phone previews contain real HTML and share the selected synthetic lead. Neutral hardware framing, a laptop base, phone island and home indicator follow the user’s screenshot reference. Decorative hardware and the desktop rail are hidden from accessibility APIs. Phone content scrolls, is keyboard focusable and labelled, and retains a real workspace action. These are marketing preview frames, not the working application’s navigation.
+Centered desktop and phone previews contain real HTML and share the selected synthetic lead, fit reason and original-request quote. Neutral hardware framing, a laptop base, phone island and home indicator follow the user’s screenshot reference. Decorative hardware and the desktop rail are hidden from accessibility APIs. Phone content scrolls, is keyboard focusable and labelled, and retains a real workspace action. These are marketing preview frames, not the working application’s navigation.
 
 ### Conversation Evidence
 

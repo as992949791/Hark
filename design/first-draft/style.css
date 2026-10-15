@@ -3622,4 +3622,16 @@ button:active:not(:disabled) {
     padding-top: 23px;
   }
 }
-.phone-content:focus-visible { outline:2px solid var(--blue); outline-offset:-4px; }
+.phone-content:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -4px;
+}
+.phone-match blockquote {
+  margin: 12px 0 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--blue-soft);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.6;
+}
