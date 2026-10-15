@@ -1,0 +1,19 @@
+# Hark frontend reference and reusable prompts
+
+These prompts reproduce a provisional interactive direction, not a final production identity. The user's visual requirements are original-Lurk blue sky/white clouds, light gradients, more homepage features/buttons, and a consistent workspace. References: [original Lurk](https://lurk.so), its existing `src/components/marketing/marketing.css`, and the working Hark fork. Use installed design-taste-frontend for marketing and Impeccable for product UI.
+
+## Homepage prompt
+
+Build Hark's public homepage for an open-source conversation discovery tool. Use a rounded sky-blue to pale-cyan stage with soft white CSS clouds, navy text and a blue-to-teal primary action. Keep headline text solid. At desktop width, pair the headline “Find people asking for what you build.” with an interactive paper-white sample conversation panel. Let readers select three synthetic requests and inspect a fit reason and quote. Include navigation to Features, How it works, Data costs and the Hark GitHub repository, plus Open workspace, self-host and browse-features links.
+
+Below the hero, add six functional feature buttons for Reddit leads, X leads, Reddit SEO, Competitors, Insights, and Alerts & API. Each changes the explanatory copy and an illustrative product panel. Clearly label all examples synthetic and search rankings/theme distributions illustrative. Continue with the actual three-step product workflow, capability rows, truthful provider-cost disclosure, final workspace action and upstream MIT/AnyAPI attribution. Do not invent customers, conversion results, testimonials, live activity, pricing promises or automated replies. Reuse Instrument Sans and installed Lucide icons. Stack hero and feature content on narrow screens; make controls usable by keyboard, provide visible focus and respect reduced motion. The whole preview must operate locally with no provider calls.
+
+## Workspace prompt
+
+Design Hark's authenticated workspace around inspecting evidence. Reuse the homepage's navy, cool-white, blue and cyan vocabulary, but keep long conversation text on opaque paper. Use a stable navy project sidebar with Leads/X leads, existing research/setup module labels, a project picker and a sample-workspace disclosure. Add a restrained blue-cyan wash across the top and selected states, not behind the full conversation body.
+
+At desktop widths, show a source/search/status toolbar, ranked conversation list and detail pane with author, request, fit reason, matching quote, community context and handled actions. In the local draft, support CapCut/Cal.com switching, All/Reddit/X filters, free-text search, new/replied/hidden views, lead selection, mark replied, hide and undo. Include explicit loading, empty and retryable error previews. On phones use a menu drawer and list-to-detail navigation with Back to leads; support Escape, contained drawer focus and return to the trigger. Provide light/dark themes. Label synthetic data and local-only scan animation; leave modules outside this draft visibly disabled. Do not replace Clerk, access stored data, perform scans, send notifications or change backend behavior.
+
+## Production handoff
+
+After the user selects the direction, implement it in the existing Next.js routes and components, preserving real controls, URLs, permissions, stored records and working integrations. Integrate each module separately and verify its real states. Do not carry synthetic fixtures or disabled prototype navigation into production as a completed feature. Presentation work remains deferred until frontend and requested features are complete.
