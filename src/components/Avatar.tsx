@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 type AvatarProps = {
@@ -16,8 +19,9 @@ function initials(name: string | null): string {
   return cleaned ? cleaned.slice(0, 2).toUpperCase() : "?";
 }
 
-/** A round face, or the first two letters of a name when there is no picture. */
+/** A round face, or the first two letters of a name when a picture is absent or fails to load. */
 export function Avatar({ name, src, size = 28, className }: AvatarProps) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const fluid = size === "fluid";
   const box = fluid ? undefined : { width: size, height: size, fontSize: Math.round(size * 0.36) };
   return (
@@ -34,11 +38,15 @@ export function Avatar({ name, src, size = 28, className }: AvatarProps) {
       )}
       style={box}
     >
-      {src ? (
+      {src && src !== failedSrc ? (
         // Reddit serves avatars from several CDN hosts we do not control.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
+          ref={(element) => {
+            if (element?.complete && element.naturalWidth === 0) setFailedSrc(src);
+          }}
+          onError={() => setFailedSrc(src)}
           alt=""
           width={fluid ? undefined : size}
           height={fluid ? undefined : size}

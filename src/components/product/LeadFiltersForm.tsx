@@ -168,12 +168,12 @@ export function LeadFiltersForm({ filters, hidden }: LeadFiltersFormProps) {
         <Button type="submit" size="lg" disabled={pending}>
           {pending ? "Saving" : "Save filters"}
         </Button>
-        {state.error ? (
+        {state.error && !pending ? (
           <span aria-live="polite" className="text-small text-fg-muted">
             {state.error}
           </span>
         ) : null}
-        {state.saved && !state.error ? (
+        {state.saved && !state.error && !pending ? (
           <span aria-live="polite" className="text-small text-fg-muted">
             Saved.
           </span>
