@@ -68,7 +68,7 @@ export function SplitView({
             aria-current={thread.id === selected?.id ? "true" : undefined}
             className={cn(
               "transition-motion flex flex-col gap-1.5 border-b px-3 py-2.5 last:border-b-0",
-              thread.id === selected?.id ? "bg-accent-soft" : "hover:bg-surface-2",
+              thread.id === selected?.id ? "bg-surface-2" : "hover:bg-surface-2",
             )}
           >
             <span className="flex items-start justify-between gap-2">
