@@ -71,13 +71,13 @@ export function MuteList({ projectId, mutes }: MuteListProps) {
             required
             aria-label={kind === "keyword" ? "Keyword to mute" : "Subreddit to mute"}
             placeholder={PLACEHOLDERS[kind]}
-            className="min-w-64 flex-1 px-3"
+            className="min-w-0 w-full sm:min-w-64 sm:flex-1 px-3"
           />
-          <Button type="submit" variant="outline">
+          <Button type="submit" variant="outline" size="lg">
             Mute
           </Button>
         </div>
-        {error ? <p className="text-small text-reddit">{error}</p> : null}
+        {error ? <p aria-live="polite" className="text-small text-reddit">{error}</p> : null}
       </form>
     </div>
   );

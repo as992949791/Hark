@@ -23,7 +23,7 @@ export default async function ScanningSettingsPage({ searchParams }: ScanningSet
   const resolved = await settingsForPreset(user.id, presetFor(connection ? "connected" : "free", config().SELF_HOSTED));
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="flex min-w-0 max-w-3xl flex-col gap-6">
       <h1 className="text-h2" style={{ fontWeight: 500 }}>
         Settings
       </h1>

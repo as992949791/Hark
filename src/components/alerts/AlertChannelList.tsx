@@ -62,17 +62,17 @@ export function AlertChannelList({ projectId, channels }: AlertChannelListProps)
             <span className="text-small text-fg-muted">
               {row.lastSentAt ? `Last sent ${row.lastSentAt}` : "Never sent"}
             </span>
-            <Button variant="outline" size="sm" disabled={pending} onClick={() => test(row.id)}>
+            <Button variant="outline" size="lg" disabled={pending} onClick={() => test(row.id)}>
               <Send className="size-3.5" aria-hidden="true" />
               Send test
             </Button>
             <form action={removeChannelAction.bind(null, projectId, row.id)}>
-              <Button type="submit" variant="ghost" size="sm" aria-label="Remove channel">
+              <Button type="submit" variant="ghost" size="icon" aria-label="Remove channel">
                 <Trash2 className="size-3.5" aria-hidden="true" />
               </Button>
             </form>
             {said ? (
-              <p className={`w-full text-small ${said.ok ? "text-fg-muted" : "text-reddit"}`}>
+              <p aria-live="polite" className={`w-full text-small ${said.ok ? "text-fg-muted" : "text-reddit"}`}>
                 {said.message}
               </p>
             ) : null}

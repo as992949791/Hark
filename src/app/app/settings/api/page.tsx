@@ -10,7 +10,7 @@ export default async function ApiSettingsPage() {
   const [keys, tier] = await Promise.all([listApiKeys(user.id), limitsForUser(user.id)]);
   const origin = config().APP_URL;
   return (
-    <div className="flex max-w-2xl flex-col gap-6">
+    <div className="flex min-w-0 max-w-2xl flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-h2" style={{ fontWeight: 500 }}>
           API and MCP

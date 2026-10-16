@@ -16,7 +16,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const query = project ? `?project=${encodeURIComponent(project)}` : "";
   const connection = await walletConnection(user.id);
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="flex min-w-0 max-w-3xl flex-col gap-6">
       <h1 className="text-h2" style={{ fontWeight: 500 }}>
         Settings
       </h1>

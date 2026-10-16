@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Lock } from "lucide-react";
 import { saveScanSettingsAction } from "@/app/app/settings/scanning/actions";
@@ -108,8 +108,13 @@ export function ScanSettingsForm({ settings, editable, timezoneChosen }: ScanSet
   const [timezone, setTimezone] = useState(
     cadence.kind === "daily" && timezoneChosen ? cadence.timezone : "",
   );
-  const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [{ error, saved }, submit, pending] = useActionState(
+    async (_previous: { error: string | null; saved: boolean }, formData: FormData) => {
+      const problem = await errorFrom(() => saveScanSettingsAction(formData));
+      return { error: problem, saved: problem === null };
+    },
+    { error: null, saved: false },
+  );
   const cadenceLocked =
     cadence.kind === "daily"
       ? !can.has("cadence.hour") && !can.has("cadence.timezone")
@@ -122,22 +127,15 @@ export function ScanSettingsForm({ settings, editable, timezoneChosen }: ScanSet
     can.has("readSeoReplies")
   );
 
-  async function submit(formData: FormData) {
-    setError(null);
-    setSaved(false);
-    const problem = await errorFrom(() => saveScanSettingsAction(formData));
-    setError(problem);
-    setSaved(problem === null);
-  }
 
   return (
-    <form action={submit} className="flex flex-col gap-6">
-      <section className="flex flex-col gap-4 rounded-card border bg-surface p-6">
+    <form action={submit} aria-busy={pending} className="flex flex-col gap-6">
+      <section className="flex flex-col gap-4 rounded-card border bg-surface p-4 sm:p-6">
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           How often
         </h2>
         {cadence.kind === "daily" ? (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             {can.has("cadence.hour") ? (
               <Field label="Scan once a day at">
                 <Select
@@ -181,11 +179,11 @@ export function ScanSettingsForm({ settings, editable, timezoneChosen }: ScanSet
         {cadenceLocked ? <LockedNote /> : null}
       </section>
 
-      <section className="flex flex-col gap-4 rounded-card border bg-surface p-6">
+      <section className="flex flex-col gap-4 rounded-card border bg-surface p-4 sm:p-6">
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           Which threads a scan opens
         </h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {can.has("replyWindowDays") ? (
             <Field label="Reply window, in days" hint="A lead's replies are bought while the post is younger than this.">
               <Input
@@ -283,11 +281,11 @@ export function ScanSettingsForm({ settings, editable, timezoneChosen }: ScanSet
         {threadsLocked ? <LockedNote /> : null}
       </section>
 
-      <div className="flex items-center gap-3">
-        <Button type="submit" size="lg">
-          Save scanning
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" size="lg" disabled={pending}>
+          {pending ? "Saving" : "Save scanning"}
         </Button>
-        {error ? <span className="text-small text-reddit">{error}</span> : null}
+        {error ? <span aria-live="polite" className="text-small text-reddit">{error}</span> : null}
         {saved && !error ? (
           <span aria-live="polite" className="text-small text-fg-muted">
             Saved

@@ -73,7 +73,7 @@ function LevelPicker({
           aria-checked={value === level}
           onClick={() => onChange(level)}
           className={cn(
-            "transition-motion rounded-control px-2.5 py-1 text-small transition-colors",
+            "transition-motion min-h-10 rounded-control px-2.5 py-1 text-small transition-colors",
             value === level ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg",
           )}
         >
@@ -158,7 +158,7 @@ export function ScoringPanel({ projectId, saved, communities, leads }: ScoringPa
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-card border bg-surface p-6">
+    <section className="flex flex-col gap-4 rounded-card border bg-surface p-4 sm:p-6">
       <div className="flex flex-col gap-1">
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           What counts most in a lead&rsquo;s score
@@ -197,7 +197,7 @@ export function ScoringPanel({ projectId, saved, communities, leads }: ScoringPa
                           aria-pressed={favoured.has(communityKey(name))}
                           onClick={() => toggleCommunity(name)}
                           className={cn(
-                            "transition-motion text-mono rounded-control border px-2 py-0.5 transition-colors",
+                            "transition-motion text-small min-h-9 rounded-control border px-2 py-1 transition-colors",
                             favoured.has(communityKey(name))
                               ? "border-fg bg-surface-2 text-fg"
                               : "text-fg-muted hover:text-fg",
@@ -227,7 +227,7 @@ export function ScoringPanel({ projectId, saved, communities, leads }: ScoringPa
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-mono tracking-wide text-fg-muted uppercase">Your top leads under these weights</span>
+          <span className="text-small text-fg-muted">Your top leads under these weights</span>
           {preview.length === 0 ? (
             <p className="text-small text-fg-muted">Your leads show here once a scan has found some.</p>
           ) : (

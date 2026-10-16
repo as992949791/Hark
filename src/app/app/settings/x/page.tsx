@@ -56,7 +56,7 @@ export default async function XSettingsPage({ searchParams }: XSettingsPageProps
       : "Hark paid for all of it.";
 
   return (
-    <div key={project.id} className="flex max-w-3xl flex-col gap-6">
+    <div key={project.id} className="flex min-w-0 max-w-3xl flex-col gap-6">
       <h1 className="text-h2" style={{ fontWeight: 500 }}>
         Settings
       </h1>

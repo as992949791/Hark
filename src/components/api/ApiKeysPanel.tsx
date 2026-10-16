@@ -26,8 +26,8 @@ function day(value: Date | null): string {
 /** The keys table: what exists, when each was last used, and how to revoke one. */
 export function ApiKeysPanel({ keys, requestsPerDay, selfHosted }: ApiKeysPanelProps) {
   return (
-    <section className="flex flex-col gap-4 rounded-card border bg-surface p-6">
-      <div className="flex items-start justify-between gap-4">
+    <section className="flex flex-col gap-4 rounded-card border bg-surface p-4 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-h3" style={{ fontWeight: 500 }}>
             API keys
@@ -43,8 +43,8 @@ export function ApiKeysPanel({ keys, requestsPerDay, selfHosted }: ApiKeysPanelP
           No keys yet. Create one to read your leads from a script or an agent.
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-body">
+        <div role="region" aria-label="API keys; scroll horizontally for more columns" tabIndex={0} className="overflow-x-auto">
+          <table className="w-full min-w-[32rem] text-body">
             <thead>
               <tr className="text-small text-fg-muted">
                 <th className="py-2 text-left font-normal">Name</th>

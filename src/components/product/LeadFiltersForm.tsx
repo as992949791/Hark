@@ -96,7 +96,7 @@ export function LeadFiltersForm({ filters, hidden }: LeadFiltersFormProps) {
   const [state, formAction, pending] = useActionState(saveLeadFiltersAction, INITIAL);
 
   return (
-    <form id="lead-filters" action={formAction} className="flex scroll-mt-24 flex-col gap-4 rounded-card border bg-surface p-6">
+    <form id="lead-filters" action={formAction} className="flex scroll-mt-24 flex-col gap-4 rounded-card border bg-surface p-4 sm:p-6">
       <input type="hidden" name="projectId" value={filters.projectId} />
       <div className="flex flex-col gap-1">
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
@@ -109,7 +109,7 @@ export function LeadFiltersForm({ filters, hidden }: LeadFiltersFormProps) {
           one and what it held back comes back.
         </p>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <TermInput
           name="mustMention"
           label="Only leads that mention one of"
@@ -164,7 +164,7 @@ export function LeadFiltersForm({ filters, hidden }: LeadFiltersFormProps) {
           ? null
           : " An X ask under the third is left out of both."}
       </p>
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" size="lg" disabled={pending}>
           {pending ? "Saving" : "Save filters"}
         </Button>

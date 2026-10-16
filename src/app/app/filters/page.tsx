@@ -31,12 +31,12 @@ export default async function FiltersPage({ searchParams }: FiltersPageProps) {
 
   // Both forms hold what was typed in them, so switching projects draws them afresh.
   return (
-    <div key={project.id} className="flex max-w-5xl flex-col gap-6">
+    <div key={project.id} className="flex min-w-0 max-w-5xl flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-h2" style={{ fontWeight: 500 }}>
           Filters
         </h1>
-        <p className="text-body text-fg-muted">
+        <p className="max-w-[75ch] text-body text-fg-muted">
           Which leads you see and get alerts for, and in what order. Nothing here
           is scanned or judged again; what the scorer is told about your product
           is under{" "}

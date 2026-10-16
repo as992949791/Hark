@@ -5,7 +5,7 @@ type ApiAccessPanelProps = { restBaseUrl: string; mcpUrl: string };
 /** Where to point a script and where to point an agent. */
 export function ApiAccessPanel({ restBaseUrl, mcpUrl }: ApiAccessPanelProps) {
   return (
-    <section className="flex flex-col gap-4 rounded-card border bg-surface p-6">
+    <section className="flex flex-col gap-4 rounded-card border bg-surface p-4 sm:p-6">
       <div className="flex flex-col gap-1">
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           Endpoints

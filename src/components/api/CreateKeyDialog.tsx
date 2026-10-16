@@ -21,8 +21,8 @@ export function CreateKeyDialog() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger className={buttonVariants({ size: "lg" })}>Create key</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 bg-fg/20" />
-        <Dialog.Popup className="fixed top-1/2 left-1/2 flex w-[min(30rem,92vw)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-card border bg-surface p-6">
+        <Dialog.Backdrop className="fixed inset-0 z-40 bg-fg/20" />
+        <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 flex w-[min(30rem,92vw)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-card border bg-surface p-6">
           <Dialog.Title className="text-h3" style={{ fontWeight: 500 }}>
             {state.key ? "Your new key" : "Create an API key"}
           </Dialog.Title>

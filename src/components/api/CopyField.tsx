@@ -20,7 +20,7 @@ export function CopyField({ label, value }: CopyFieldProps) {
     <div className="flex flex-col gap-1">
       <span className="text-small text-fg-muted">{label}</span>
       <div className="flex items-center gap-2">
-        <code className="flex-1 truncate rounded-control border bg-surface-2 px-2 py-1.5 font-mono text-mono text-fg">
+        <code className="min-w-0 flex-1 truncate rounded-control border bg-surface-2 px-2 py-1.5 font-mono text-mono text-fg">
           {value}
         </code>
         <Button type="button" variant="outline" size="icon" onClick={copy} aria-label={`Copy ${label}`}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { Plus } from "lucide-react";
 import { addChannelAction } from "@/app/app/settings/alerts/actions";
 import { ChannelMark } from "@/components/alerts/ChannelMark";
@@ -41,7 +41,11 @@ export function AddChannelForm({
   const [channel, setChannel] = useState<AlertChannel>("email");
   const [cadence, setCadence] = useState<AlertCadence>("daily");
   const [paste, setPaste] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, submit, pending] = useActionState(
+    async (_previous: string | null, formData: FormData) =>
+      errorFrom(() => addChannelAction(projectId, formData)),
+    null,
+  );
   const blocked = customWebhooksAtCap && channel === "webhook";
   // Slack and Discord each let the person pick a channel on their side when
   // this instance has their app, rather than paste a webhook URL.
@@ -50,13 +54,9 @@ export function AddChannelForm({
   const pick = installable && !paste;
   const installHref = `/connect/${channel}?${new URLSearchParams({ project: projectId, cadence })}`;
 
-  async function submit(formData: FormData) {
-    setError(null);
-    setError(await errorFrom(() => addChannelAction(projectId, formData)));
-  }
 
   return (
-    <form action={submit} className="flex flex-col gap-3 rounded-card border bg-surface p-4">
+    <form action={submit} aria-busy={pending} className="flex flex-col gap-3 rounded-card border bg-surface p-4">
       <input type="hidden" name="channel" value={channel} />
       <PillTabs
         className="max-w-full flex-wrap self-start"
@@ -70,20 +70,22 @@ export function AddChannelForm({
       />
       <div className="flex flex-wrap items-center gap-2">
         {pick ? (
-          <span className="min-w-64 flex-1 text-body text-fg-muted">
+          <span className="min-w-0 w-full sm:min-w-64 sm:flex-1 text-body text-fg-muted">
             Pick the channel on {service}&apos;s side.
           </span>
         ) : (
           <Input
             name="target"
+            disabled={pending}
             required
             placeholder={PLACEHOLDERS[channel]}
             aria-label="Where to send it"
-            className="min-w-64 flex-1 px-3"
+            className="min-w-0 w-full sm:min-w-64 sm:flex-1 px-3"
           />
         )}
         <Select
           name="cadence"
+          disabled={pending}
           ariaLabel="How often"
           className="h-10 px-3 text-body"
           value={cadence}
@@ -107,9 +109,9 @@ export function AddChannelForm({
             Add to {service}
           </a>
         ) : (
-          <Button type="submit" size="lg" disabled={blocked}>
+          <Button type="submit" size="lg" disabled={blocked || pending}>
             <Plus className="size-4" aria-hidden="true" />
-            Add channel
+            {pending ? "Adding" : "Add channel"}
           </Button>
         )}
       </div>
@@ -127,7 +129,7 @@ export function AddChannelForm({
           This tier allows one custom webhook. Connect a wallet to add more.
         </p>
       ) : null}
-      {error ? <p className="text-small text-reddit">{error}</p> : null}
+      {error ? <p aria-live="polite" className="text-small text-reddit">{error}</p> : null}
     </form>
   );
 }

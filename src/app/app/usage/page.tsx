@@ -27,17 +27,17 @@ export default async function UsagePage({ searchParams }: UsagePageProps) {
   const scan = job?.startedAt ? await usageSince(active.id, job.startedAt) : null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-6xl flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-h2" style={{ fontWeight: 500 }}>
           Data usage
         </h1>
-        <p className="text-body text-fg-muted">
+        <p className="max-w-[75ch] text-body text-fg-muted">
           What this project spent on <AnyapiLink /> today, and how much of it was answered from data we had
           already fetched.
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatCard label="Calls today" value={String(usage.calls)} caption="AnyAPI requests" />
         <StatCard
           label="USD today"
@@ -52,7 +52,7 @@ export default async function UsagePage({ searchParams }: UsagePageProps) {
           Last scan
         </h2>
         {scan ? (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
             <StatCard label="Calls" value={String(scan.calls)} caption="AnyAPI requests" />
             <StatCard
               label="USD"
@@ -71,7 +71,7 @@ export default async function UsagePage({ searchParams }: UsagePageProps) {
             />
           </div>
         ) : (
-          <p className="text-body text-fg-muted">
+          <p className="max-w-[75ch] text-body text-fg-muted">
             No scan has run for this project yet, so there is nothing to show here.
           </p>
         )}
@@ -80,27 +80,27 @@ export default async function UsagePage({ searchParams }: UsagePageProps) {
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           What each source produced
         </h2>
-        <p className="text-body text-fg-muted">
+        <p className="max-w-[75ch] text-body text-fg-muted">
           Every query and community in the plan, with the candidates it found, the leads those
           became, and what its own calls cost.
         </p>
-        <div className="overflow-x-auto rounded-card border bg-surface">
-          <table className="w-full text-body">
+        <div role="region" aria-label="Usage comparison; scroll horizontally for more columns" tabIndex={0} className="overflow-x-auto rounded-card border bg-surface">
+          <table className="w-full min-w-[36rem] text-body">
             <thead>
               <tr className="border-b text-left text-small text-fg-muted">
-                <th className="p-4" style={{ fontWeight: 400 }}>
+                <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                   Found via
                 </th>
-                <th className="p-4" style={{ fontWeight: 400 }}>
+                <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                   Source
                 </th>
-                <th className="p-4" style={{ fontWeight: 400 }}>
+                <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                   Candidates
                 </th>
-                <th className="p-4" style={{ fontWeight: 400 }}>
+                <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                   Leads
                 </th>
-                <th className="p-4" style={{ fontWeight: 400 }}>
+                <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                   USD
                 </th>
               </tr>
@@ -127,20 +127,20 @@ export default async function UsagePage({ searchParams }: UsagePageProps) {
           </table>
         </div>
       </div>
-      <div className="overflow-x-auto rounded-card border bg-surface">
-        <table className="w-full text-body">
+      <div role="region" aria-label="Usage comparison; scroll horizontally for more columns" tabIndex={0} className="overflow-x-auto rounded-card border bg-surface">
+        <table className="w-full min-w-[36rem] text-body">
           <thead>
             <tr className="border-b text-left text-small text-fg-muted">
-              <th className="p-4" style={{ fontWeight: 400 }}>
+              <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                 API
               </th>
-              <th className="p-4" style={{ fontWeight: 400 }}>
+              <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                 Calls
               </th>
-              <th className="p-4" style={{ fontWeight: 400 }}>
+              <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                 Reused
               </th>
-              <th className="p-4" style={{ fontWeight: 400 }}>
+              <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
                 USD
               </th>
             </tr>
