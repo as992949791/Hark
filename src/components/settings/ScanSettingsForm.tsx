@@ -285,8 +285,8 @@ export function ScanSettingsForm({ settings, editable, timezoneChosen }: ScanSet
         <Button type="submit" size="lg" disabled={pending}>
           {pending ? "Saving" : "Save scanning"}
         </Button>
-        {error ? <span aria-live="polite" className="text-small text-reddit">{error}</span> : null}
-        {saved && !error ? (
+        {error && !pending ? <span aria-live="polite" className="text-small text-reddit">{error}</span> : null}
+        {saved && !error && !pending ? (
           <span aria-live="polite" className="text-small text-fg-muted">
             Saved
           </span>

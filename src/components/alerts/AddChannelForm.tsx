@@ -129,7 +129,7 @@ export function AddChannelForm({
           This tier allows one custom webhook. Connect a wallet to add more.
         </p>
       ) : null}
-      {error ? <p aria-live="polite" className="text-small text-reddit">{error}</p> : null}
+      {error && !pending ? <p aria-live="polite" className="text-small text-reddit">{error}</p> : null}
     </form>
   );
 }
