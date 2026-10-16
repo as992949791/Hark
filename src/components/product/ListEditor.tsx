@@ -53,7 +53,7 @@ export function ListEditor({
   const [pending, startTransition] = useTransition();
 
   return (
-    <section className="flex flex-col gap-3 rounded-card border bg-surface p-6">
+    <section aria-busy={pending} className="flex min-w-0 flex-col gap-3 rounded-card border bg-surface p-4 md:p-6">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           {title}
@@ -61,16 +61,16 @@ export function ListEditor({
         <span className="text-small text-fg-muted tabular-nums">{items.length}</span>
       </div>
       <p className="text-small text-fg-muted">{hint}</p>
-      <ul className="flex flex-wrap gap-2">
+      <ul className="flex flex-col divide-y">
         {items.length === 0 ? (
-          <li className="text-body text-fg-muted">The page named none.</li>
+          <li className="py-2 text-body text-fg-muted">Nothing added yet. Use the field below to add an item.</li>
         ) : (
           items.map((item) => (
             <li
               key={`${item.kind ?? kind}:${item.value}`}
-              className="flex max-w-full items-start gap-2 rounded-control border bg-surface-2 px-3 py-1.5"
+              className="flex min-w-0 items-start gap-2 py-2"
             >
-              <span className="flex flex-col gap-1">
+              <span className="flex min-w-0 flex-1 flex-col gap-1 [overflow-wrap:anywhere]">
                 <span className="text-body text-fg">{item.value}</span>
                 {/* A place the page names outright quotes itself, which says nothing twice. */}
                 {item.sourceText && item.sourceText !== item.value ? (
@@ -87,9 +87,9 @@ export function ListEditor({
                     await removeListItemAction(item.kind ?? kind, projectId, item.value);
                   })
                 }
-                className="transition-motion ml-auto mt-1.5 text-fg-muted transition-colors hover:text-fg"
+                className="transition-motion flex size-9 shrink-0 items-center justify-center rounded-control text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-50"
               >
-                <X className="size-3" />
+                <X className="size-4" />
               </button>
             </li>
           ))
@@ -106,14 +106,14 @@ export function ListEditor({
             }
           });
         }}
-        className="flex gap-2"
+        className="flex flex-wrap gap-2"
       >
         <Input
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={placeholder}
           aria-label={`Add to ${title}`}
-          className="flex-1"
+          className="min-w-0 flex-1 basis-full sm:basis-0"
         />
         {kinds ? (
           <Select
@@ -125,7 +125,7 @@ export function ListEditor({
           />
         ) : null}
         <Button type="submit" variant="outline" size="lg" disabled={pending}>
-          Add
+          {pending ? "Saving" : "Add"}
         </Button>
       </form>
       {error ? (

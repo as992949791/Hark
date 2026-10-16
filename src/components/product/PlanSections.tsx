@@ -144,7 +144,7 @@ export async function PlanSections({ projectId, userId }: PlanSectionsProps) {
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           What a scan does
         </h2>
-        <ol className="flex list-decimal flex-col gap-1 pl-5 text-body text-fg-muted">
+        <ol className="grid list-decimal gap-3 pl-5 text-body text-fg-muted md:grid-cols-3 md:gap-8">
           <li>
             Searches all of Reddit for up to {budgets.searches} of your searches. Most leads come
             from here.
@@ -152,7 +152,7 @@ export async function PlanSections({ projectId, userId }: PlanSectionsProps) {
           <li>Reads the newest posts in your top {budgets.listings} communities.</li>
           <li>Scores what it found against your product and keeps the buyers as leads.</li>
         </ol>
-        <p className="text-small text-fg-muted">
+        <p className="max-w-[75ch] text-small text-fg-muted">
           We wrote these lists from what Google shows your buyers discussing. Use the switch to
           turn a row off or on, and the box under each list to add your own.
         </p>
@@ -160,7 +160,7 @@ export async function PlanSections({ projectId, userId }: PlanSectionsProps) {
       <PlanEditor
         title="Searches"
         hint="What we type into Reddit search. Plain words work; the ones we wrote use AND and OR to catch more phrasings."
-        placeholder="hotels that let 18 year olds check in"
+        placeholder="Add a search query"
         addLabel="Add a search"
         idleHint="Switch one on and scans start using it."
         kind="keyword"
@@ -171,7 +171,7 @@ export async function PlanSections({ projectId, userId }: PlanSectionsProps) {
       <PlanEditor
         title="Communities"
         hint="Subreddits where your buyers turned up. Your searches already reach every subreddit; these also get their newest posts read."
-        placeholder="r/saas"
+        placeholder="r/community"
         addLabel="Add a community"
         idleHint="We found a relevant thread in each of these, but too few to read them every scan. Switch one on and it joins the others."
         kind="subreddit"
@@ -183,7 +183,7 @@ export async function PlanSections({ projectId, userId }: PlanSectionsProps) {
       <PlanEditor
         title="Competitors"
         hint="Products your buyers compare you with. Mentions of them show up under Competitors."
-        placeholder="Acme"
+        placeholder="Product name"
         addLabel="Add a competitor"
         idleHint="Switch one on and we watch for it again."
         kind="competitor"

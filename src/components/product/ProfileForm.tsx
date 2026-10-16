@@ -33,9 +33,11 @@ export function ProfileForm({ project }: ProfileFormProps) {
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-4 rounded-card border bg-surface p-6"
+      aria-busy={pending}
+      className="flex flex-col gap-5 rounded-card border bg-surface p-4 md:p-6"
     >
       <input type="hidden" name="projectId" value={project.id} />
+      <h2 className="text-h3 font-medium">Product profile</h2>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Project name">
           <Input name="name" required defaultValue={project.name} />
@@ -44,12 +46,14 @@ export function ProfileForm({ project }: ProfileFormProps) {
           <Input name="url" type="url" defaultValue={project.url} />
         </Field>
       </div>
-      <Field label="The problem it solves">
-        <Textarea name="pain" rows={3} defaultValue={project.pain} />
-      </Field>
-      <Field label="How it solves it">
-        <Textarea name="solution" rows={3} defaultValue={project.solution} />
-      </Field>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label="The problem it solves">
+          <Textarea name="pain" rows={4} defaultValue={project.pain} />
+        </Field>
+        <Field label="How it solves it">
+          <Textarea name="solution" rows={4} defaultValue={project.solution} />
+        </Field>
+      </div>
       <Field label="Who buys it">
         <Textarea name="targetUsers" rows={3} defaultValue={project.targetUsers} />
       </Field>
@@ -58,7 +62,7 @@ export function ProfileForm({ project }: ProfileFormProps) {
           <Input name="geography" defaultValue={project.geography} />
         </Field>
       )}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 border-t pt-4">
         <Button type="submit" size="lg" disabled={pending}>
           {pending ? "Saving" : "Save profile"}
         </Button>

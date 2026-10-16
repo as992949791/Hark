@@ -21,7 +21,7 @@ const RELEVANCE_LABEL: Record<string, string> = {
  */
 export function EvidenceThreads({ threads }: { threads: EvidenceThread[] }) {
   return (
-    <details className="rounded-card border bg-surface p-6">
+    <details className="rounded-card border bg-surface p-4 md:p-6">
       <summary className="cursor-pointer text-h3" style={{ fontWeight: 500 }}>
         Evidence
         <span className="ml-2 text-small text-fg-muted tabular-nums">
@@ -35,7 +35,7 @@ export function EvidenceThreads({ threads }: { threads: EvidenceThread[] }) {
           </li>
         ) : (
           threads.map((thread) => (
-            <li key={thread.postId} className="flex flex-wrap items-baseline gap-2">
+            <li key={thread.postId} className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 border-t pt-3 [overflow-wrap:anywhere]">
               <a
                 href={thread.canonicalUrl}
                 target="_blank"

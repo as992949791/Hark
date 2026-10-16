@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { PlanSections } from "@/components/product/PlanSections";
 import { ListSkeleton } from "@/components/Skeleton";
 import { requireLocalUser } from "@/lib/auth";
@@ -15,7 +16,7 @@ export default async function SourcesPage({ searchParams }: SourcesPageProps) {
   const project = await requireActiveProject(user.id, (await searchParams).project);
 
   return (
-    <div className="flex max-w-5xl flex-col gap-6">
+    <div className="flex min-w-0 max-w-5xl flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-h2" style={{ fontWeight: 500 }}>
           Sources
@@ -23,6 +24,10 @@ export default async function SourcesPage({ searchParams }: SourcesPageProps) {
         <p className="text-body text-fg-muted">
           Where Hark looks for your buyers on Reddit.
         </p>
+        <nav aria-label="Related source settings" className="mt-2 flex flex-wrap gap-4 text-small text-primary">
+          <Link href={`/app/product?project=${project.id}`} className="underline-offset-4 hover:underline">Product profile</Link>
+          <Link href={`/app/settings/x?project=${project.id}`} className="underline-offset-4 hover:underline">X sources</Link>
+        </nav>
       </div>
       <Suspense fallback={<ListSkeleton rows={5} />}>
         <PlanSections projectId={project.id} userId={user.id} />

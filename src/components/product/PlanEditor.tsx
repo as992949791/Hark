@@ -108,7 +108,7 @@ function DomainField({
       placeholder="site"
       aria-label={`Website for ${row.value}`}
       title={`The site ${row.value} sells from, which is where its logo comes from`}
-      className="h-7 w-32 rounded-control border bg-surface px-2 text-small text-fg-muted"
+      className="h-9 w-full min-w-0 rounded-control border bg-surface px-2 text-small text-fg-muted sm:w-40"
     />
   );
 }
@@ -151,13 +151,13 @@ function RowName({ kind, row }: { kind: ChipKind; row: PlanRow }) {
   const scoped = kind === "keyword" ? /^subreddit:(\S+) AND (.+)$/.exec(row.value) : null;
   if (!scoped) {
     return (
-      <span className={`text-body ${tone}`}>
+      <span className={`text-body [overflow-wrap:anywhere] ${tone}`}>
         {kind === "subreddit" ? `r/${row.value}` : row.value}
       </span>
     );
   }
   return (
-    <span className={`text-body ${tone}`}>
+    <span className={`text-body [overflow-wrap:anywhere] ${tone}`}>
       {scoped[2]} <span className="text-fg-muted">in r/{scoped[1]}</span>
     </span>
   );
@@ -182,11 +182,13 @@ function Switch({
       aria-label={label}
       disabled={disabled}
       onClick={onChange}
-      className={`transition-motion relative h-5 w-9 shrink-0 rounded-full border transition-colors ${on ? "bg-fg" : "bg-surface"}`}
+      className="flex h-10 w-11 shrink-0 items-center justify-center rounded-control disabled:opacity-50"
     >
-      <span
-        className={`transition-motion absolute top-0.5 size-3.5 rounded-full transition-all ${on ? "left-[18px] bg-surface" : "left-0.5 bg-fg-muted"}`}
-      />
+      <span aria-hidden="true" className={`transition-motion relative h-5 w-9 rounded-full border transition-colors ${on ? "bg-primary" : "bg-surface"}`}>
+        <span
+          className={`transition-motion absolute top-0.5 size-3.5 rounded-full transition-all ${on ? "left-[18px] bg-primary-fg" : "left-0.5 bg-fg-muted"}`}
+        />
+      </span>
     </button>
   );
 }
@@ -230,7 +232,7 @@ export function PlanEditor({
     return (
       <li
         key={row.value}
-        className="flex flex-wrap items-center gap-3 rounded-control border bg-surface-2 px-3 py-2"
+        className="flex items-start gap-2 rounded-control border bg-surface-2 px-2 py-2 sm:items-center sm:gap-3 sm:px-3"
       >
         <Switch
           on={isOn}
@@ -247,25 +249,29 @@ export function PlanEditor({
             )
           }
         />
-        <RowMark kind={kind} row={row} icons={icons} />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <RowName kind={kind} row={row} />
-          <span className="text-small text-fg-muted">
-            {[statusOf(kind, row), result, row.source === "user" ? "Added by you" : null]
-              .filter(Boolean)
-              .join(" · ")}
+        <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="flex items-center gap-2">
+              <RowMark kind={kind} row={row} icons={icons} />
+              <RowName kind={kind} row={row} />
+            </span>
+            <span className="text-small text-fg-muted">
+              {[statusOf(kind, row), result, row.source === "user" ? "Added by you" : null]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
           </span>
-        </span>
-        {kind === "competitor" ? (
-          <DomainField
-            // A saved site is normalised - a pasted URL comes back as a
-            // bare host - so the box is redrawn from what was stored.
-            key={row.domain ?? ""}
-            row={row}
-            disabled={pending}
-            onSave={(raw) => run(() => setCompetitorDomainAction(projectId, row.value, raw))}
-          />
-        ) : null}
+          {kind === "competitor" ? (
+            <DomainField
+              // A saved site is normalised - a pasted URL comes back as a
+              // bare host - so the box is redrawn from what was stored.
+              key={row.domain ?? ""}
+              row={row}
+              disabled={pending}
+              onSave={(raw) => run(() => setCompetitorDomainAction(projectId, row.value, raw))}
+            />
+          ) : null}
+        </div>
         {row.source === "user" ? (
           <button
             type="button"
@@ -273,7 +279,7 @@ export function PlanEditor({
             title="Delete"
             disabled={pending}
             onClick={() => run(() => removeChipAction(kind, projectId, row.value))}
-            className="transition-motion text-fg-muted transition-colors hover:text-fg"
+            className="transition-motion flex size-10 shrink-0 items-center justify-center rounded-control text-fg-muted transition-colors hover:bg-surface hover:text-fg disabled:opacity-50"
           >
             <X className="size-4" />
           </button>
@@ -283,7 +289,7 @@ export function PlanEditor({
   };
 
   return (
-    <section className="flex flex-col gap-3 rounded-card border bg-surface p-4 md:p-6">
+    <section aria-busy={pending} className="flex min-w-0 flex-col gap-3 rounded-card border bg-surface p-4 md:p-6">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           {title}
@@ -318,17 +324,17 @@ export function PlanEditor({
             return result;
           });
         }}
-        className="flex gap-2"
+        className="flex flex-col gap-2 sm:flex-row"
       >
         <Input
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder={placeholder}
           aria-label={addLabel}
-          className="flex-1"
+          className="min-w-0 flex-1"
         />
         <Button type="submit" variant="outline" size="lg" disabled={pending}>
-          {addLabel}
+          {pending ? "Saving" : addLabel}
         </Button>
       </form>
       {error ? (
