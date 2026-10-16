@@ -14,6 +14,8 @@ const TABS = [
 export function InsightsTabs({ active, projectId }: InsightsTabsProps) {
   return (
     <PillLinkTabs
+      label="Insight views"
+      className="w-fit max-w-full"
       activeId={active}
       tabs={TABS.map((tab) => ({ ...tab, href: `/app/insights?project=${projectId}&tab=${tab.id}` }))}
     />

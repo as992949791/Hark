@@ -42,11 +42,11 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
   ]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex min-w-0 max-w-6xl flex-col gap-6">
       {/* Keyed so switching projects mounts StartOnOpen again for the new one. */}
       <StartOnOpen key={project.id} start={openInsightsAction.bind(null, project.id)} />
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
+        <div className="flex min-w-0 max-w-[75ch] flex-col gap-1">
           <h1 className="text-h2" style={{ fontWeight: 500 }}>
             Insights
           </h1>
@@ -69,7 +69,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           sentence="Once a scan has found leads, they are grouped here by the problem each person describes."
         />
       ) : (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid items-start gap-4 lg:grid-cols-2">
           {themes.map((theme) => (
             <ThemeCard key={theme.id} theme={theme} projectId={project.id} />
           ))}

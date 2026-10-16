@@ -99,13 +99,13 @@ export default async function SeoPage({ searchParams }: SeoPageProps) {
 
   // Keyed so switching projects mounts StartOnOpen again for the new one.
   return (
-    <div key={project.id} className="flex flex-col gap-5">
+    <div key={project.id} className="flex min-w-0 flex-col gap-6">
       {last ? null : <StartOnOpen start={openSeoAction.bind(null, project.id)} />}
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-h2" style={{ fontWeight: 500 }}>
+        <div className="flex min-w-0 max-w-[75ch] flex-col gap-1">
+          <h1 className="text-h2" style={{ fontWeight: 500 }}>
             Reddit SEO
-          </h2>
+          </h1>
           <JobStatus last={last} next={next} words={REFRESH_WORDS} />
           {threads.length > 0 ? (
             <p className="text-mono text-fg-muted">

@@ -8,11 +8,11 @@ type NoPhrasingsProps = { projectId: string };
  */
 export function NoPhrasings({ projectId }: NoPhrasingsProps) {
   return (
-    <div className="flex flex-col gap-2 rounded-card border bg-surface p-8">
+    <div className="flex flex-col gap-2 rounded-card border bg-surface p-5 sm:p-8">
       <h2 className="text-h3" style={{ fontWeight: 500 }}>
         Nothing to look up yet
       </h2>
-      <p className="text-body text-fg-muted">
+      <p className="max-w-[75ch] text-body text-fg-muted">
         The last refresh had no problem phrasings to search for, so it asked Google nothing. Write
         the problem in your buyers&rsquo; own words under{" "}
         <Link

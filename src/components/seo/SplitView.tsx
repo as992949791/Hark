@@ -58,7 +58,7 @@ export function SplitView({
 }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,9fr)]">
-      <div className={cn(COLUMN, PANE, "lg:overflow-y-auto")}>
+      <div className={cn(COLUMN, PANE, "lg:overflow-y-auto", "break-words")}>
         {threads.map((thread) => (
           <Link
             key={thread.id}
@@ -68,7 +68,7 @@ export function SplitView({
             aria-current={thread.id === selected?.id ? "true" : undefined}
             className={cn(
               "transition-motion flex flex-col gap-1.5 border-b px-3 py-2.5 last:border-b-0",
-              thread.id === selected?.id ? "bg-surface-2" : "hover:bg-surface-2",
+              thread.id === selected?.id ? "bg-accent-soft" : "hover:bg-surface-2",
             )}
           >
             <span className="flex items-start justify-between gap-2">
@@ -104,16 +104,16 @@ export function SplitView({
           <Link
             href={backHref}
             scroll={false}
-            className="text-small flex shrink-0 items-center gap-1 border-b px-3 py-2.5 text-fg-muted lg:hidden"
+            className="text-small sticky top-0 z-10 flex min-h-11 shrink-0 items-center bg-surface gap-1 border-b px-3 py-2.5 text-fg-muted lg:hidden"
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
             Back to threads
           </Link>
           {/* The post below carries its own title, the way Reddit shows one, so
               this says only the thing Reddit cannot: which query found it. */}
-          <div className="flex items-center gap-2 p-4 pb-0">
+          <div className="flex min-w-0 items-start gap-2 p-4 pb-0">
             <RankPill position={selected.position} />
-            <span className="text-mono text-fg-muted">
+            <span className="min-w-0 text-small break-words text-fg-muted">
               Ranks for &ldquo;{selected.keyword}&rdquo;
             </span>
           </div>

@@ -13,7 +13,7 @@ const IN_YOUR_THREAD = "Named in one of your threads";
 /** One post or reply that named a competitor, and what it said. */
 export function MentionCard({ mention }: MentionCardProps) {
   return (
-    <div className="flex flex-col gap-2.5 rounded-card border bg-surface p-4">
+    <div className="flex min-w-0 flex-col gap-3 rounded-card border bg-surface p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-2">
         <AuthorAvatar name={mention.author} src={mention.avatarUrl} size={28} />
         <span className="text-small text-fg" style={{ fontWeight: 500 }}>
@@ -39,15 +39,15 @@ export function MentionCard({ mention }: MentionCardProps) {
         href={mention.url}
         target="_blank"
         rel="noreferrer noopener"
-        className="transition-motion text-h3 text-fg transition-colors hover:text-fg-muted"
+        className="transition-motion max-w-[75ch] text-h3 break-words text-fg transition-colors hover:text-fg-muted"
         style={{ fontWeight: 500 }}
       >
         {mention.title}
       </a>
       {mention.summary ? (
-        <p className="rounded-card bg-surface-2 p-3 text-small text-fg-muted">{mention.summary}</p>
+        <p className="max-w-[75ch] text-body break-words text-fg-muted">{mention.summary}</p>
       ) : mention.quote ? (
-        <blockquote className="rounded-card bg-surface-2 p-3 text-small text-fg-muted">
+        <blockquote className="max-w-[75ch] text-body break-words text-fg-muted">
           {mention.quote}
         </blockquote>
       ) : null}

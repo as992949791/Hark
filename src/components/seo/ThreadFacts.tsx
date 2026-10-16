@@ -72,120 +72,122 @@ export function ThreadFacts({
   const judgement = [intentWord(thread.intent), fitWord(thread.fit)].filter(Boolean).join(" / ");
 
   return (
-    <div className="grid gap-4 border-l-2 bg-surface-2 px-4 py-3.5 lg:grid-cols-[minmax(0,1fr)_var(--rail-width)]">
-      <div className="flex max-w-3xl flex-col gap-2">
-        <article className="flex flex-col gap-2 rounded-card border bg-surface p-4">
-          <header className="flex flex-wrap items-center gap-x-2 gap-y-1 text-mono text-fg-muted">
-            <Avatar
-              name={thread.subreddit}
-              src={thread.subredditIconUrl || SUBREDDIT_FALLBACK_ICON}
-              size={20}
-            />
-            <span className="text-fg" style={{ fontWeight: 500 }}>
-              r/{thread.subreddit}
+    <div className="@container bg-surface-2">
+      <div className="grid min-w-0 gap-4 p-3 @min-[42rem]:grid-cols-[minmax(0,1fr)_var(--rail-width)] sm:p-4">
+        <div className="flex min-w-0 max-w-[75ch] flex-col gap-3">
+          <article className="flex flex-col gap-2 rounded-card border bg-surface p-4">
+            <header className="flex flex-wrap items-center gap-x-2 gap-y-1 text-mono text-fg-muted">
+              <Avatar
+                name={thread.subreddit}
+                src={thread.subredditIconUrl || SUBREDDIT_FALLBACK_ICON}
+                size={20}
+              />
+              <span className="text-fg" style={{ fontWeight: 500 }}>
+                r/{thread.subreddit}
+              </span>
+              <span aria-hidden="true">&middot;</span>
+              <span>u/{thread.author ?? MISSING}</span>
+              <span aria-hidden="true">&middot;</span>
+              <span>{relativeAge(thread.createdAt)}</span>
+              {thread.closed ? (
+                <span className="text-reddit">&middot; {closedSentence(thread).toLowerCase()}</span>
+              ) : null}
+            </header>
+
+            <h4 className="text-h3 break-words text-fg" style={{ fontWeight: 500 }}>
+              {thread.title}
+            </h4>
+
+            {thread.body ? (
+              <p className="text-body break-words whitespace-pre-wrap text-fg">{thread.body}</p>
+            ) : (
+              <p className="text-small text-fg-muted">A title only, with no text of its own.</p>
+            )}
+
+            <footer className="mt-1 flex flex-wrap items-center gap-4 border-t pt-2.5 text-mono text-fg-muted">
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <ArrowUp className="size-3.5" aria-hidden="true" />
+                {fullCount(thread.score)}
+              </span>
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <MessageCircle className="size-3.5" aria-hidden="true" />
+                {fullCount(thread.numComments)} comments
+              </span>
+              <a
+                href={thread.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1 hover:text-fg"
+              >
+                Open on Reddit
+                <ArrowUpRight className="size-3.5" aria-hidden="true" />
+              </a>
+            </footer>
+          </article>
+
+          {thread.snippet ? (
+            /* What a searcher reads before clicking. It is Google's summary, not a
+             line of the post, so it sits outside the card rather than inside it. */
+            <p className="text-small break-words text-fg-muted">Google shows &ldquo;{thread.snippet}&rdquo;</p>
+          ) : null}
+        </div>
+
+        <aside className="h-fit rounded-card border bg-surface">
+          <Block label="Worth replying in">
+            <span className="flex items-baseline gap-1.5" title={scoreSentence(thread.scored)}>
+              <span
+                className={cn("text-body tabular-nums", BAND_TONES[band])}
+                style={{ fontWeight: 500 }}
+              >
+                {thread.scored.score}
+              </span>
+              <span className="text-mono text-fg-muted">{BAND_WORDS[band]}</span>
             </span>
-            <span aria-hidden="true">&middot;</span>
-            <span>u/{thread.author ?? MISSING}</span>
-            <span aria-hidden="true">&middot;</span>
-            <span>{relativeAge(thread.createdAt)}</span>
-            {thread.closed ? (
-              <span className="text-reddit">&middot; {closedSentence(thread).toLowerCase()}</span>
-            ) : null}
-          </header>
-
-          <h4 className="text-h3 text-fg" style={{ fontWeight: 500 }}>
-            {thread.title}
-          </h4>
-
-          {thread.body ? (
-            <p className="text-small whitespace-pre-wrap text-fg">{thread.body}</p>
-          ) : (
-            <p className="text-small text-fg-muted">A title only, with no text of its own.</p>
-          )}
-
-          <footer className="mt-1 flex flex-wrap items-center gap-4 border-t pt-2.5 text-mono text-fg-muted">
-            <span className="inline-flex items-center gap-1 tabular-nums">
-              <ArrowUp className="size-3.5" aria-hidden="true" />
-              {fullCount(thread.score)}
+            {(Object.keys(PART_LABELS) as (keyof ScoreParts)[]).map((part) => (
+              <Part
+                key={part}
+                label={PART_LABELS[part]}
+                value={thread.scored.parts[part]}
+                fill={BAND_FILLS[band]}
+              />
+            ))}
+            {/* Whether the rank above is current, which is the one fact here that
+                can quietly go stale between refreshes. */}
+            <span className="text-mono text-fg-muted">
+              Rank checked {relativeAge(thread.refreshedAt)}
             </span>
-            <span className="inline-flex items-center gap-1 tabular-nums">
-              <MessageCircle className="size-3.5" aria-hidden="true" />
-              {fullCount(thread.numComments)} comments
-            </span>
-            <a
-              href={thread.url}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="inline-flex items-center gap-1 hover:text-fg"
-            >
-              Open on Reddit
-              <ArrowUpRight className="size-3.5" aria-hidden="true" />
-            </a>
-          </footer>
-        </article>
-
-        {thread.snippet ? (
-          /* What a searcher reads before clicking. It is Google's summary, not a
-           line of the post, so it sits outside the card rather than inside it. */
-          <p className="text-mono text-fg-muted">Google shows &ldquo;{thread.snippet}&rdquo;</p>
-        ) : null}
-      </div>
-
-      <aside className="h-fit rounded-card border bg-surface">
-        <Block label="Worth replying in">
-          <span className="flex items-baseline gap-1.5" title={scoreSentence(thread.scored)}>
-            <span
-              className={cn("text-body tabular-nums", BAND_TONES[band])}
-              style={{ fontWeight: 500 }}
-            >
-              {thread.scored.score}
-            </span>
-            <span className="text-mono text-fg-muted">{BAND_WORDS[band]}</span>
-          </span>
-          {(Object.keys(PART_LABELS) as (keyof ScoreParts)[]).map((part) => (
-            <Part
-              key={part}
-              label={PART_LABELS[part]}
-              value={thread.scored.parts[part]}
-              fill={BAND_FILLS[band]}
-            />
-          ))}
-          {/* Whether the rank above is current, which is the one fact here that
-              can quietly go stale between refreshes. */}
-          <span className="text-mono text-fg-muted">
-            Rank checked {relativeAge(thread.refreshedAt)}
-          </span>
-        </Block>
-
-        <Block label="Who is asking">
-          <span
-            className="text-small text-fg"
-            title={judgementSentence(thread.fit, thread.intent) ?? undefined}
-          >
-            {judgement || "Nobody has judged them"}
-          </span>
-          <span className="text-mono tabular-nums text-fg-muted">
-            {fullCount(thread.authorKarma)} karma
-            {thread.authorCreatedAt ? `, ${shortAge(thread.authorCreatedAt)} old` : ""}
-          </span>
-        </Block>
-
-        <Block label="Can you post here">
-          <span className="text-mono tabular-nums text-fg-muted">
-            {fullCount(thread.subredditSubscribers)} members
-          </span>
-          {/* The rules the sentence came from, so a promo policy can be checked. */}
-          <span className="text-mono text-fg-muted" title={thread.rulesText ?? undefined}>
-            {thread.promoPolicy ?? "Promotion rules unknown"}
-          </span>
-        </Block>
-
-        {named.length > 0 ? (
-          <Block label="Competitors named">
-            <span className="text-mono text-score-warm">{named.join(", ")}</span>
           </Block>
-        ) : null}
-      </aside>
+
+          <Block label="Who is asking">
+            <span
+              className="text-small text-fg"
+              title={judgementSentence(thread.fit, thread.intent) ?? undefined}
+            >
+              {judgement || "Nobody has judged them"}
+            </span>
+            <span className="text-mono tabular-nums text-fg-muted">
+              {fullCount(thread.authorKarma)} karma
+              {thread.authorCreatedAt ? `, ${shortAge(thread.authorCreatedAt)} old` : ""}
+            </span>
+          </Block>
+
+          <Block label="Can you post here">
+            <span className="text-mono tabular-nums text-fg-muted">
+              {fullCount(thread.subredditSubscribers)} members
+            </span>
+            {/* The rules the sentence came from, so a promo policy can be checked. */}
+            <span className="text-mono text-fg-muted" title={thread.rulesText ?? undefined}>
+              {thread.promoPolicy ?? "Promotion rules unknown"}
+            </span>
+          </Block>
+
+          {named.length > 0 ? (
+            <Block label="Competitors named">
+              <span className="text-mono text-score-warm">{named.join(", ")}</span>
+            </Block>
+          ) : null}
+        </aside>
+      </div>
     </div>
   );
 }

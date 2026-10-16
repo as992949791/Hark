@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { CompetitorChip } from "@/components/competitors/CompetitorChip";
 import { openCompetitorsAction, scanCompetitorsAction } from "@/app/app/jobs";
 import { StartOnOpen } from "@/components/StartOnOpen";
 import { MentionCard } from "@/components/competitors/MentionCard";
@@ -48,10 +50,10 @@ export default async function CompetitorsPage({ searchParams }: CompetitorsPageP
 
   // Keyed so switching projects mounts StartOnOpen again for the new one.
   return (
-    <div key={project.id} className="flex flex-col gap-5">
+    <div key={project.id} className="flex min-w-0 max-w-6xl flex-col gap-6">
       {last ? null : <StartOnOpen start={openCompetitorsAction.bind(null, project.id)} />}
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
+        <div className="flex min-w-0 max-w-[75ch] flex-col gap-1">
           <h1 className="text-h2" style={{ fontWeight: 500 }}>
             Competitors
           </h1>
@@ -69,6 +71,19 @@ export default async function CompetitorsPage({ searchParams }: CompetitorsPageP
         />
       ) : (
         <>
+          <section className="flex flex-col gap-3" aria-label="Watched competitors">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-h3" style={{ fontWeight: 500 }}>Watching</h2>
+              <Link href={`/app/sources?project=${project.id}`} className="inline-flex min-h-10 items-center text-small text-primary underline underline-offset-4">
+                Edit sources
+              </Link>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {competitors.map((competitor) => (
+                <CompetitorChip key={competitor.name} name={competitor.name} domain={competitor.domain} />
+              ))}
+            </div>
+          </section>
           {ranked.length > 0 ? <TopCompetitors rows={ranked} domains={domains} /> : null}
           <MentionsBar series={mentionSeries(mentions, names)} />
           {mentions.length === 0 ? (

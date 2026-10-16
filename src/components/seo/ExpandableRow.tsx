@@ -41,7 +41,7 @@ export function ExpandableRow({
               event.stopPropagation();
               setOpen(!open);
             }}
-            className="text-fg-muted hover:text-fg"
+            className="inline-flex size-10 items-center justify-center rounded-control text-fg-muted hover:bg-surface-2 hover:text-fg"
           >
             <ChevronDown
               className={cn("transition-motion size-4 transition-transform", open && "rotate-180")}

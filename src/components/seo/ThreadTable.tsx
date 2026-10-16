@@ -65,7 +65,7 @@ function Head({
       scope="col"
       aria-sort={column.sorts?.some((sort) => sort.order === order) ? "descending" : undefined}
       className={cn(
-        "border-b px-3 pb-3 text-left text-small font-normal whitespace-nowrap text-fg-muted",
+        "border-b px-3 py-3 text-left text-small font-normal whitespace-nowrap text-fg-muted",
         column.align,
         column.width,
       )}
@@ -116,9 +116,10 @@ export function ThreadTable({
   competitors: string[];
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-card border bg-surface">
       <table className="w-full min-w-[60rem] border-collapse">
-        <thead>
+        <caption className="sr-only">Ranking Reddit threads and reply opportunities</caption>
+        <thead className="bg-surface-2">
           <tr>
             {COLUMNS.map((column) => (
               <Head key={column.label} column={column} order={order} hrefFor={hrefFor} />

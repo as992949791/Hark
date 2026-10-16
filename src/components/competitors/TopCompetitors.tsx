@@ -19,7 +19,7 @@ export function TopCompetitors({ rows, domains }: TopCompetitorsProps) {
         {rows.map((row) => (
           <li
             key={row.competitor}
-            className="flex flex-wrap items-center justify-between gap-3 px-3 py-2"
+            className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
           >
             <CompetitorChip
               name={row.competitor}
@@ -38,7 +38,7 @@ export function TopCompetitors({ rows, domains }: TopCompetitorsProps) {
                     aria-hidden="true"
                   />
                   {row.sentiments[sentiment]}
-                  <span className="sr-only">{SENTIMENT_WORD[sentiment]}</span>
+                  <span className="max-sm:sr-only">{SENTIMENT_WORD[sentiment]}</span>
                 </span>
               ))}
             </span>

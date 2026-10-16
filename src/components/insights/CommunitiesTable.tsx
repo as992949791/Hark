@@ -7,23 +7,29 @@ type CommunitiesTableProps = { rows: CommunityRow[] };
 /** Where the leads come from, and what each community allows you to say. */
 export function CommunitiesTable({ rows }: CommunitiesTableProps) {
   return (
-    <div className="overflow-x-auto rounded-card border bg-surface">
-      <table className="w-full text-body">
+    <div
+      role="region"
+      aria-label="Community comparison; scroll horizontally for more columns"
+      tabIndex={0}
+      className="overflow-x-auto rounded-card border bg-surface"
+    >
+      <table className="w-full min-w-[42rem] text-body">
+        <caption className="sr-only">Lead quality and participation rules by community</caption>
         <thead>
           <tr className="border-b text-left text-small text-fg-muted">
-            <th className="p-4" style={{ fontWeight: 400 }}>
+            <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
               Community
             </th>
-            <th className="p-4" style={{ fontWeight: 400 }}>
+            <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
               Leads
             </th>
-            <th className="p-4" style={{ fontWeight: 400 }}>
+            <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
               Average score
             </th>
-            <th className="p-4" style={{ fontWeight: 400 }}>
+            <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
               Self-promotion
             </th>
-            <th className="p-4" style={{ fontWeight: 400 }}>
+            <th scope="col" className="bg-surface-2 p-4" style={{ fontWeight: 400 }}>
               Weekly active users
             </th>
           </tr>
@@ -43,7 +49,7 @@ export function CommunitiesTable({ rows }: CommunitiesTableProps) {
                 </td>
                 <td className="p-4 tabular-nums">{row.leads}</td>
                 <td className="p-4 tabular-nums">{row.averageScore}</td>
-                <td className="p-4 text-small text-fg-muted">
+                <td className="max-w-sm p-4 text-small break-words text-fg-muted">
                   {row.promoPolicy ?? "No rule stored yet"}
                 </td>
                 <td className="p-4 tabular-nums">{fullCount(row.weeklyActiveUsers)}</td>
