@@ -2,6 +2,8 @@
 
 Confirmed by the user on 2026-10-15. Baseline: `v0.1.22-home-nav`. Feature: [issue 17](https://github.com/as992949791/Hark/issues/17), blocked by [frontend integration 16](https://github.com/as992949791/Hark/issues/16).
 
+Engineering decisions and sequenced implementation tickets are now captured in [the implementation plan](cross-platform-discovery-implementation.md). They do not represent a shipped feature or completed acceptance.
+
 ## Problem and outcome
 
 People need to find concrete, relevant requests beyond Hark's existing Reddit/X sources. The same collected content should support two tasks: find potential users for an existing product, and investigate unmet needs in a field. The first version is a small manual workflow, targeted at about one week of feature work after the frontend is complete. That is a planning scope, not a delivery guarantee.

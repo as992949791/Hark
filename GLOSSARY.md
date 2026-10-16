@@ -14,3 +14,14 @@
 **Demand signal**: a person's public expression of a concrete difficulty, request for a tool recommendation, or reason for seeking an alternative. A signal can inform research without qualifying as a lead for a particular product.
 
 **Demand theme**: a recurring problem supported by demand signals from independent people. A single person's feedback remains an individual case.
+
+
+**Demand run**: One explicitly requested investigation of needs around a product or a topic, together with its collected evidence and results.
+_Avoid_: Scan when referring to the separate existing product monitoring workflow.
+
+**Source document**: Public content actually retrieved from its original source. A search snippet is a discovery hint, not the full source document.
+_Avoid_: Google post, when Google only found somebody else's page.
+
+**Observed author**: The author identity supported by the source material. Distinct observed identities are evidence about the retrieved sample, not verified distinct people or market size.
+
+**Individual case**: A demand finding supported by only one identifiable author, or by material whose authors cannot be distinguished. It does not establish a recurring theme.
