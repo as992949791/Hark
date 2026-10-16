@@ -769,6 +769,10 @@ export function HomeExperience() {
           </a>
           , under MIT. Data by AnyAPI.
         </p>
+        <nav className="home-legal" aria-label="Legal">
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+        </nav>
         <span>Data and AI requests can incur usage costs.</span>
       </footer>
     </div>

@@ -191,12 +191,6 @@
   stroke-width: 2.2;
   color: var(--blue);
 }
-.hark-home .brand.inverse {
-  color: #fff;
-}
-.hark-home .brand.inverse > svg {
-  color: #a9ceff;
-}
 .hark-home .sample-label {
   padding: 3px 7px;
   border: 1px solid var(--line);
@@ -2445,3 +2439,4 @@
 }
 
 .hark-home .home-account { display: flex; align-items: center; gap: 10px; }
+.hark-home .home-legal { display: flex; gap: 16px; font-size: 12px; color: var(--muted); }
