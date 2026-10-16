@@ -1,6 +1,6 @@
 # Cross-platform demand discovery — confirmed scope
 
-Confirmed by the user on 2026-10-15. Baseline: `v0.1.22-home-nav`. Feature: [issue 17](https://github.com/as992949791/Hark/issues/17), blocked by [frontend integration 16](https://github.com/as992949791/Hark/issues/16).
+Confirmed by the user on 2026-10-15. Baseline: `v0.1.22-home-nav`. Feature: [issue 17](https://github.com/as992949791/Hark/issues/17), follows [frontend integration 16](https://github.com/as992949791/Hark/issues/16).
 
 Engineering decisions and sequenced implementation tickets are now captured in [the implementation plan](cross-platform-discovery-implementation.md). They do not represent a shipped feature or completed acceptance.
 

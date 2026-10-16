@@ -15,7 +15,6 @@
 
 **Demand theme**: a recurring problem supported by demand signals from independent people. A single person's feedback remains an individual case.
 
-
 **Demand run**: One explicitly requested investigation of needs around a product or a topic, together with its collected evidence and results.
 _Avoid_: Scan when referring to the separate existing product monitoring workflow.
 

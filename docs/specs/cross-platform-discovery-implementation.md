@@ -12,7 +12,7 @@ These are children of [feature 17](https://github.com/as992949791/Hark/issues/17
 
 ## Outcome and small releases
 
-1. Foundation: owner-scoped runs, immutable evidence contracts, storage and admission/cost tests. Verify topic mode works without an existing product and cannot read another owner's run.
+1. Foundation: owner-scoped runs, immutable evidence contracts, storage and admission/cost tests. Verify topic/new-product modes work without an existing product and cannot read another owner's run.
 2. Collection and analysis: reuse native Reddit/X seams and add separately stored public-web documents through existing AnyAPI search/scrape. Verify quotes, attribution, deduplication, budget stop, partial failure and retry with transport fixtures.
 3. Real UI and integration: Chinese product/topic input, demand-signal and pain-theme views, source/cost disclosure, progress and explicit retry. Run bounded live CapCut acceptance only after provider ceilings and a specific budget are ready, followed by the user's 20-result review.
 
@@ -24,17 +24,20 @@ Each release has focused tests, independent Standards/Spec review, frontend fini
 - The installed AnyAPI SDK and existing code expose `google.search({query,gl,hl,limit,...})` and `web.scrape({url,formats:["markdown"]})`. Search result title/snippet/URL and scraped title/description/markdown/URL are available. The generic scrape shape does not guarantee author or publication-date metadata. Never infer those from the search position or retrieval time.
 - `usage_ledger.project_id` is currently required; `llm_usage.project_id` and `jobs.project_id` are nullable. Existing null-project enqueueJob coalesces work by kind, and public dispatch rejects null-project jobs. Topic research cannot simply pass null into those APIs and inherit correct ownership, dispatch or billing.
 - Existing daily caps check spend before a call, rather than reserving the call's upper bound. They remain admission controls, not a claimed exact per-run cap. New discovery must add bounded-attempt reservation and reconcile actual charges before another attempt.
+- The ordinary create/profile action dispatches discovery_initial and kicks the scheduler; its worker can start backfill. Research must not call that action or buildProfile/readSite orchestrators whose fan-out is outside the run. Preserve ordinary creation elsewhere.
 
 ## Ownership, entry modes and storage
 
-A Demand run belongs directly to a signed-in owner. Product mode references one owned product project and snapshots its current profile/brief version; the supplied URL must match that project or use the existing create/profile path. Topic mode has no required product/project and never claims product fit. Do not create a fake product to let an idea researcher start.
+A Demand run belongs directly to a signed-in owner. Product mode accepts a product URL. If it matches that owner's prepared project, snapshot its current profile/brief version with no automatic refresh. A new URL creates only the owned research run, with an optional null product-project reference; prepare its product facts within that run's admitted budget. Topic mode has no product/project and never claims product fit. Do not create a fake product or read another owner's profile.
+
+New-URL preparation is at most one product-page scrape plus one structured profile attempt, both reserved, charged and recorded against the same run before demand retrieval. Reuse bounded schema/analysis primitives, not the create action or the readSite/buildProfile orchestration, competitor-page fan-out, discovery_initial, scheduler or backfill. Any helper/SDK retry must consume an explicit admitted attempt; the one-attempt default does not permit a hidden second generation. Store preparation text with product-profile purpose, excluded from demand evidence/counts; retain its provenance and profile snapshot. If preparation fails or facts cannot support fit, show that state and stop product-mode retrieval until an explicit bounded retry. Ordinary project creation elsewhere remains unchanged.
 
 Proposed additive storage:
 
 | Record | Minimum responsibility |
 | --- | --- |
-| `demand_runs` | owner, mode, product project or topic, profile snapshot/version when applicable, status/progress, explicit limits, budget totals, job association, validated theme result, created/finished/expiry times |
-| `demand_documents` | run, source kind, discovery query, requested/canonical source URL, search snippet separately, exact retrieved text and content hash, retrieval time, independently supported author/publication metadata or null, retrieval outcome |
+| `demand_runs` | owner, mode, product URL or topic, optional owned product-project reference, profile snapshot/version when applicable, status/progress, explicit limits, budget totals, job association, validated theme result, created/finished/expiry times |
+| `demand_documents` | run, purpose (product preparation or demand evidence), source kind, discovery query, requested/canonical source URL, search snippet separately, exact retrieved text and content hash, retrieval time, independently supported author/publication metadata or null, retrieval outcome |
 | `demand_signals` | run/document, exact quote offsets, original quote, Chinese need/match explanation, native author identity or unknown, request type, relevance and product-fit result only in product mode |
 | `demand_attempts` | run/sequence, operation, reserved upper bound, actual charge, request/ledger reference, reserved/settled/uncertain outcome |
 
@@ -46,7 +49,7 @@ Link each run to an exact job. Insert that job directly with a unique run associ
 
 ## Retrieval and evidence pipeline
 
-Keep the first run bounded and sequential: validate input, form a small English query plan, collect source documents, extract supported requests, deduplicate, group and persist. Proposed offline defaults are two web queries (ten results each), one query for each enabled native source, at most eight new web-page reads, eight native detail reads combined, three extraction batches and one grouping call. These are request-count proposals, not cost quotes or authority to run live. More pages require an explicit later run.
+Keep the first run bounded and sequential: validate input, form a small English query plan, collect source documents, extract supported requests, deduplicate, group and persist. Proposed offline defaults are two web queries (ten results each), one query for each enabled native source, at most eight new web-page reads, eight native detail reads combined, three extraction batches and one grouping call. New-product mode additionally allows at most the one preparation page and one profile attempt described above, inside the same total budget. These are request-count proposals, not cost quotes or authority to run live. More pages require an explicit later run.
 
 Reuse existing Reddit/X query/result reading, source identifiers, funding and budget controls through narrow adapters. Product mode can include an explicit saved-baseline lane labelled with its real original collection timestamps; this is not a fresh scan. Fresh native requests must be separately counted against the run. Topic mode searches the topic directly, without borrowing unrelated product-profile queries or applying product-fit labels. Respect X's existing enablement gate.
 
@@ -70,10 +73,10 @@ Settle actual costs and preserve provider request IDs even when the result has n
 
 ## UI and verification
 
-Add a real `/app/research` entry with product/topic mode and explicit manual search. Keep the established workspace system. Chinese demand signals and pain themes are views over the same owned run. A card shows original quote/source, available author/date, collection time, Chinese explanation, product fit where applicable and retrieval status. The run shows limits, actual spend, freshness and per-source counts. Clicking a citation opens its original source; there is no auto reply/post action. Fixtures stay in tests/CLI and never populate the authenticated application as live results.
+Add a real `/app/research` entry with product/topic mode and explicit manual search. Keep the established workspace system. Chinese demand signals and pain themes are views over the same owned run. Show product preparation progress/failure and include its charges in run limits/spend. A card shows original quote/source, available author/date, collection time, Chinese explanation, product fit where applicable and retrieval status. The run shows limits, actual spend, freshness and per-source counts. Clicking a citation opens its original source; there is no auto reply/post action. Fixtures stay in tests/CLI and never populate the authenticated application as live results.
 
-Foundation tests: owner isolation including topic-without-project; foreign project/run IDs; migration constraints; durable charge retention; exact job/run dispatch; no schedule on page read; concurrent admission and zero-budget refusal before transports.
+Foundation tests: owner isolation including topic/new-product-without-project; foreign project/run IDs; migration constraints; durable charge retention; exact job/run dispatch; no schedule on page read; concurrent admission and zero-budget refusal before transports.
 
-Pipeline tests: source distinction, full-text versus snippet-only, hostile prompt text, fabricated quote/date/author rejection, duplicate URLs/text/people, unknown-person handling, one-author case versus recurring theme, irrelevant marketing, partial fetch/model failure, bounded retry, no duplicate charge/publication after crash and native baseline freshness disclosure.
+Pipeline tests: new-product preparation stays inside run limits, no create/scheduler/backfill dispatch, no hidden profile retry or preparation page counted as a demand signal; source distinction, full-text versus snippet-only, hostile prompt text, fabricated quote/date/author rejection, duplicate URLs/text/people, unknown-person handling, one-author case versus recurring theme, irrelevant marketing, partial fetch/model failure, bounded retry, no duplicate charge/publication after crash and native baseline freshness disclosure.
 
 End-to-end offline acceptance: both entry modes, progress/loading/empty/error/partial/retry, project context, keyboard/mobile and refresh persistence. Existing Reddit/X suites and full CI remain green. Live acceptance later records actual requests, charges, incremental relevant web signals against the same-input native baseline, and each of the user's 20 judgements. Target 16/20 is unachieved until reviewed; do not pad fewer than twenty or call offline fixtures real demand.
