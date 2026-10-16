@@ -88,7 +88,7 @@ export function Rail({ groups, projectId, children }: RailProps) {
           if ((event.target as HTMLElement).closest("a")) setOpen(false);
         }}
         className={cn(
-          "transition-motion fixed left-0 z-30 flex shrink-0 flex-col gap-6 self-start overflow-y-auto border-r bg-bg px-4 py-5 transition-transform md:sticky md:z-auto md:translate-x-0",
+          "app-rail transition-motion fixed left-0 z-30 flex shrink-0 flex-col gap-6 self-start overflow-y-auto border-r bg-bg px-4 py-5 transition-transform md:sticky md:z-auto md:translate-x-0",
           open ? "translate-x-0" : "invisible -translate-x-full md:visible",
         )}
         style={{

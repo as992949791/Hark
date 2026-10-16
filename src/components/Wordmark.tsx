@@ -1,13 +1,7 @@
 import Link from "next/link";
+import { AudioLines } from "lucide-react";
 import { PRODUCT_NAME } from "@/lib/brand";
 import { AnyapiLink } from "./AnyapiLink";
-
-/** lurk's own mark, the speech bubble with eyes, from public/lurk-mark.svg. */
-function LurkMark() {
-  // A fixed local SVG; no image proxy needed.
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src="/lurk-mark.svg" alt="" width={20} height={20} className="shrink-0" />;
-}
 
 type WordmarkProps = { homeHref?: string };
 
@@ -21,12 +15,12 @@ export function Wordmark({ homeHref }: WordmarkProps) {
     <span className="wordmark flex items-center gap-1.5 text-fg" style={{ fontWeight: 500 }}>
       {homeHref ? (
         <Link href={homeHref} aria-label={`${PRODUCT_NAME} home`} className="flex items-center gap-1.5">
-          <LurkMark />
+          <AudioLines aria-hidden="true" className="hark-mark size-6 shrink-0 text-primary" />
           {PRODUCT_NAME}
         </Link>
       ) : (
         <>
-          <LurkMark />
+          <AudioLines aria-hidden="true" className="hark-mark size-6 shrink-0 text-primary" />
           {PRODUCT_NAME}
         </>
       )}

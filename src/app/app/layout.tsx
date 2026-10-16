@@ -84,7 +84,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ? await Promise.all([countsFor(project.id, showX), hasWorkInFlight(project.id)])
     : [{ ...EMPTY_COUNTS, newXLeads: showX ? 0 : null }, false];
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="app-shell flex min-h-dvh flex-col">
       <Header />
       {/* Here and not on each page: the rail's counts and every tab are filled
           by jobs that finish after the page was drawn. */}
@@ -103,7 +103,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           whole app 5,246px wide in a 1,440px window and the people strip's
           own horizontal scroll never engaged.
         */}
-        <main className="min-w-0 flex-1" style={{ padding: "var(--page-gutter)" }}>
+        <main className="app-main min-w-0 flex-1" style={{ padding: "var(--page-gutter)" }}>
           {children}
         </main>
       </div>

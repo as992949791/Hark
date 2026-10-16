@@ -1,0 +1,70 @@
+/* The selected draft's palette applied to the existing authenticated UI. */
+.app-shell {
+  background: linear-gradient(135deg, var(--accent-soft), var(--cyan-soft) 25%, var(--bg) 60%);
+}
+
+.app-header {
+  background: linear-gradient(110deg, var(--surface), var(--cyan-soft));
+}
+
+.app-header .wordmark {
+  font-size: 18px;
+  font-weight: 600 !important;
+}
+
+.app-rail {
+  --bg: var(--nav-bg);
+  --surface: var(--nav-hover);
+  --surface-2: var(--nav-hover);
+  --border: var(--nav-line);
+  --fg: var(--nav-fg);
+  --fg-muted: var(--nav-muted);
+  background: var(--nav-bg);
+  color: var(--nav-fg);
+}
+
+.app-rail a[aria-current="page"] {
+  background: linear-gradient(110deg, var(--nav-selected), #e5f7fa);
+  color: var(--nav-selected-fg);
+}
+
+.app-rail a[aria-current="page"] svg,
+.app-rail a[aria-current="page"] > span:last-child {
+  color: var(--nav-selected-fg);
+}
+
+.app-rail a[aria-current="page"] > span:last-child {
+  background: transparent;
+}
+
+.app-main h1 {
+  letter-spacing: -0.025em;
+}
+
+.app-main a[aria-current="true"] {
+  background: linear-gradient(110deg, var(--accent-soft), var(--cyan-soft));
+}
+
+.app-main :is(input, textarea) {
+  caret-color: var(--primary);
+}
+
+.app-shell ::selection {
+  background: var(--accent-soft);
+  color: var(--fg);
+}
+
+.app-shell :focus-visible {
+  outline-color: var(--primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell *,
+  .app-shell *::before,
+  .app-shell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

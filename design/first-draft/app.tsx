@@ -1471,24 +1471,6 @@ function App() {
           </span>
           <span className="preview-explanation">示例数据 · 不调用真实服务</span>
         </div>
-        <div className="preview-views">
-          <button
-            aria-label="Switch to homepage"
-            aria-pressed={page === "home"}
-            className={page === "home" ? "selected" : ""}
-            onClick={() => navigate("home")}
-          >
-            官网首页
-          </button>
-          <button
-            aria-label="Switch to workspace"
-            aria-pressed={page === "workspace"}
-            className={page === "workspace" ? "selected" : ""}
-            onClick={() => navigate("workspace")}
-          >
-            工作台
-          </button>
-        </div>
         <div className="preview-options">
           {page === "workspace" && (
             <select

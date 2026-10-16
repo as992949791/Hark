@@ -260,25 +260,6 @@ button:active:not(:disabled) {
 .preview-explanation {
   color: var(--muted);
 }
-.preview-views {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 3px;
-  background: var(--line);
-  border-radius: 7px;
-  gap: 2px !important;
-}
-.preview-views button {
-  padding: 4px 17px;
-  background: none;
-  border-radius: 5px;
-  font-size: 11px;
-}
-.preview-views button.selected {
-  background: var(--paper);
-  box-shadow: 0 1px 3px #132a4210;
-}
 .preview-options select {
   max-width: 110px;
   border: 0;
@@ -2232,10 +2213,6 @@ button:active:not(:disabled) {
   }
   .preview-tag > svg {
     display: none;
-  }
-  .preview-views button {
-    padding: 4px 10px;
-    font-size: 10px;
   }
   .preview-options {
     margin-left: auto;

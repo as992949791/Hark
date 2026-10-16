@@ -1,14 +1,23 @@
 /* Design tokens. Nothing in a component may hardcode a color or a radius. */
 
 :root {
-  --bg: oklch(0.985 0.002 90);
-  --surface: oklch(1 0 0);
-  --surface-2: oklch(0.96 0.003 90);
-  --border: oklch(0.9 0 0);
-  --fg: oklch(0.208 0 0);
-  --fg-muted: oklch(0.5 0 0);
-  --primary: var(--fg);
-  --primary-fg: oklch(1 0 0);
+  --bg: #f5f7fa;
+  --surface: #fff;
+  --surface-2: #edf2f7;
+  --border: #e0e6ed;
+  --fg: #172b3b;
+  --fg-muted: #596b7b;
+  --primary: #2458d5;
+  --primary-fg: #fff;
+  --accent-soft: #edf3ff;
+  --cyan-soft: #e9f9fb;
+  --nav-bg: #112b3d;
+  --nav-fg: #edf4f8;
+  --nav-muted: #b3c6d3;
+  --nav-line: #314858;
+  --nav-hover: #213e52;
+  --nav-selected: #d9eaff;
+  --nav-selected-fg: #172b3b;
   --score-hot: oklch(0.62 0.17 145);
   --score-warm: oklch(0.75 0.15 75);
   --score-cool: var(--fg-muted);
@@ -32,11 +41,11 @@
      leftover rather than a competitor, and must not read as one. */
   --series-other: var(--fg-muted);
 
-  --radius-control: 12px;
-  --radius-card: 16px;
+  --radius-control: 8px;
+  --radius-card: 12px;
   --radius-frame: 20px;
   --rail-width: 232px;
-  --header-height: 56px;
+  --header-height: 58px;
   --page-gutter: 32px;
   --motion: 150ms;
 }
@@ -50,14 +59,20 @@
 }
 
 [data-theme="dark"] {
-  --bg: oklch(0.17 0 0);
-  --surface: oklch(0.21 0 0);
-  --surface-2: oklch(0.25 0 0);
-  --border: oklch(0.3 0 0);
-  --fg: oklch(0.95 0 0);
-  --fg-muted: oklch(0.7 0 0);
-  --primary: var(--fg);
-  --primary-fg: oklch(0.17 0 0);
+  --bg: #10212e;
+  --surface: #172837;
+  --surface-2: #213746;
+  --border: #314858;
+  --fg: #edf4f8;
+  --fg-muted: #a8bdcb;
+  --primary: #90b6ff;
+  --primary-fg: #13263d;
+  --accent-soft: #233d5e;
+  --cyan-soft: #193a43;
+  --nav-bg: #0b1b27;
+  --nav-fg: #edf4f8;
+  --nav-muted: #b0c3d0;
+  --nav-hover: #193448;
   --score-cool: var(--fg-muted);
 
   /* The same eight hues, stepped for the dark surface rather than flipped:
