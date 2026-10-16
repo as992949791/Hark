@@ -38,7 +38,7 @@ export function ProfileForm({ project }: ProfileFormProps) {
     >
       <input type="hidden" name="projectId" value={project.id} />
       <h2 className="text-h3 font-medium">Product profile</h2>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Field label="Project name">
           <Input name="name" required defaultValue={project.name} />
         </Field>
@@ -46,7 +46,7 @@ export function ProfileForm({ project }: ProfileFormProps) {
           <Input name="url" type="url" defaultValue={project.url} />
         </Field>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Field label="The problem it solves">
           <Textarea name="pain" rows={4} defaultValue={project.pain} />
         </Field>

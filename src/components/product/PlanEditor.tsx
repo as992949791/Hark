@@ -331,7 +331,7 @@ export function PlanEditor({
           onChange={(event) => setDraft(event.target.value)}
           placeholder={placeholder}
           aria-label={addLabel}
-          className="min-w-0 flex-1"
+          className="min-w-0 sm:flex-1"
         />
         <Button type="submit" variant="outline" size="lg" disabled={pending}>
           {pending ? "Saving" : addLabel}

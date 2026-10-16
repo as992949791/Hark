@@ -144,7 +144,7 @@ export async function PlanSections({ projectId, userId }: PlanSectionsProps) {
         <h2 className="text-h3" style={{ fontWeight: 500 }}>
           What a scan does
         </h2>
-        <ol className="grid list-decimal gap-3 pl-5 text-body text-fg-muted md:grid-cols-3 md:gap-8">
+        <ol className="grid list-decimal gap-3 pl-5 text-body text-fg-muted lg:grid-cols-3 lg:gap-8">
           <li>
             Searches all of Reddit for up to {budgets.searches} of your searches. Most leads come
             from here.

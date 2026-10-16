@@ -64,63 +64,66 @@ export default async function ProductPage({ searchParams }: ProductPageProps) {
       />
 
       <div className="grid items-start gap-6 lg:grid-cols-2">
-        {/* A product sold everywhere has no places, and an empty list of them only asks a question it has no use for. */}
-        {places.length > 0 ? (
+        <div className="flex min-w-0 flex-col gap-6">
+          {/* A product sold everywhere has no places, and an empty list of them only asks a question it has no use for. */}
+          {places.length > 0 ? (
+            <ListEditor
+              title="Places you serve"
+              hint="Read off your own page. Discovery asks Google about each of these."
+              placeholder="Add a location"
+              kind="destination"
+              projectId={project.id}
+              items={places}
+            />
+          ) : null}
           <ListEditor
-            title="Places you serve"
-            hint="Read off your own page. Discovery asks Google about each of these."
-            placeholder="Add a location"
-            kind="destination"
+            title="How buyers say it"
+            hint="The problem in their words, which is what we search for."
+            placeholder="Describe a problem buyers ask about"
+            kind="phrasing"
             projectId={project.id}
-            items={places}
+            items={parseTextList(project.problemPhrasings).map((phrase) => ({
+              value: phrase,
+              sourceText: null,
+            }))}
           />
-        ) : null}
-        <ListEditor
-          title="How buyers say it"
-          hint="The problem in their words, which is what we search for."
-          placeholder="Describe a problem buyers ask about"
-          kind="phrasing"
-          projectId={project.id}
-          items={parseTextList(project.problemPhrasings).map((phrase) => ({
-            value: phrase,
-            sourceText: null,
-          }))}
-        />
-
-        <ListEditor
-          title="What it can do"
-          hint="Read off your own page. The scorer judges a person's need against these."
-          placeholder="Add a supported capability"
-          kind="capability"
-          projectId={project.id}
-          items={parseTextList(project.capabilities).map((phrase) => ({
-            value: phrase,
-            sourceText: null,
-          }))}
-        />
-        <ListEditor
-          title="Keep out"
-          hint="What you cannot do, and people who talk like your buyers but never buy. Both keep the wrong person out of the feed."
-          placeholder="Add a need or audience to exclude"
-          kind="not_buyer"
-          kinds={[
-            { value: "not_buyer", label: "Never buys" },
-            { value: "exclusion", label: "Not covered" },
-          ]}
-          projectId={project.id}
-          items={[
-            ...parseTextList(project.exclusions).map((phrase) => ({
+        </div>
+        <div className="flex min-w-0 flex-col gap-6">
+          <ListEditor
+            title="What it can do"
+            hint="Read off your own page. The scorer judges a person's need against these."
+            placeholder="Add a supported capability"
+            kind="capability"
+            projectId={project.id}
+            items={parseTextList(project.capabilities).map((phrase) => ({
               value: phrase,
               sourceText: null,
-              kind: "exclusion" as const,
-            })),
-            ...parseTextList(project.notBuyers).map((phrase) => ({
-              value: phrase,
-              sourceText: null,
-              kind: "not_buyer" as const,
-            })),
-          ]}
-        />
+            }))}
+          />
+          <ListEditor
+            title="Keep out"
+            hint="What you cannot do, and people who talk like your buyers but never buy. Both keep the wrong person out of the feed."
+            placeholder="Add a need or audience to exclude"
+            kind="not_buyer"
+            kinds={[
+              { value: "not_buyer", label: "Never buys" },
+              { value: "exclusion", label: "Not covered" },
+            ]}
+            projectId={project.id}
+            items={[
+              ...parseTextList(project.exclusions).map((phrase) => ({
+                value: phrase,
+                sourceText: null,
+                kind: "exclusion" as const,
+              })),
+              ...parseTextList(project.notBuyers).map((phrase) => ({
+                value: phrase,
+                sourceText: null,
+                kind: "not_buyer" as const,
+              })),
+            ]}
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t pt-6">
