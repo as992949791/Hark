@@ -18,8 +18,8 @@
   --nav-hover: #213e52;
   --nav-selected: #d9eaff;
   --nav-selected-fg: #172b3b;
-  --score-hot: oklch(0.62 0.17 145);
-  --score-warm: oklch(0.75 0.15 75);
+  --score-hot: #247052;
+  --score-warm: #8a5d0d;
   --score-cool: var(--fg-muted);
   --reddit: oklch(0.66 0.2 40);
 
@@ -73,6 +73,8 @@
   --nav-fg: #edf4f8;
   --nav-muted: #b0c3d0;
   --nav-hover: #193448;
+  --score-hot: #a0dbb9;
+  --score-warm: #f0c879;
   --score-cool: var(--fg-muted);
 
   /* The same eight hues, stepped for the dark surface rather than flipped:

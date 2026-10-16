@@ -60,7 +60,7 @@ function ThreadsArt({ x }: { x: boolean }) {
           )}
           <span className="min-w-0 flex-1 truncate">{title}</span>
           {lead ? (
-            <span className="how-pop rounded-full px-2 py-0.5 font-mono text-[10px] text-white" style={{ ...at(5), background: "var(--score-hot)" }}>
+            <span className="how-pop rounded-full px-2 py-0.5 font-mono text-[10px] text-white dark:text-bg" style={{ ...at(5), background: "var(--score-hot)" }}>
               lead
             </span>
           ) : null}
