@@ -7,9 +7,9 @@ related_targets: ["design/first-draft/style.css","design/first-draft/index.html"
 
 # Hark homepage and workspace prototype direction
 
-Status: local code-first design proposal; no production identity approval. User chose both homepage and workspace, then requested original-Lurk blue sky, white clouds, subtle gradients and fuller feature controls. This contract persists that steering during the revision, after the initial plain draft.
+Status: selected local design reference. On 2026-10-15 the user approved the overall direction for real integration, removing the top prototype-only homepage/workspace switcher. User chose both homepage and workspace, then requested original-Lurk blue sky, white clouds, subtle gradients and fuller feature controls. This contract persists that steering during the revision, after the initial plain draft. Real integration has its own surface brief.
 
-Latest refinement: the user explicitly requested gradient lettering, computer/phone screen examples and an overall iPhone-inspired feel, supported by their screenshot. This supersedes earlier solid-heading and side-by-side hero-copy choices; the rest remains an interactive local proposal.
+Latest refinement: the user explicitly requested gradient lettering, computer/phone screen examples and an overall iPhone-inspired feel, supported by their screenshot. This supersedes earlier solid-heading and side-by-side hero-copy choices; the fixture preview remains an interactive local reference.
 
 ## THESIS
 Make listening feel open and approachable on the homepage; make evidence quick to inspect in the workspace.

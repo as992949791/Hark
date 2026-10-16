@@ -1,6 +1,6 @@
 # Hark interactive frontend draft
 
-Local design proposal for [issue 15](https://github.com/as992949791/Hark/issues/15), based on `v0.1.19-worker-recovery`. The user selected homepage + workspace together, code-first preview, then a Lurk-inspired sky/cloud background with subtle gradients and more feature controls. A subsequent user reference requests gradient headline lettering and computer/phone screen framing with an iPhone-inspired appearance. This draft does not replace the authenticated Next.js application.
+Local design reference for [issue 15](https://github.com/as992949791/Hark/issues/15), based on `v0.1.19-worker-recovery`. The user selected homepage + workspace together, code-first preview, then a Lurk-inspired sky/cloud background with subtle gradients and more feature controls. A subsequent user reference requests gradient headline lettering and computer/phone screen framing with an iPhone-inspired appearance. On 2026-10-15 the user selected this direction for real integration and requested removal of the top homepage/workspace switcher. This fixture draft remains separate from the authenticated Next.js application; real integration is tracked in [issue 16](https://github.com/as992949791/Hark/issues/16).
 
 Run from the repository root after `npm ci`:
 
@@ -12,7 +12,7 @@ Open [homepage](http://127.0.0.1:4173/#home) or [workspace](http://127.0.0.1:417
 
 The homepage centers gradient headline emphasis above a desktop/phone composition; on narrow screens it prioritizes the larger phone preview. Desktop and phone share the selected synthetic conversation. Phone content scrolls inside a labelled keyboard-focusable region.
 
-The preview toolbar switches page, theme, and workspace loading/empty/error states. Homepage feature buttons change illustrative panels. Lead selection, source/search/status filters, project switching, mark replied, hide and undo operate only on in-memory synthetic data. State resets on page reload or remount. Preview scan animates a local loading state; it never calls a provider. Research/alert previews are illustrative, and disabled workspace navigation is not connected in this draft.
+The top homepage/workspace switcher has been removed. Open workspace through a homepage action and return through the workspace brand link; direct hashes also work. The remaining preview toolbar controls theme and workspace loading/empty/error states. Homepage feature buttons change illustrative panels. Lead selection, source/search/status filters, project switching, mark replied, hide and undo operate only on in-memory synthetic data. State resets on page reload or remount. Preview scan animates a local loading state; it never calls a provider. Research/alert previews are illustrative, and disabled workspace navigation is not connected in this draft.
 
 Use desktop split view or mobile list/detail with Back to leads. The mobile menu supports Escape, focus containment and focus return. The stylesheet respects reduced motion. Main app routes, Clerk, stored data, provider configuration and public deployment are unchanged.
 

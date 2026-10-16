@@ -12,7 +12,7 @@ type WordmarkProps = { homeHref?: string };
  */
 export function Wordmark({ homeHref }: WordmarkProps) {
   return (
-    <span className="wordmark flex items-center gap-1.5 text-fg" style={{ fontWeight: 500 }}>
+    <span className="wordmark flex items-center gap-1.5 font-semibold text-fg">
       {homeHref ? (
         <Link href={homeHref} aria-label={`${PRODUCT_NAME} home`} className="flex items-center gap-1.5">
           <AudioLines aria-hidden="true" className="hark-mark size-6 shrink-0 text-primary" />

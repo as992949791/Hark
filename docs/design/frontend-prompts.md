@@ -1,6 +1,6 @@
 # Hark frontend reference and reusable prompts
 
-These prompts reproduce a provisional interactive direction, not a final production identity. The user's visual requirements are original-Lurk blue sky/white clouds, light gradients, more homepage features/buttons, and a consistent workspace. References: [original Lurk](https://lurk.so), its existing `src/components/marketing/marketing.css`, and the working Hark fork. Use installed design-taste-frontend for marketing and Impeccable for product UI.
+These prompts reproduce the interactive direction selected by the user on 2026-10-15 for real integration. The user's visual requirements are original-Lurk blue sky/white clouds, light gradients, more homepage features/buttons, and a consistent workspace. The top prototype-only homepage/workspace switcher is removed. References: [original Lurk](https://lurk.so), its existing `src/components/marketing/marketing.css`, and the working Hark fork. Use installed design-taste-frontend for marketing and Impeccable for product UI.
 
 ## Homepage prompt
 
@@ -17,3 +17,5 @@ At desktop widths, show a source/search/status toolbar, ranked conversation list
 ## Production handoff
 
 After the user selects the direction, implement it in the existing Next.js routes and components, preserving real controls, URLs, permissions, stored records and working integrations. Integrate each module separately and verify its real states. Do not carry synthetic fixtures or disabled prototype navigation into production as a completed feature. Presentation work remains deferred until frontend and requested features are complete.
+
+The direction is now selected. The real homepage lives in `src/components/marketing/HomeExperience.tsx`; its styles are scoped to `.hark-home`. Shared application colors and navigation are in `src/styles/tokens.css` and `src/styles/workspace.css`. Use [the integration handoff](frontend-integration.md) for scope and verification. The loopback 4173 draft continues to use synthetic data; the actual application uses the supported local startup command on port 3000. Public deployment is separate.

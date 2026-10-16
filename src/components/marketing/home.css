@@ -206,7 +206,7 @@
   color: var(--muted);
   white-space: nowrap;
 }
-.hark-home .homepage {
+.hark-home.homepage {
   background: var(--paper);
 }
 .hark-home .home-nav {
@@ -1690,7 +1690,7 @@
     -webkit-text-fill-color: transparent;
   }
 }
-.hark-home .homepage {
+.hark-home.homepage {
   background: var(--paper);
 }
 .hark-home .sky-stage {
@@ -2103,21 +2103,21 @@
   margin-left: 12px;
   font-size: 10px;
 }
-.hark-home .homepage .feature-tabs > button {
+.hark-home.homepage .feature-tabs > button {
   border-radius: 999px;
 }
-.hark-home .homepage .feature-example {
+.hark-home.homepage .feature-example {
   border: 8px solid var(--device-metal);
   border-radius: 19px;
   box-shadow: 0 16px 30px -20px #183e5b66;
 }
-.hark-home .homepage .feature-deck {
+.hark-home.homepage .feature-deck {
   border-radius: 24px;
 }
-.hark-home .homepage .closing {
+.hark-home.homepage .closing {
   border-radius: 24px;
 }
-.hark-home .homepage .closing .button {
+.hark-home.homepage .closing .button {
   border-radius: 999px;
 }
 @media (max-width: 1120px) {
@@ -2350,10 +2350,10 @@
     margin: 4px 0 0;
     font-size: 10px;
   }
-  .hark-home .homepage .feature-deck {
+  .hark-home.homepage .feature-deck {
     border-radius: 20px;
   }
-  .hark-home .homepage .feature-example {
+  .hark-home.homepage .feature-example {
     border-width: 6px;
     border-radius: 16px;
   }
