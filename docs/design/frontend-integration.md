@@ -16,3 +16,9 @@ On 2026-10-15 the user selected the current visual direction for integration, wi
 4. Verify desktop/mobile and keyboard behavior, real empty/loading/error states and existing data preservation. Use existing saved data with scheduler/seeding and paid scanning off. Archive each completed version and inspect its exact-commit CI.
 
 Frontend completion is the gate for implementing the new cross-platform feature. The feature's input and two result views can be designed within the established system afterward; this handoff does not insert synthetic web results into the working application or redesign unrelated backend behavior. Public deployment remains a separate verified delivery step.
+
+## Local delivery record — 2026-10-17
+
+The real frontend route/layout/core-interaction gate is complete across v0.1.24-home-integration, v0.1.25-product-sources, v0.1.26-research-pages and v0.1.27-frontend-completion. Acceptance and review records are linked from [the final slice](../acceptance/16-configuration-workspace.md); remote identities and exact-commit CI follow on issue 16 after archive. The synthetic 4173 prototype remains a historical reference; the real local application is served at port 3000.
+
+This gate does not imply exhaustive browser/OS, accessibility or every slow/offline/permission combination, a public deployment, wallet completion or new cross-platform functionality. The documented limits remain. Engineering preparation for issue 17 can proceed within the established system with paid calls and scheduling off.

@@ -2,7 +2,7 @@
 version: 1
 slug: "src-app-app-settings-page-tsx"
 primary_target: "src/app/app/settings/page.tsx"
-related_targets: ["src/app/app/settings", "src/app/app/filters", "src/app/app/usage", "src/components/alerts", "src/components/product/LeadFiltersForm.tsx", "src/components/product/ScoringPanel.tsx", "src/components/settings/ScanSettingsForm.tsx", "src/components/api"]
+related_targets: ["src/app/app/settings", "src/app/app/filters", "src/app/app/usage", "src/components/alerts", "src/components/product/LeadFiltersForm.tsx", "src/components/product/ScoringPanel.tsx", "src/components/settings/ScanSettingsForm.tsx", "src/components/api", "src/components/Avatar.tsx", "src/components/product/how-steps.css"]
 ---
 
 # Configuration and workspace completion
