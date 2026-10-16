@@ -59,5 +59,7 @@
 @keyframes howDrift { to { transform: rotate(-18deg) translate(4%, -3%); } }
 
 @media (prefers-reduced-motion: reduce) {
+  .how-step[data-state="todo"] { opacity: 1; }
+  .how-step[data-state="todo"] .how-card, .how-step[data-state="active"] { opacity: 1; transform: none; }
   .how-step, .how-card, .how-art::before, .how-step[data-state="active"] * { animation: none !important; transition: none !important; }
 }
