@@ -87,18 +87,15 @@ export async function saveProfileAction(
       ...(formData.has("geography") ? { geography: text(formData, "geography") || null } : {}),
     };
     const edited = Object.entries(facts).some(
-      ([field, value]) => project[field as keyof typeof facts] !== value,
+      ([field, value]) => (project[field as keyof typeof facts] ?? "") !== (value ?? ""),
     );
-    await db()
-      .update(projects)
-      .set({
-        ...facts,
-        ...(edited ? { profileVersion: sql`${projects.profileVersion} + 1` } : {}),
-      })
-      .where(eq(projects.id, project.id));
     // The brief was written for the product as it was. A new one is read, and
     // the verdicts are judged again once it is written.
     if (edited) {
+      await db()
+        .update(projects)
+        .set({ ...facts, profileVersion: sql`${projects.profileVersion} + 1` })
+        .where(eq(projects.id, project.id));
       await dispatchJob(await enqueueJob("brief", project.id));
     } else {
       const queued = await nextQueuedJob("brief", project.id);

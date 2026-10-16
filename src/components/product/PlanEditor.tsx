@@ -90,7 +90,7 @@ function DomainField({
 }) {
   const [draft, setDraft] = useState(row.domain ?? "");
   return (
-    <input
+    <Input
       value={draft}
       onChange={(event) => setDraft(event.target.value)}
       onBlur={() => {
@@ -108,7 +108,7 @@ function DomainField({
       placeholder="site"
       aria-label={`Website for ${row.value}`}
       title={`The site ${row.value} sells from, which is where its logo comes from`}
-      className="h-9 w-full min-w-0 rounded-control border bg-surface px-2 text-small text-fg-muted sm:w-40"
+      className="w-full min-w-0 sm:w-40"
     />
   );
 }

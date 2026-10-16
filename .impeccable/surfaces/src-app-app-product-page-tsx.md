@@ -7,7 +7,7 @@ related_targets: ["src/app/app/sources/page.tsx","src/components/product/Profile
 
 # Product and sources refinement
 
-Mode: Operate. Primary route: `/app/product`; related route: `/app/sources`. Existing project owners edit product facts and retrieval lists. This extends the v0.1.24 working application without changing the visual world, actions, permissions, schemas or scan budgets. Real stored content supplies all counts and fields. Paid actions and schedules stay off during acceptance.
+Mode: Operate. Primary route: `/app/product`; related route: `/app/sources`. Existing project owners edit product facts and retrieval lists. This extends the v0.1.24 working application without changing the visual world, permissions, schemas or scan budgets. A save-path regression found during acceptance is included: unchanged null/empty fields must not bump the profile version or enqueue fresh analysis; actual edits and existing queued-job retry behavior remain. Real stored content supplies all counts and fields. Paid actions and schedules stay off during acceptance.
 
 ## Direction contract
 

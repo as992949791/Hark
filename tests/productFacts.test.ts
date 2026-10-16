@@ -26,6 +26,38 @@ async function fixture(values: Record<string, unknown>) {
 }
 
 describeDb("capabilities and exclusions", () => {
+  it.each([null, ""])("keeps an unchanged profile with stored blank %s without queueing analysis", async (blank) => {
+    const { user, project, db, schema } = await fixture({
+      url: blank,
+      pain: blank,
+      solution: blank,
+      targetUsers: blank,
+      geography: blank,
+    });
+    try {
+      const { saveProfileAction } = await import("@/app/app/product/actions");
+      const data = new FormData();
+      data.set("projectId", project.id);
+      data.set("name", project.name);
+      for (const field of ["url", "pain", "solution", "targetUsers", "geography"]) {
+        data.set(field, "");
+      }
+      expect(await saveProfileAction({ error: null, saved: false }, data)).toEqual({ error: null, saved: true });
+      const [saved] = await db().select().from(schema.projects).where(eq(schema.projects.id, project.id));
+      expect(saved).toEqual(project);
+      expect(await db().select().from(schema.jobs).where(eq(schema.jobs.projectId, project.id))).toEqual([]);
+
+      data.set("solution", "Transcribes captions");
+      expect(await saveProfileAction({ error: null, saved: false }, data)).toEqual({ error: null, saved: true });
+      const [edited] = await db().select().from(schema.projects).where(eq(schema.projects.id, project.id));
+      expect(edited.profileVersion).toBe(project.profileVersion + 1);
+      expect(edited.solution).toBe("Transcribes captions");
+      expect(await db().select().from(schema.jobs).where(eq(schema.jobs.projectId, project.id))).toMatchObject([{ kind: "brief", startedAt: null }]);
+    } finally {
+      await db().delete(schema.users).where(eq(schema.users.id, user.id));
+    }
+  });
+
   it("reaches the scan's product text as what it can and does not do", async () => {
     const { user, project, db, schema } = await fixture({
       capabilities: ["check in guests aged 18 and over"],
