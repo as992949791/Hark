@@ -99,6 +99,7 @@ describe("demand bounded provider transport (mock network only)", () => {
     expect(sent.response_format).toEqual({ type: "json_object" });
     expect(sent.provider).toMatchObject({ only: ["deepseek"], allow_fallbacks: false, require_parameters: true });
     expect(sent.reasoning).toEqual({ enabled: false });
+    expect(sent.temperature).toBe(0);
     expect(sent.messages[0].content).toContain(JSON.stringify(z.toJSONSchema(modelRequest.schema)));
     expect(fetch).toHaveBeenCalledTimes(2);
   });

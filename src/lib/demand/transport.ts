@@ -111,7 +111,7 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
           headers: { authorization: `Bearer ${settings.OPENROUTER_API_KEY}`, "content-type": "application/json" },
           body: JSON.stringify({ model, messages: [{ role: "system", content: system }, { role: "user", content: request.prompt }],
             stream: false, max_tokens: request.maxOutputTokens, usage: { include: true },
-            ...(deepseekJsonMode ? { reasoning: { enabled: false } } : {}),
+            ...(deepseekJsonMode ? { reasoning: { enabled: false }, temperature: 0 } : {}),
             provider: { ...(deepseekJsonMode ? { only: ["deepseek"] } : {}), allow_fallbacks: false, require_parameters: true,
               max_price: { prompt: promptPrice * 1e6, completion: completionPrice * 1e6, request: 0 } },
             response_format: deepseekJsonMode ? { type: "json_object" } : { type: "json_schema", json_schema: { name: "research", strict: true, schema: jsonSchema } } }),
