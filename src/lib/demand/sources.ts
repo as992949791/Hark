@@ -4,9 +4,9 @@ import { canonicalUrl, sourceOf, type SourceDocument } from "./evidence";
 export const dataSku = z.enum(["google.search", "web.scrape", "reddit.search", "reddit.post", "twitter.search", "twitter.tweet"]);
 export type DataSku = z.infer<typeof dataSku>;
 const text = z.string();
-const redditPost = z.object({ id: text, title: text, selftext: text.optional(), permalink: text,
+const redditPost = z.object({ id: text, title: text, selftext: text.optional(), body: text.optional(), permalink: text,
   author: text.optional(), createdUtc: z.number().optional() });
-const tweet = z.object({ id: text, text, url: text, authorUsername: text.optional(), createdUtc: z.number().optional() });
+const tweet = z.object({ id: text, text, url: text, authorUsername: text.optional(), authorId: text.optional(), createdUtc: z.number().optional() });
 const author = (value?: string) => value && !["[deleted]", "[removed]", "unknown"].includes(value.toLowerCase()) ? value : null;
 function date(seconds?: number) {
   if (!seconds || seconds < 0 || seconds * 1000 > Date.now()) return null;
@@ -37,16 +37,20 @@ export function normalizeSource(sku: DataSku, raw: unknown, input: Record<string
       try {
         const path = post.permalink.startsWith("/") ? `https://www.reddit.com${post.permalink}` : post.permalink;
         if (!/^[a-z0-9]+$/i.test(post.id) || canonicalUrl(path) !== `https://www.reddit.com/comments/${post.id.toLowerCase()}/`) return [];
-        const doc = base(path, post.title, post.selftext ? `${post.title}\n\n${post.selftext}` : null);
+        const body = sku === "reddit.post" ? post.body : post.selftext;
+        const doc = base(path, post.title, body ? `${post.title}\n\n${body}` : null);
         return [{ ...doc, author: author(post.author), publishedAt: date(post.createdUtc) }];
       } catch { return []; }
     });
   }
-  const posts = sku === "twitter.search" ? z.object({ items: z.array(tweet) }).parse(raw).items.slice(0, 8) : [tweet.parse(raw)];
+  const posts = sku === "twitter.search" ? z.object({ items: z.array(tweet) }).parse(raw).items.slice(0, 8) : [tweet.extend({ url: text.optional() }).parse(raw)];
   return posts.flatMap((post) => {
     try {
-      if (!/^\d+$/.test(post.id) || canonicalUrl(post.url) !== `https://x.com/i/web/status/${post.id}`) return [];
-      return [{ ...base(post.url, null, post.text), author: author(post.authorUsername), publishedAt: date(post.createdUtc) }];
+      const url = post.url ?? (typeof input.url === "string" ? input.url : "");
+      if (!/^\d+$/.test(post.id) || canonicalUrl(url) !== `https://x.com/i/web/status/${post.id}`) return [];
+      // Keep the supported opaque ID; never invent a handle from an arbitrary status URL.
+      const identity = post.authorId && /^\d+$/.test(post.authorId) ? `x-id:${post.authorId}` : null;
+      return [{ ...base(url, null, post.text), author: sku === "twitter.search" ? author(post.authorUsername) : identity, publishedAt: date(post.createdUtc) }];
     } catch { return []; }
   });
 }

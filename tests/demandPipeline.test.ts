@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { demandAttempts, demandRuns, jobs, llmUsage, projects, usageLedger, users } from "@/db/schema";
+import { demandAttempts, demandRuns, demandSignals, jobs, llmUsage, projects, usageLedger, users } from "@/db/schema";
 import { executeRecordedDemandAttempt } from "@/lib/demand/budget";
 import { executeDemandPipeline } from "@/lib/demand/pipeline";
 import { claimDemandRun, createDemandRun, expireDemandRuns, getDemandEvidence, getDemandRun, retryDemandRun } from "@/lib/demand/runs";
@@ -178,5 +178,68 @@ describeDb("bounded cross-platform demand pipeline", () => {
     expect((await db().select().from(demandAttempts).where(eq(demandAttempts.runId, run.id))).every((attempt) => attempt.result === null)).toBe(true);
     expect((await getDemandRun(user.id, run.id))?.spentMicros).toBe(spent);
     expect((await db().select().from(usageLedger).where(eq(usageLedger.demandRunId, run.id))).length).toBeGreaterThan(0);
+  });
+  it("replays settled extraction after missing publication without paying for extraction or sources again", async () => {
+    const { user, run, lease } = await start(); const first = fixtureTransport();
+    const prepare = first.transport.prepareModel;
+    first.transport.prepareModel = async (request, key) => {
+      if (request.stage.startsWith("group-")) throw new Error("Synthetic interruption before grouping");
+      return prepare(request, key);
+    };
+    await executeDemandPipeline(lease, first.transport);
+    expect((await getDemandRun(user.id, run.id))?.status).toBe("partial");
+    // Construct the persisted state of a crash between extraction settlement and signal publication.
+    await db().delete(demandSignals).where(eq(demandSignals.runId, run.id));
+    const second = fixtureTransport();
+    await executeDemandPipeline(await retry(user.id, run.id), second.transport);
+    expect(second.data).toEqual([]); expect(second.models).toHaveLength(1); expect(second.models[0]).toMatch(/^group-/);
+    expect((await getDemandEvidence(user.id, run.id)).signals).toHaveLength(3);
+    expect((await getDemandRun(user.id, run.id))?.status).toBe("complete");
+  });
+  it("retains the original read selection on retry instead of buying previously cap-skipped pages", async () => {
+    const { user, run, lease } = await start(); const first = fixtureTransport();
+    const data = first.transport.prepareData, model = first.transport.prepareModel;
+    first.transport.prepareData = async (sku, input, key) => sku === "google.search" ? { upperBoundMicros: 100, call: async () => ({
+      value: { results: Array.from({ length: 10 }, (_, i) => ({ link: `https://forum.example.com/page-${i}`, title: "Help", snippet: "captions" })) },
+      charge: { actualMicros: 10, requestId: randomUUID() },
+    }) } : data(sku, input, key);
+    first.transport.prepareModel = async (request, key) => {
+      if (request.stage.startsWith("group-")) throw new Error("Synthetic grouping outage");
+      return model(request, key);
+    };
+    await executeDemandPipeline(lease, first.transport);
+    expect(first.data.filter((name) => name.startsWith("web.scrape"))).toHaveLength(8);
+    const second = fixtureTransport(); await executeDemandPipeline(await retry(user.id, run.id), second.transport);
+    expect(second.data).toEqual([]);
+  });
+  it("keeps case-sensitive URL reads distinct and preserves full Reddit request permalinks", async () => {
+    const { user, run, lease } = await start(); const first = fixtureTransport(); const data = first.transport.prepareData;
+    first.transport.prepareData = async (sku, input, key) => {
+      if (sku === "google.search") return { upperBoundMicros: 100, call: async () => ({ value: { results: [
+        { link: "https://forum.example.com/Help", title: "Help", snippet: "captions" }, { link: "https://forum.example.com/help", title: "Help", snippet: "captions" },
+        { link: "https://www.reddit.com/r/video/comments/def123/help/", title: "Help", snippet: "captions" },
+      ] }, charge: { actualMicros: 10, requestId: randomUUID() } }) };
+      return data(sku, input, key);
+    };
+    await executeDemandPipeline(lease, first.transport);
+    expect(first.data).toContain("web.scrape:https://forum.example.com/Help");
+    expect(first.data).toContain("web.scrape:https://forum.example.com/help");
+    expect(first.data).toContain("reddit.post:https://www.reddit.com/r/video/comments/def123/help/");
+    expect((await getDemandEvidence(user.id, run.id)).documents.filter((doc) => doc.source === "web" && doc.body)).toHaveLength(2);
+  });
+  it("settles the known model bill even when NUL output cannot be stored by PostgreSQL", async () => {
+    const { user, run, lease } = await start(); const first = fixtureTransport(); const model = first.transport.prepareModel;
+    first.transport.prepareModel = async (request, key) => {
+      const prepared = await model(request, key);
+      if (!request.stage.startsWith("extract-")) return prepared;
+      return { ...prepared, call: async () => {
+        const result = await prepared.call(async () => {});
+        (result.value as { signals: { explanation: string }[] }).signals[0].explanation += "\u0000";
+        return result;
+      } };
+    };
+    await executeDemandPipeline(lease, first.transport);
+    expect(await getDemandRun(user.id, run.id)).toMatchObject({ status: "partial", reservedMicros: 0 });
+    expect((await db().select().from(demandAttempts).where(eq(demandAttempts.runId, run.id))).every((item) => item.status === "settled")).toBe(true);
   });
 });

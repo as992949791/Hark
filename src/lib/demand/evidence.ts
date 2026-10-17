@@ -36,9 +36,11 @@ export function canonicalUrl(value: string): string {
 /** DNS is checked for submitted and returned URLs; the app never fetches these pages itself. */
 export async function admitSourceUrl(value: string): Promise<string> {
   const canonical = canonicalUrl(value);
-  const host = new URL(canonical).hostname.replace(/^\[|\]$/g, "");
-  const answers = isIP(host) ? [{ address: host }] : await lookup(host, { all: true });
-  if (!answers.length || answers.some((answer) => !isPublicAddress(answer.address))) throw new DemandError("Source DNS is not public.");
+  for (const hostname of new Set([new URL(value).hostname, new URL(canonical).hostname])) {
+    const host = hostname.replace(/^\[|\]$/g, "");
+    const answers = isIP(host) ? [{ address: host }] : await lookup(host, { all: true });
+    if (!answers.length || answers.some((answer) => !isPublicAddress(answer.address))) throw new DemandError("Source DNS is not public.");
+  }
   return canonical;
 }
 
@@ -114,6 +116,9 @@ export function validateThemes(raw: unknown, signals: ValidatedSignal[]): Demand
       uniqueQuotes.add(hash); return true;
     }).map((signal) => authorKey(signal.author)).filter(Boolean));
     // Explanations come directly from cited signal judgements. No free-form workarounds/market claims.
-    return { ...theme, explanation: members.map((signal) => signal.explanation).join("\n"), kind: authors.size >= 2 ? "recurring" : "individual" };
+    // Opaque X IDs cannot be matched to handles from the search contract. Do not add both populations.
+    const ids = [...authors].filter((identity) => identity!.startsWith("x-id:")).length;
+    const handles = authors.size - ids;
+    return { ...theme, explanation: members.map((signal) => signal.explanation).join("\n"), kind: Math.max(ids, handles) >= 2 ? "recurring" : "individual" };
   });
 }

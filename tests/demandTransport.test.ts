@@ -33,7 +33,7 @@ describe("demand bounded provider transport (mock network only)", () => {
     vi.stubGlobal("fetch", fetch);
     const transport = await demandTransport("owner"); const prepared = await transport.prepareData("google.search", { query: "captions", limit: 10 }, "stable-test-key");
     expect(prepared.upperBoundMicros).toBe(2000); expect(fetch).toHaveBeenCalledTimes(1);
-    expect(await prepared.call()).toMatchObject({ value: { results: [] }, charge: { actualMicros: 400, requestId: "test-request" } });
+    expect(await prepared.call(async () => {})).toMatchObject({ value: { results: [] }, charge: { actualMicros: 400, requestId: "test-request" } });
     const [url, init] = fetch.mock.calls[1]; expect(new URL(url).searchParams.get("max_cost_usd")).toBe("0.002");
     expect(new Headers(init.headers).get("Idempotency-Key")).toBe("stable-test-key");
   });
@@ -42,14 +42,23 @@ describe("demand bounded provider transport (mock network only)", () => {
       .mockResolvedValue(response({ error: "synthetic rate limit", code: "rate_limited", costUsd: 0.00001 }, 429));
     vi.stubGlobal("fetch", fetch);
     const transport = await demandTransport("owner"); const prepared = await transport.prepareData("reddit.search", { query: "captions" }, "test-key");
-    expect(await prepared.call()).toMatchObject({ error: expect.any(String), charge: { actualMicros: 10, requestId: "test-request" } });
+    expect(await prepared.call(async () => {})).toMatchObject({ error: expect.any(String), charge: { actualMicros: 10, requestId: "test-request" } });
     expect(fetch).toHaveBeenCalledTimes(2);
   });
   it("keeps a response with no trustworthy bill uncertain", async () => {
     const fetch = vi.fn().mockResolvedValueOnce(response(catalog("web.scrape"))).mockRejectedValueOnce(new Error("synthetic timeout"));
     vi.stubGlobal("fetch", fetch);
     const prepared = await (await demandTransport("owner")).prepareData("web.scrape", { url: "https://example.com" }, "test-key");
-    await expect(prepared.call()).rejects.toThrow(/timeout/); expect(fetch).toHaveBeenCalledTimes(2);
+    await expect(prepared.call(async () => {})).rejects.toThrow(/timeout/); expect(fetch).toHaveBeenCalledTimes(2);
+  });
+  it("rechecks the worker fence immediately before the paid POST, after any pacing wait", async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(response(catalog("reddit.search")))
+      .mockResolvedValue(response({ output: { found: false, data: null }, provider: "AnyAPI", costUsd: 0, items: 0, replayed: false }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareData("reddit.search", { query: "captions" }, "test-key");
+    const fence = vi.fn(async () => { throw new Error("Synthetic expired lease"); });
+    await expect(prepared.call(fence)).rejects.toThrow(/expired lease/);
+    expect(fence).toHaveBeenCalledOnce(); expect(fetch).toHaveBeenCalledTimes(1);
   });
   it("bounds the configured model by the full context and output cap, disables fallback, and keeps its actual bill", async () => {
     const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
@@ -59,7 +68,7 @@ describe("demand bounded provider transport (mock network only)", () => {
     vi.stubGlobal("fetch", fetch);
     const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
     expect(prepared.upperBoundMicros).toBe(1200);
-    expect(await prepared.call()).toMatchObject({ value: { answer: "yes" }, charge: { actualMicros: 200, requestId: "test-model-request", model: "test/model" } });
+    expect(await prepared.call(async () => {})).toMatchObject({ value: { answer: "yes" }, charge: { actualMicros: 200, requestId: "test-model-request", model: "test/model" } });
     const sent = JSON.parse(fetch.mock.calls[1][1].body);
     expect(sent).toMatchObject({ model: "test/model", max_tokens: 100, provider: { allow_fallbacks: false, require_parameters: true, max_price: { prompt: 1, completion: 2, request: 0 } } });
     expect(sent).not.toHaveProperty("models"); expect(sent).not.toHaveProperty("tools");
@@ -70,7 +79,7 @@ describe("demand bounded provider transport (mock network only)", () => {
     }));
     vi.stubGlobal("fetch", fetch);
     const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
-    expect(await prepared.call()).toMatchObject({ error: expect.any(String), charge: { actualMicros: 200 } });
+    expect(await prepared.call(async () => {})).toMatchObject({ error: expect.any(String), charge: { actualMicros: 200 } });
     expect(fetch).toHaveBeenCalledTimes(2);
   });
   it("refuses an unknown model ceiling or unpriced extras before generation", async () => {

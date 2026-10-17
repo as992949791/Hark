@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { demandAttempts, demandDocuments, demandRuns, demandSignals } from "@/db/schema";
@@ -21,6 +21,12 @@ const profileSchema = z.object({ name: fact, pain: fact, solution: fact, targetU
 
 class StepFailed extends DemandError {}
 
+function containsNul(value: unknown): boolean {
+  if (typeof value === "string") return value.includes("\u0000");
+  if (Array.isArray(value)) return value.some(containsNul);
+  return !!value && typeof value === "object" && Object.values(value).some(containsNul);
+}
+
 async function snapshot(lease: DemandLease) {
   return withDemandRun(lease.userId, lease.runId, async (_tx, run) => { assertLease(run, lease); return run; });
 }
@@ -42,9 +48,13 @@ async function step<T>(lease: DemandLease, name: string, kind: "data" | "model",
   if (run.spentMicros + run.reservedMicros >= run.budgetMicros) throw new DemandError("The research budget is exhausted.");
   const prepared = await prepare(`${run.id}:${key}`);
   const result = await executeRecordedDemandAttempt(lease, { key, kind, source, operation, upperBoundMicros: prepared.upperBoundMicros }, async () => {
-    const response = await prepared.call();
+    const response = await prepared.call(async () => { await snapshot(lease); });
     if (response.error) return { charge: response.charge, result: { ok: false, error: response.error } };
-    try { return { charge: response.charge, result: { ok: true, value: validate(response.value) } }; }
+    try {
+      const value = validate(response.value);
+      if (containsNul(value)) throw new DemandError("Output contains an unsupported NUL character.");
+      return { charge: response.charge, result: { ok: true, value } };
+    }
     catch { return { charge: response.charge, result: { ok: false, error: `Invalid or unsupported evidence (${name}).` } }; }
   });
   if (!result.ok) throw new StepFailed(result.error);
@@ -175,17 +185,28 @@ export async function executeDemandPipeline(lease: DemandLease, supplied?: Deman
     // Prefer native full text when Google discovers the same original post.
     candidates.sort((a, b) => Number(Boolean(b.body)) - Number(Boolean(a.body)));
     await progress("读取原文并保存检索证据");
-    let webReads = 0, nativeReads = 0;
+    const priorReads = await withDemandRun(lease.userId, lease.runId, async (tx, current) => {
+      assertLease(current, lease); return tx.select().from(demandAttempts).where(eq(demandAttempts.runId, current.id));
+    });
+    const readNames = (source: "web" | "native") => new Set(priorReads.filter((item) => item.key.startsWith("read-") &&
+      (source === "web" ? item.source === "web" : item.source !== "web")).map((item) => item.key.replace(/:\d+$/, "")));
+    const webReads = readNames("web"), nativeReads = readNames("native");
     for (const candidate of deduplicateDocuments(candidates)) {
       const saved = await attempt("source-admission", () => storeDocument(lease, candidate, "demand"));
       if (!saved || saved.body) continue;
-      if (candidate.source === "web" ? webReads >= DEMAND_LIMITS.webReads : nativeReads >= DEMAND_LIMITS.nativeReads) continue;
-      if (candidate.source === "web") webReads++; else nativeReads++;
+      const name = `read-${createHash("sha256").update(candidate.canonicalUrl).digest("hex").slice(0, 24)}`;
+      const reads = candidate.source === "web" ? webReads : nativeReads;
+      const limit = candidate.source === "web" ? DEMAND_LIMITS.webReads : DEMAND_LIMITS.nativeReads;
+      if (!reads.has(name) && reads.size >= limit) continue;
       const sku = candidate.source === "reddit" ? "reddit.post" : candidate.source === "x" ? "twitter.tweet" : "web.scrape";
       if (candidate.source === "x" && !xEnabled) continue;
       await attempt(`read-${candidate.source}`, async () => {
-        const pages = await collect(lease, transport, `read-${contentHash(candidate.canonicalUrl).slice(0, 24)}`, sku,
-          { url: candidate.canonicalUrl, ...(sku === "web.scrape" ? { formats: ["markdown"], onlyMainContent: true } : {}) }, candidate.source);
+        if (candidate.source === "reddit" && !/^\/r\/[^/]+\/comments\/[a-z0-9]+\/[^/]+/i.test(new URL(candidate.url).pathname)) {
+          throw new StepFailed("Reddit detail requires the original full subreddit permalink.");
+        }
+        reads.add(name);
+        const pages = await collect(lease, transport, name, sku,
+          { url: candidate.source === "reddit" ? candidate.url : candidate.canonicalUrl, ...(sku === "web.scrape" ? { formats: ["markdown"], onlyMainContent: true } : {}) }, candidate.source);
         const page = pages[0];
         if (page?.body) await storeDocument(lease, { ...page, query: candidate.query, snippet: candidate.snippet }, "demand");
       });

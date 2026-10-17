@@ -8,7 +8,7 @@ import { DemandError, micros } from "./contracts";
 import type { DemandCharge } from "./budget";
 import type { DataSku } from "./sources";
 
-export type PreparedDemandCall = { upperBoundMicros: number; call: () => Promise<{ value: unknown; charge: DemandCharge; error?: string }> };
+export type PreparedDemandCall = { upperBoundMicros: number; call: (authorize: () => Promise<void>) => Promise<{ value: unknown; charge: DemandCharge; error?: string }> };
 export type ModelRequest = { stage: string; system: string; prompt: string; schema: z.ZodType; maxOutputTokens: number };
 export interface DemandTransport {
   prepareData(sku: DataSku, input: Record<string, unknown>, key: string): Promise<PreparedDemandCall>;
@@ -36,10 +36,12 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
       const published = chargedMicros(contract.pricing.failoverMaxUsd);
       const upperBoundMicros = sku === "twitter.search" ? Math.min(published, 1000) : sku === "twitter.tweet" ? Math.min(published, 500) : published;
       if (!upperBoundMicros) throw new DemandError("A positive endpoint ceiling is required.");
-      return { upperBoundMicros, async call() {
+      return { upperBoundMicros, async call(authorize) {
         let receipt: { costUsd?: unknown; requestId: string | null } | undefined;
         const client = new AnyAPI({ apiKey, baseUrl: settings.ANYAPI_BASE_URL, maxRetries: 0, maxInProgressWaitMs: 0, timeoutMs: 60_000,
           fetch: async (original, init) => {
+            // Shared pacing may have outlived the lease since reservation.
+            await authorize();
             const url = new URL(original instanceof Request ? original.url : String(original));
             url.searchParams.set("max_cost_usd", String(upperBoundMicros / 1e6));
             const response = await fetch(url, { ...init, redirect: "error" });
@@ -76,7 +78,8 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
       }
       // Reserve the entire context allowance: no unverified character-to-token estimate.
       const upperBoundMicros = Math.max(1, chargedMicros(row.context_length * promptPrice + request.maxOutputTokens * completionPrice));
-      return { upperBoundMicros, async call() {
+      return { upperBoundMicros, async call(authorize) {
+        await authorize();
         const result = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", redirect: "error", signal: AbortSignal.timeout(120_000),
           headers: { authorization: `Bearer ${settings.OPENROUTER_API_KEY}`, "content-type": "application/json" },
           body: JSON.stringify({ model, messages: [{ role: "system", content: request.system }, { role: "user", content: request.prompt }],

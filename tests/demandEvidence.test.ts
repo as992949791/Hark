@@ -41,6 +41,17 @@ describe("demand source evidence", () => {
     expect(x[0]).toMatchObject({ source: "x", author: null, publishedAt: null });
     expect(normalizeSource("twitter.search", { items: [{ id: "123", text: "Need captions", url: "https://x.com/a/status/456" }] }, {})).toEqual([]);
   });
+  it("reads the Reddit detail body's documented field", () => {
+    const result = normalizeSource("reddit.post", { id: "abc123", title: "Help", body: "Which editor has accurate captions?", author: "alice", createdUtc: 1750000000,
+      permalink: "/r/video/comments/abc123/help/" }, { url: "https://www.reddit.com/r/video/comments/abc123/help/" });
+    expect(result[0]).toMatchObject({ outcome: "retrieved", body: "Help\n\nWhich editor has accurate captions?", author: "alice" });
+  });
+  it("reads X detail without fabricating a missing URL/handle and verifies the request's native ID", () => {
+    const detail = { id: "123", text: "Which editor has accurate captions?", authorId: "987", createdUtc: 1750000000 };
+    const result = normalizeSource("twitter.tweet", detail, { url: "https://x.com/i/web/status/123" });
+    expect(result[0]).toMatchObject({ outcome: "retrieved", author: "x-id:987", canonicalUrl: "https://x.com/i/web/status/123" });
+    expect(normalizeSource("twitter.tweet", detail, { url: "https://x.com/i/web/status/456" })).toEqual([]);
+  });
   it("deduplicates canonical identities and syndicated normalized content", () => {
     const first = document();
     expect(deduplicateDocuments([first, { ...first }, document({ url: "https://other.example.com/b", canonicalUrl: "https://other.example.com/b", body: first.body!.toUpperCase() })])).toHaveLength(1);
@@ -68,9 +79,10 @@ describe("demand source evidence", () => {
     const second = { ...first, id: randomUUID(), quote: "Which editor produces accurate subtitles?", author: "bob" };
     const group = { themes: [{ title: "字幕准确性需求", signalIds: [first.id, second.id] }] };
     expect(validateThemes(group, [first, second])[0].kind).toBe("recurring");
-    for (const changed of [{ author: "alice" }, { author: null }, { author: "@alice" }, { quote: first.quote }]) {
+    for (const changed of [{ author: "alice" }, { author: null }, { author: "@alice" }, { author: "x-id:987" }, { quote: first.quote }]) {
       expect(validateThemes(group, [first, { ...second, ...changed }])[0].kind).toBe("individual");
     }
     expect(() => validateThemes(group, [first])).toThrow(/citation/);
+    expect(validateThemes(group, [{ ...first, author: "x-id:987" }, { ...second, author: "x-id:988" }])[0].kind).toBe("recurring");
   });
 });
