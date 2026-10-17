@@ -1,0 +1,26 @@
+# BYOK research billing correction
+
+Continuation of [issue 20](https://github.com/as992949791/Hark/issues/20), based on `v0.1.32-model-pricing`. This is a scoped correction to the raw research transport. It does not complete cross-platform live acceptance, change the legacy SDK accounting path, or establish structured-output compatibility and result relevance.
+
+## Observed connection and cost
+
+After the user configured OpenRouter BYOK and adjusted its account privacy settings, one bounded plain-text probe on 2026-10-17 returned HTTP 200, provider DeepSeek, `is_byok: true`, and `OK` from the configured `deepseek/deepseek-v4.1-flash`. It used nine input tokens and one output token. OpenRouter reported `usage.cost: 0` and `cost_details.upstream_inference_cost: 0.00000195` USD. The later official current-key and generation GETs confirmed BYOK usage/upstream cost of $0.00000195, platform cost $0, and OpenRouter credits $0. This account's observed zero-credit success does not establish eligibility for every OpenRouter plan/account. No credential or private response artifact is committed.
+
+The earlier probe was refused by the account's paid-model training policy, with no charge. The user changed that policy; application code does not override it. Neither probe purchased source data, created a research run or sent a notification. Historical cumulative provider spending was $0.286331398; adding this new confirmed receipt gives $0.286333348 against the original cumulative $1 authorization. The old key's historical usage was not freshly audited. AnyAPI's read-only balance remains $0.013960.
+
+Primary contracts: [usage accounting](https://openrouter.ai/docs/cookbook/administration/usage-accounting) distinguishes platform and upstream charges; [BYOK](https://openrouter.ai/docs/guides/overview/auth/byok) bills inference to the provider account and can add a 5% platform fee above its plan allowance.
+
+## Correction
+
+The research transport previously settled `usage.cost` alone, recording a BYOK response as zero even when the upstream account was charged. It now adds the upstream charge only for explicitly BYOK responses, validates both amounts, and rounds their sum once to the existing microdollar unit. Explicit shared-capacity responses continue to use only the platform bill. Missing, malformed or ambiguous funding receipts fail into existing uncertain-charge handling, which preserves the reservation and blocks automatic repurchase. Known bills survive unusable output or billed HTTP failures without hidden retries.
+
+The full-context/output reservation includes a possible 5% BYOK platform fee before routing is known. Published inference price ceilings and request authorization remain unchanged. No new provider, model, currency conversion, account-policy override, UI, schema, scheduler or wallet behavior is added.
+
+## Verification and limits
+
+- Two mocked-network regressions failed before the correction, returning zero/platform-only amounts instead of the combined bill. All 32 transport tests pass afterward, including 13 new cases for platform fees, tiny charges, ordinary inference, missing bills, combined rounding and charged failures. The raw response and isolated failure already identify the incorrect field read; broader hypothesis instrumentation was unnecessary.
+- Supported full verification at `60a24ae` passed TypeScript, ESLint, 1094 tests in 110 files, fresh dedicated test migrations and production build. The disposable database was removed. Two separate private replays passed using the actual public tariff and actual BYOK receipt, with mocked network and zero further paid requests. The full-context/8192-output reservation is now 340624 microdollars, including the possible fee. An initial private replay configuration inherited the base test include list; that unintended extra run was stopped and the private configuration corrected to override the list explicitly. It is not counted as the completed full verification.
+- Independent Standards and Spec source reviews at `60a24ae` have zero material findings; [review](../reviews/byok-readiness.md). Source/UI design is otherwise unchanged, so no new visual finish review is claimed.
+- Supported zero-paid preview passed health/home 200 and signed-out research 307. Original selected product/source/settings/channel/mute/theme and project-usage scopes compare equal. All four demand tables remain empty. The first private snapshot command omitted its environment loader and stopped before a database connection; rerunning with Node's explicit environment-file flags passed.
+
+The running local preview explicitly overrides demand/live/background/scheduled controls and invitations to off, with all four paid caps zero; these are process overrides rather than changes to environment-file defaults. No full research run, live source request, external notification, refill or public deployment was performed. Both input modes, actual source price-cap enforcement, structured research/model output, incremental web signals and the user's 20-result judgement remain pending. The 16/20 target is unachieved; issues 17/20 stay open. Archive identity and exact-commit CI are recorded on issue 20 after upload.
