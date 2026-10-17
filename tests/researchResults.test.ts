@@ -3,7 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { ResearchResults } from "@/components/research/ResearchResults";
 import { syntheticDemandReport } from "./fixtures/demand-report";
-import { researchMoney } from "@/lib/demand/report";
+import { researchMoney, researchSourceFailure } from "@/lib/demand/report";
+import { observedAuthorCount } from "@/lib/demand/evidence";
 
 vi.mock("@/components/research/RunControl", () => ({ RunControl: () => createElement("button", { type: "button" }, "重试未完成部分") }));
 const render = (report = syntheticDemandReport(), tab: "signals" | "themes" = "signals") => renderToStaticMarkup(createElement(ResearchResults, { report, tab, enabled: false }));
@@ -20,6 +21,22 @@ describe("research evidence presentation", () => {
   it("links theme evidence back to the persisted signal and labels individual cases conservatively", () => {
     const report = syntheticDemandReport(), html = render(report, "themes");
     expect(html).toContain("个别案例"); expect(html).toContain(`#signal-${report.signals[0].id}`); expect(html).not.toContain("市场规模为");
+    expect(html).toContain("观察到的不同作者：1 位（未知作者未计入）");
+  });
+  it("shows safe source failures even when admission failed before a bill or document existed", () => {
+    const report = syntheticDemandReport(); report.run.error = "reddit-search: Request was not admitted. secret-provider-detail\nread-web: budget limit";
+    const html = render(report);
+    expect(html).toContain("Reddit 部分步骤未完成"); expect(html).toContain("公开网页 部分步骤未完成");
+    expect(html).not.toContain("X 部分步骤未完成"); expect(html).not.toContain("secret-provider-detail");
+    expect(researchSourceFailure("group: failed", "reddit")).toBeNull();
+  });
+  it("counts known observed identities conservatively across duplicated quotes, handles and opaque IDs", () => {
+    expect(observedAuthorCount([
+      { quote: "Same statement", author: "u/Alice" }, { quote: "Same statement", author: "@Bob" },
+      { quote: "Another statement", author: "@alice" }, { quote: "Third statement", author: "x-id:123" },
+      { quote: "Unknown identity", author: null },
+    ])).toBe(1);
+    expect(observedAuthorCount([{ quote: "a", author: "Alice" }, { quote: "b", author: "Bob" }])).toBe(2);
   });
   it("does not show product qualification in topic mode and escapes untrusted explanations", () => {
     const report = syntheticDemandReport(); report.signals[0].productFit = "yes"; report.signals[0].explanation = "<script>syntheticAttack()</script>";

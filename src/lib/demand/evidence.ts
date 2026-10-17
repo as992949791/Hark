@@ -99,6 +99,18 @@ function authorKey(author: string | null) {
   return author?.trim().toLowerCase().replace(/^(?:reddit:|x:|u\/|@)/, "") || null;
 }
 
+export function observedAuthorCount(signals: Pick<ValidatedSignal, "quote" | "author">[]) {
+  const uniqueQuotes = new Set<string>();
+  const authors = new Set(signals.filter((signal) => {
+    const hash = contentHash(signal.quote);
+    if (uniqueQuotes.has(hash)) return false;
+    uniqueQuotes.add(hash); return true;
+  }).map((signal) => authorKey(signal.author)).filter(Boolean));
+  // Opaque X IDs cannot be matched to handles. Do not add both populations.
+  const ids = [...authors].filter((identity) => identity!.startsWith("x-id:")).length;
+  return Math.max(ids, authors.size - ids);
+}
+
 export function validateThemes(raw: unknown, signals: ValidatedSignal[]): DemandTheme[] {
   const { themes } = groupedSignals.parse(raw);
   const used = new Set<string>();
@@ -109,16 +121,7 @@ export function validateThemes(raw: unknown, signals: ValidatedSignal[]): Demand
       if (!signal || used.has(id)) throw new DemandError("Unsupported theme citation.");
       used.add(id); return signal;
     });
-    const uniqueQuotes = new Set<string>();
-    const authors = new Set(members.filter((signal) => {
-      const hash = contentHash(signal.quote);
-      if (uniqueQuotes.has(hash)) return false;
-      uniqueQuotes.add(hash); return true;
-    }).map((signal) => authorKey(signal.author)).filter(Boolean));
     // Explanations come directly from cited signal judgements. No free-form workarounds/market claims.
-    // Opaque X IDs cannot be matched to handles from the search contract. Do not add both populations.
-    const ids = [...authors].filter((identity) => identity!.startsWith("x-id:")).length;
-    const handles = authors.size - ids;
-    return { ...theme, explanation: members.map((signal) => signal.explanation).join("\n"), kind: Math.max(ids, handles) >= 2 ? "recurring" : "individual" };
+    return { ...theme, explanation: members.map((signal) => signal.explanation).join("\n"), kind: observedAuthorCount(members) >= 2 ? "recurring" : "individual" };
   });
 }

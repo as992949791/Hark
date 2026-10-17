@@ -40,3 +40,9 @@ export function researchFailure(message: string | null) {
   if (/profile|preparation|product fact/i.test(message)) return "产品资料未能支持分析，尚未开始需求检索。可检查网址后重试，或使用主题模式。";
   return "部分步骤未能完成，已有证据和费用记录已保留。重试会复用成功步骤。";
 }
+
+export function researchSourceFailure(message: string | null, source: "web" | "reddit" | "x") {
+  const stages = { web: /^(?:web-search-\d+|read-web): /, reddit: /^(?:reddit-search|read-reddit): /, x: /^(?:x-search|read-x): / };
+  const failures = message?.split("\n").filter((line) => stages[source].test(line));
+  return failures?.length ? researchFailure(failures.join("\n")) : null;
+}
