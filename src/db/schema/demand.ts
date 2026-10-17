@@ -36,7 +36,7 @@ export const demandRuns = pgTable("demand_runs", {
   check("demand_run_status", sql`${t.status} in ('queued', 'running', 'partial', 'complete', 'blocked', 'failed', 'expired')`),
 ]);
 
-/** An insert-only snapshot. Expiry deletes it; source refresh creates another run. */
+/** Retrieved text is immutable; a discovery hint may acquire full text before analysis. Expiry deletes it. */
 export const demandDocuments = pgTable("demand_documents", {
   id: id(),
   runId: text("run_id").notNull().references(() => demandRuns.id, { onDelete: "cascade" }),
