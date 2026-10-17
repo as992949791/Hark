@@ -21,10 +21,10 @@ const profileSchema = z.object({ name: fact, pain: fact, solution: fact, targetU
 
 class StepFailed extends DemandError {}
 
-function containsNul(value: unknown): boolean {
-  if (typeof value === "string") return value.includes("\u0000");
-  if (Array.isArray(value)) return value.some(containsNul);
-  return !!value && typeof value === "object" && Object.values(value).some(containsNul);
+function invalidStorageText(value: unknown): boolean {
+  if (typeof value === "string") return value.includes("\u0000") || !value.isWellFormed();
+  if (Array.isArray(value)) return value.some(invalidStorageText);
+  return !!value && typeof value === "object" && Object.values(value).some(invalidStorageText);
 }
 
 async function snapshot(lease: DemandLease) {
@@ -52,7 +52,7 @@ async function step<T>(lease: DemandLease, name: string, kind: "data" | "model",
     if (response.error) return { charge: response.charge, result: { ok: false, error: response.error } };
     try {
       const value = validate(response.value);
-      if (containsNul(value)) throw new DemandError("Output contains an unsupported NUL character.");
+      if (invalidStorageText(value)) throw new DemandError("Output contains unsupported Unicode text.");
       return { charge: response.charge, result: { ok: true, value } };
     }
     catch { return { charge: response.charge, result: { ok: false, error: `Invalid or unsupported evidence (${name}).` } }; }

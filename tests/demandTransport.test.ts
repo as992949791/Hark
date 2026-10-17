@@ -88,4 +88,13 @@ describe("demand bounded provider transport (mock network only)", () => {
     await expect((await demandTransport("owner")).prepareModel(modelRequest, "test-key")).rejects.toThrow(/pricing/);
     expect(fetch).toHaveBeenCalledTimes(1);
   });
+  it("retains a known bill when optional token/receipt metadata is malformed", async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
+      id: "bad\u0000receipt", usage: { cost: 0.0002, prompt_tokens: "bad", completion_tokens: 3_000_000_000 },
+      choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }],
+    }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(await prepared.call(async () => {})).toMatchObject({ charge: { actualMicros: 200, requestId: null, inputTokens: 0, outputTokens: 0 } });
+  });
 });

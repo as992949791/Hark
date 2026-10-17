@@ -227,14 +227,14 @@ describeDb("bounded cross-platform demand pipeline", () => {
     expect(first.data).toContain("reddit.post:https://www.reddit.com/r/video/comments/def123/help/");
     expect((await getDemandEvidence(user.id, run.id)).documents.filter((doc) => doc.source === "web" && doc.body)).toHaveLength(2);
   });
-  it("settles the known model bill even when NUL output cannot be stored by PostgreSQL", async () => {
+  it.each(["\u0000", "\uD800"])("settles the known model bill even when unsupported Unicode output cannot be stored by PostgreSQL (%j)", async (invalid) => {
     const { user, run, lease } = await start(); const first = fixtureTransport(); const model = first.transport.prepareModel;
     first.transport.prepareModel = async (request, key) => {
       const prepared = await model(request, key);
       if (!request.stage.startsWith("extract-")) return prepared;
       return { ...prepared, call: async () => {
         const result = await prepared.call(async () => {});
-        (result.value as { signals: { explanation: string }[] }).signals[0].explanation += "\u0000";
+        (result.value as { signals: { explanation: string }[] }).signals[0].explanation += invalid;
         return result;
       } };
     };

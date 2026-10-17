@@ -14,14 +14,23 @@ function date(seconds?: number) {
   return Number.isNaN(value.getTime()) ? null : value.toISOString();
 }
 
+function truncate(value: string | null, limit: number) {
+  if (value === null) return null;
+  const clipped = value.slice(0, limit);
+  return /[\uD800-\uDBFF]$/.test(clipped) ? clipped.slice(0, -1) : clipped;
+}
+
 /** The only source of author/date is native structured metadata, never the model or generic scrape. */
 export function normalizeSource(sku: DataSku, raw: unknown, input: Record<string, unknown>, now = new Date().toISOString()): SourceDocument[] {
-  const base = (url: string, snippet: string | null, body: string | null): SourceDocument => ({
-    url, canonicalUrl: canonicalUrl(url), source: sourceOf(url), query: typeof input.query === "string" ? input.query : null,
-    snippet: snippet?.slice(0, 3000) ?? null, body: body?.slice(0, 12_000) || null,
-    outcome: body ? "retrieved" : snippet ? "snippet_only" : "failed",
-    author: null, publishedAt: null, retrievedAt: now,
-  });
+  const base = (url: string, snippet: string | null, body: string | null): SourceDocument => {
+    const savedBody = truncate(body, 12_000) || null, savedSnippet = truncate(snippet, 3000);
+    return {
+      url, canonicalUrl: canonicalUrl(url), source: sourceOf(url), query: typeof input.query === "string" ? input.query : null,
+      snippet: savedSnippet, body: savedBody,
+      outcome: savedBody ? "retrieved" : savedSnippet ? "snippet_only" : "failed",
+      author: null, publishedAt: null, retrievedAt: now,
+    };
+  };
   if (raw === null) return [];
   if (sku === "google.search") {
     return z.object({ results: z.array(z.object({ link: text, snippet: text, title: text })) }).parse(raw).results.slice(0, 10)
@@ -37,6 +46,7 @@ export function normalizeSource(sku: DataSku, raw: unknown, input: Record<string
       try {
         const path = post.permalink.startsWith("/") ? `https://www.reddit.com${post.permalink}` : post.permalink;
         if (!/^[a-z0-9]+$/i.test(post.id) || canonicalUrl(path) !== `https://www.reddit.com/comments/${post.id.toLowerCase()}/`) return [];
+        if (sku === "reddit.post" && (typeof input.url !== "string" || canonicalUrl(input.url) !== canonicalUrl(path))) return [];
         const body = sku === "reddit.post" ? post.body : post.selftext;
         const doc = base(path, post.title, body ? `${post.title}\n\n${body}` : null);
         return [{ ...doc, author: author(post.author), publishedAt: date(post.createdUtc) }];
@@ -48,6 +58,7 @@ export function normalizeSource(sku: DataSku, raw: unknown, input: Record<string
     try {
       const url = post.url ?? (typeof input.url === "string" ? input.url : "");
       if (!/^\d+$/.test(post.id) || canonicalUrl(url) !== `https://x.com/i/web/status/${post.id}`) return [];
+      if (sku === "twitter.tweet" && (typeof input.url !== "string" || canonicalUrl(input.url) !== canonicalUrl(url))) return [];
       // Keep the supported opaque ID; never invent a handle from an arbitrary status URL.
       const identity = post.authorId && /^\d+$/.test(post.authorId) ? `x-id:${post.authorId}` : null;
       return [{ ...base(url, null, post.text), author: sku === "twitter.search" ? author(post.authorUsername) : identity, publishedAt: date(post.createdUtc) }];

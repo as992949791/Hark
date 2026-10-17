@@ -89,8 +89,9 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
         });
         const body = await result.json();
         const actualMicros = chargedMicros(body.usage?.cost);
-        const charge = { actualMicros, requestId: typeof body.id === "string" ? body.id : null, model,
-          inputTokens: body.usage?.prompt_tokens ?? 0, outputTokens: body.usage?.completion_tokens ?? 0 };
+        const tokenCount = (value: unknown) => typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 2_147_483_647 ? value : 0;
+        const charge = { actualMicros, requestId: typeof body.id === "string" && body.id.isWellFormed() && !body.id.includes("\u0000") ? body.id : null, model,
+          inputTokens: tokenCount(body.usage?.prompt_tokens), outputTokens: tokenCount(body.usage?.completion_tokens) };
         if (!result.ok || body.error || body.choices?.[0]?.finish_reason !== "stop") return { value: null, charge, error: "Model request did not finish successfully." };
         try { return { value: JSON.parse(body.choices[0].message.content), charge }; }
         catch { return { value: null, charge, error: "Model returned invalid JSON." }; }

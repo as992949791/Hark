@@ -51,6 +51,14 @@ describe("demand source evidence", () => {
     const result = normalizeSource("twitter.tweet", detail, { url: "https://x.com/i/web/status/123" });
     expect(result[0]).toMatchObject({ outcome: "retrieved", author: "x-id:987", canonicalUrl: "https://x.com/i/web/status/123" });
     expect(normalizeSource("twitter.tweet", detail, { url: "https://x.com/i/web/status/456" })).toEqual([]);
+    expect(normalizeSource("twitter.tweet", { ...detail, url: "https://x.com/i/web/status/123" }, { url: "https://x.com/i/web/status/456" })).toEqual([]);
+    expect(normalizeSource("reddit.post", { id: "abc123", title: "Help", body: "Need accurate captions", permalink: "/r/video/comments/abc123/help/" },
+      { url: "https://www.reddit.com/r/video/comments/def123/help/" })).toEqual([]);
+  });
+  it("truncates source text without splitting a Unicode code point", () => {
+    const result = normalizeSource("web.scrape", { url: "https://forum.example.com/help", markdown: `${"a".repeat(11_999)}😀` }, {});
+    expect(result[0].body?.isWellFormed()).toBe(true);
+    expect(result[0].body).toHaveLength(11_999);
   });
   it("deduplicates canonical identities and syndicated normalized content", () => {
     const first = document();
