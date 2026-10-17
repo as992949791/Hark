@@ -20,6 +20,26 @@ function chargedMicros(usd: unknown) {
   return micros.parse(Math.ceil(usd * 1e6 - 1e-8));
 }
 
+function modelPriceCeiling(pricing: Record<string, unknown>) {
+  const { overrides, ...base } = pricing;
+  const price = z.string().trim().min(1).transform(Number).pipe(z.number().nonnegative().finite());
+  const tariff = z.object({ prompt: price, completion: price }).catchall(price);
+  const conditional = overrides === undefined ? [] : z.array(z.record(z.string(), z.unknown())).parse(overrides);
+  const conditions = new Set(["min_prompt_tokens", "utc_start", "utc_end", "utc_days"]);
+  // Reserve across every published tier, without guessing which schedule will apply at dispatch.
+  const tiers = [base, ...conditional.map((entry) => ({ ...base, ...Object.fromEntries(Object.entries(entry).filter(([key]) => !conditions.has(key))) }))];
+  const prices = tiers.map((tier) => {
+    const parsed = tariff.safeParse(tier);
+    if (!parsed.success || Object.entries(parsed.data).some(([name, value]) =>
+      !["prompt", "completion", "input_cache_read", "input_cache_write"].includes(name) && value !== 0) ||
+      ["input_cache_read", "input_cache_write"].some((name) => parsed.data[name] !== undefined && parsed.data[name] > parsed.data.prompt)) {
+      throw new DemandError("The configured model has unsupported extra pricing.");
+    }
+    return parsed.data;
+  });
+  return { prompt: Math.max(...prices.map((tier) => tier.prompt)), completion: Math.max(...prices.map((tier) => tier.completion)) };
+}
+
 /** Used only after live admission. No wallet fallback or provider credentials enter saved results. */
 export async function demandTransport(userId: string): Promise<DemandTransport> {
   const settings = config();
@@ -67,15 +87,10 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
       const response = await fetch("https://openrouter.ai/api/v1/models", { signal: AbortSignal.timeout(15_000), redirect: "error" });
       if (!response.ok) throw new DemandError("Cannot establish the model price ceiling.");
       const listing = await response.json();
-      const row = z.object({ data: z.array(z.object({ id: z.string(), context_length: z.number().int().positive(),
-        pricing: z.record(z.string(), z.string()) })) }).parse(listing).data.find((item) => item.id === model);
-      if (!row) throw new DemandError("The configured model has no known ceiling.");
-      const promptPrice = Number(row.pricing.prompt), completionPrice = Number(row.pricing.completion);
-      if (![promptPrice, completionPrice].every((price) => Number.isFinite(price) && price >= 0) ||
-        Object.entries(row.pricing).some(([name, price]) => !["prompt", "completion", "input_cache_read", "input_cache_write"].includes(name) && Number(price) !== 0) ||
-        ["input_cache_read", "input_cache_write"].some((name) => row.pricing[name] !== undefined && !(Number(row.pricing[name]) <= promptPrice))) {
-        throw new DemandError("The configured model has unsupported extra pricing.");
-      }
+      const selected = z.object({ data: z.array(z.object({ id: z.string() }).passthrough()) }).parse(listing).data.find((item) => item.id === model);
+      if (!selected) throw new DemandError("The configured model has no known ceiling.");
+      const row = z.object({ context_length: z.number().int().positive(), pricing: z.record(z.string(), z.unknown()) }).parse(selected);
+      const { prompt: promptPrice, completion: completionPrice } = modelPriceCeiling(row.pricing);
       // Reserve the entire context allowance: no unverified character-to-token estimate.
       const upperBoundMicros = Math.max(1, chargedMicros(row.context_length * promptPrice + request.maxOutputTokens * completionPrice));
       return { upperBoundMicros, async call(authorize) {

@@ -73,6 +73,39 @@ describe("demand bounded provider transport (mock network only)", () => {
     expect(sent).toMatchObject({ model: "test/model", max_tokens: 100, provider: { allow_fallbacks: false, require_parameters: true, max_price: { prompt: 1, completion: 2, request: 0 } } });
     expect(sent).not.toHaveProperty("models"); expect(sent).not.toHaveProperty("tools");
   });
+  it("reserves the maximum conditional token prices and sends the same provider ceiling", async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [{ ...modelRow, pricing: { ...modelRow.pricing,
+      overrides: [{ utc_days: ["saturday", "sunday"], prompt: "0.0000005" },
+        { utc_start: 100, utc_end: 400, prompt: "0.000003", completion: "0.000004" }],
+    } }] })).mockResolvedValueOnce(response({ usage: { cost: 0.0002 }, choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }] }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(prepared.upperBoundMicros).toBe(3400);
+    await prepared.call(async () => {});
+    expect(JSON.parse(fetch.mock.calls[1][1].body).provider.max_price).toEqual({ prompt: 3, completion: 4, request: 0 });
+  });
+  it("ignores an unrelated model's conditional pricing when selecting the configured model", async () => {
+    const fetch = vi.fn().mockResolvedValue(response({ data: [{ ...modelRow, id: "other/model", pricing: { overrides: [{ prompt: "0.1" }] } }, modelRow] }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(prepared.upperBoundMicros).toBe(1200); expect(fetch).toHaveBeenCalledOnce();
+  });
+  it("inherits omitted token prices from the base tier for long-context overrides", async () => {
+    const fetch = vi.fn().mockResolvedValue(response({ data: [{ ...modelRow, pricing: { ...modelRow.pricing,
+      overrides: [{ min_prompt_tokens: 200_000, prompt: "0.000003" }],
+    } }] }));
+    vi.stubGlobal("fetch", fetch);
+    expect((await (await demandTransport("owner")).prepareModel(modelRequest, "model-key")).upperBoundMicros).toBe(3200);
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+  it.each([null, {}, [{ prompt: "NaN" }], [{ request: "0.01" }], [{ input_cache_write: "0.000002" }], [{ new_charge: "0.01" }]])(
+    "refuses malformed or unsupported conditional pricing %j before generation", async (overrides) => {
+      const fetch = vi.fn().mockResolvedValue(response({ data: [{ ...modelRow, pricing: { ...modelRow.pricing, overrides } }] }));
+      vi.stubGlobal("fetch", fetch);
+      await expect((await demandTransport("owner")).prepareModel(modelRequest, "model-key")).rejects.toThrow();
+      expect(fetch).toHaveBeenCalledOnce();
+    },
+  );
   it.each(["json", "truncated"])("settles a model response with unusable %s output without a hidden generation retry", async (failure) => {
     const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
       id: "test-model-request", usage: { cost: 0.0002 }, choices: [{ finish_reason: failure === "truncated" ? "length" : "stop", message: { content: "invalid JSON" } }],
