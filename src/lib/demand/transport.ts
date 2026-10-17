@@ -83,7 +83,11 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
       } };
     },
     async prepareModel(request) {
-      if (Buffer.byteLength(request.prompt + request.system) > 120_000) throw new DemandError("Research model input is too large.");
+      const jsonSchema = z.toJSONSchema(request.schema);
+      // The official Flash endpoint supports JSON mode rather than native strict schemas.
+      const deepseekJsonMode = model === "deepseek/deepseek-v4.1-flash";
+      const system = deepseekJsonMode ? `${request.system}\nReturn a JSON object matching this JSON schema:\n${JSON.stringify(jsonSchema)}` : request.system;
+      if (Buffer.byteLength(request.prompt + system) > 120_000) throw new DemandError("Research model input is too large.");
       const response = await fetch("https://openrouter.ai/api/v1/models", { signal: AbortSignal.timeout(15_000), redirect: "error" });
       if (!response.ok) throw new DemandError("Cannot establish the model price ceiling.");
       const listing = await response.json();
@@ -98,10 +102,12 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
         await authorize();
         const result = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", redirect: "error", signal: AbortSignal.timeout(120_000),
           headers: { authorization: `Bearer ${settings.OPENROUTER_API_KEY}`, "content-type": "application/json" },
-          body: JSON.stringify({ model, messages: [{ role: "system", content: request.system }, { role: "user", content: request.prompt }],
+          body: JSON.stringify({ model, messages: [{ role: "system", content: system }, { role: "user", content: request.prompt }],
             stream: false, max_tokens: request.maxOutputTokens, usage: { include: true },
-            provider: { allow_fallbacks: false, require_parameters: true, max_price: { prompt: promptPrice * 1e6, completion: completionPrice * 1e6, request: 0 } },
-            response_format: { type: "json_schema", json_schema: { name: "research", strict: true, schema: z.toJSONSchema(request.schema) } } }),
+            ...(deepseekJsonMode ? { reasoning: { enabled: false } } : {}),
+            provider: { ...(deepseekJsonMode ? { only: ["deepseek"] } : {}), allow_fallbacks: false, require_parameters: true,
+              max_price: { prompt: promptPrice * 1e6, completion: completionPrice * 1e6, request: 0 } },
+            response_format: deepseekJsonMode ? { type: "json_object" } : { type: "json_schema", json_schema: { name: "research", strict: true, schema: jsonSchema } } }),
         });
         const body = await result.json();
         const usage = z.object({ cost: z.number().nonnegative().finite(), is_byok: z.boolean().optional() }).passthrough().parse(body.usage);
@@ -113,8 +119,11 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
         const charge = { actualMicros, requestId: typeof body.id === "string" && body.id.isWellFormed() && !body.id.includes("\u0000") ? body.id : null, model,
           inputTokens: tokenCount(body.usage?.prompt_tokens), outputTokens: tokenCount(body.usage?.completion_tokens) };
         if (!result.ok || body.error || body.choices?.[0]?.finish_reason !== "stop") return { value: null, charge, error: "Model request did not finish successfully." };
-        try { return { value: JSON.parse(body.choices[0].message.content), charge }; }
+        let value: unknown;
+        try { value = JSON.parse(body.choices[0].message.content); }
         catch { return { value: null, charge, error: "Model returned invalid JSON." }; }
+        const parsed = request.schema.safeParse(value);
+        return parsed.success ? { value: parsed.data, charge } : { value: null, charge, error: "Model returned data outside the requested schema." };
       } };
     },
   };

@@ -72,6 +72,32 @@ describe("demand bounded provider transport (mock network only)", () => {
     const sent = JSON.parse(fetch.mock.calls[1][1].body);
     expect(sent).toMatchObject({ model: "test/model", max_tokens: 100, provider: { allow_fallbacks: false, require_parameters: true, max_price: { prompt: 1, completion: 2, request: 0 } } });
     expect(sent).not.toHaveProperty("models"); expect(sent).not.toHaveProperty("tools");
+    expect(sent.response_format.type).toBe("json_schema");
+  });
+  it("uses the official DeepSeek JSON endpoint with the requested schema and no provider fallback", async () => {
+    vi.stubEnv("OPENROUTER_PROFILE_MODEL", "deepseek/deepseek-v4.1-flash");
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [{ ...modelRow, id: "deepseek/deepseek-v4.1-flash" }] }))
+      .mockResolvedValueOnce(response({ usage: { cost: 0, is_byok: true, cost_details: { upstream_inference_cost: 0.0002 } },
+        choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }],
+      }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(await prepared.call(async () => {})).toMatchObject({ value: { answer: "yes" }, charge: { actualMicros: 200 } });
+    const sent = JSON.parse(fetch.mock.calls[1][1].body);
+    expect(sent.response_format).toEqual({ type: "json_object" });
+    expect(sent.provider).toMatchObject({ only: ["deepseek"], allow_fallbacks: false, require_parameters: true });
+    expect(sent.reasoning).toEqual({ enabled: false });
+    expect(sent.messages[0].content).toContain(JSON.stringify(z.toJSONSchema(modelRequest.schema)));
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+  it("retains the actual bill but refuses valid JSON with the wrong schema", async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
+      usage: { cost: 0.0002 }, choices: [{ finish_reason: "stop", message: { content: '{"answer":42}' } }],
+    }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(await prepared.call(async () => {})).toMatchObject({ value: null, error: expect.any(String), charge: { actualMicros: 200 } });
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
   it.each([0, 0.00001])("includes BYOK upstream charges alongside the platform fee %s", async (cost) => {
     const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
