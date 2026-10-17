@@ -85,6 +85,12 @@ describeDb("demand research foundation", () => {
     await db().update(projects).set({ pain: "changed", profileVersion: 2 }).where(eq(projects.id, project.id));
     expect((await getDemandRun(userId, run.id))?.profileSnapshot?.pain).toBe("captions");
   });
+  it("reuses known product facts without requiring an invented pain or target user", async () => {
+    const userId = await owner();
+    const project = await makeProject(userId, { url: "https://capcut.com/", pain: "", solution: "automatic captions", targetUsers: "" });
+    const run = await createDemandRun(userId, { mode: "product", url: project.url!, projectId: project.id, budgetMicros: 100_000, key: randomUUID() });
+    expect(run.profileSnapshot).toMatchObject({ solution: "automatic captions", pain: null, targetUsers: null });
+  });
 
   it("serializes duplicate clicks and keeps different null-project jobs separate", async () => {
     const userId = await owner();

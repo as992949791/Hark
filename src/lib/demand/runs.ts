@@ -45,9 +45,9 @@ export async function createDemandRun(userId: string, raw: DemandInput): Promise
       project = owned.find((row) => row.url && productUrl(row.url) === value);
       if (input.projectId && !project) throw new DemandError("Product project not found for this URL.");
     }
-    const profileSnapshot = project?.pain && project.solution && project.targetUsers ? {
+    const profileSnapshot = project?.solution ? {
       version: project.profileVersion, name: project.name, url: project.url,
-      pain: project.pain, solution: project.solution, targetUsers: project.targetUsers,
+      pain: project.pain || null, solution: project.solution, targetUsers: project.targetUsers || null,
       geography: project.geography, budgetFit: project.budgetFit, brief: project.brief,
     } : null;
     const [run] = await tx.insert(demandRuns).values({

@@ -70,7 +70,7 @@ describe("demand source evidence", () => {
     for (const changed of [{ body: null, outcome: "snippet_only" as const }, { purpose: "profile" as const }, { id: randomUUID() }]) {
       expect(() => validateSignals({ signals: [candidate] }, [{ ...doc, ...changed }], null)).toThrow();
     }
-    for (const changed of [{ quote: "invented quotation" }, { quoteEnd: 999 }, { quoteStart: 2 }, { author: "invented" }, { publishedAt: "yesterday" }, { relevant: false }]) {
+    for (const changed of [{ quote: "invented quotation" }, { author: "invented" }, { publishedAt: "yesterday" }, { relevant: false }]) {
       expect(() => validateSignals({ signals: [{ ...candidate, ...changed }] }, [doc], null)).toThrow();
     }
   });
@@ -80,6 +80,22 @@ describe("demand source evidence", () => {
     expect(() => validateSignals({ signals: [{ ...candidate, productFit: "yes", fitFact: "captions" }] }, [doc], null)).toThrow(/Topic/);
     expect(() => validateSignals({ signals: [{ ...candidate, productFit: "yes", fitFact: "invented capability" }] }, [doc], profile)).toThrow(/fact/);
     expect(validateSignals({ signals: [{ ...candidate, productFit: "unknown" }] }, [doc], profile)[0].productFit).toBe("unknown");
+  });
+  it("locates unique exact quotations in UTF-16 without relying on model character counts", () => {
+    const original = document(); const doc = { ...original, body: `😀 ${original.body}` };
+    const candidate = { ...signal(original), quoteStart: undefined, quoteEnd: undefined };
+    expect(validateSignals({ signals: [candidate] }, [doc], null)[0]).toMatchObject({ quoteStart: 3, quoteEnd: 3 + original.body!.length });
+    expect(validateSignals({ signals: [{ ...candidate, quoteStart: 999, quoteEnd: 1000 }] }, [doc], null)[0]).toMatchObject({ quoteStart: 3, quoteEnd: 3 + original.body!.length });
+  });
+  it("retains verified candidates when another quotation is fabricated", () => {
+    const doc = document(); const candidate = signal(doc);
+    expect(validateSignals({ signals: [candidate, { ...candidate, quote: "A quotation absent from the source" }] }, [doc], null)).toEqual([candidate]);
+  });
+  it("rejects ambiguous repeated quotations unless exact legacy offsets identify the occurrence", () => {
+    const original = document(); const doc = { ...original, body: `${original.body} ${original.body}` };
+    const candidate = { ...signal(original), quoteStart: undefined, quoteEnd: undefined };
+    expect(() => validateSignals({ signals: [candidate] }, [doc], null)).toThrow(/quotation/);
+    expect(validateSignals({ signals: [signal(original)] }, [doc], null)[0].quoteStart).toBe(0);
   });
   it("requires independent supported authors and quotations for recurrence", () => {
     const doc = document();

@@ -14,7 +14,7 @@ const plan = { web: ["video captions problems forum", "video editor alternative 
 const body = "I need a video editor with accurate captions.";
 const productBody = "CapCut makes accurate captions for video creators. Manual captions take too long.";
 
-function fixtureTransport(options: { fail?: string; invalid?: boolean; uncertain?: boolean } = {}) {
+function fixtureTransport(options: { fail?: string; invalid?: boolean; uncertain?: boolean; unknownProfileFacts?: boolean } = {}) {
   const data: string[] = []; const models: string[] = []; const prompts: ModelRequest[] = [];
   const transport: DemandTransport = {
     async prepareData(sku, input) {
@@ -36,8 +36,8 @@ function fixtureTransport(options: { fail?: string; invalid?: boolean; uncertain
         const charge = { actualMicros: 10, requestId: randomUUID(), model: "test-only" };
         if (request.stage === "query-plan") return { value: plan, charge };
         if (request.stage === "profile") return { value: {
-          name: { value: "CapCut", quote: productBody }, pain: { value: "Manual captions take too long.", quote: productBody },
-          solution: { value: "accurate captions", quote: productBody }, targetUsers: { value: "video creators", quote: productBody },
+          name: { value: "CapCut", quote: productBody }, pain: options.unknownProfileFacts ? null : { value: "Manual captions take too long.", quote: productBody },
+          solution: { value: "accurate captions", quote: productBody }, targetUsers: options.unknownProfileFacts ? null : { value: "video creators", quote: productBody },
         }, charge };
         const payload = JSON.parse(request.prompt.split("UNTRUSTED_DATA_JSON:\n")[1]);
         if (request.stage.startsWith("extract-")) return { value: { signals: payload.documents.map((doc: { id: string; body: string }) => ({
@@ -103,6 +103,12 @@ describeDb("bounded cross-platform demand pipeline", () => {
     await executeDemandPipeline(lease, f.transport);
     expect((await getDemandRun(user.id, run.id))?.status).toBe("complete");
     expect(f.models).not.toContain("profile"); expect(f.data).not.toContain("web.scrape:https://capcut.com/");
+  });
+  it("keeps unmentioned profile facts unknown and continues with supported product facts", async () => {
+    const { user, run, lease } = await start("product"); const f = fixtureTransport({ unknownProfileFacts: true });
+    await executeDemandPipeline(lease, f.transport);
+    expect((await getDemandRun(user.id, run.id))).toMatchObject({ status: "complete", profileSnapshot: { pain: null, targetUsers: null, solution: "accurate captions" } });
+    expect(f.models).toContain("query-plan");
   });
   it("stops failed preparation before search and does not retry a profile implicitly", async () => {
     const { user, run, lease } = await start("product"); const f = fixtureTransport({ fail: "web.scrape" });

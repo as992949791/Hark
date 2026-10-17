@@ -66,30 +66,44 @@ export function deduplicateDocuments<T extends SourceDocument>(documents: T[]): 
 }
 
 const chinese = z.string().min(1).max(1500).regex(/\p{Script=Han}/u, "Explain the judgement in Chinese.");
-export const extractedSignals = z.object({ signals: z.array(z.object({
-  documentId: z.uuid(), quoteStart: z.number().int().nonnegative(), quoteEnd: z.number().int().positive(),
+const signalSchema = z.object({
+  documentId: z.uuid(), quoteStart: z.number().int().nonnegative().optional(), quoteEnd: z.number().int().positive().optional(),
   quote: z.string().min(8).max(3000), explanation: chinese,
   requestType: z.enum(["pain", "recommendation", "alternative"]), relevant: z.literal(true),
   productFit: z.enum(["yes", "no", "unknown"]).nullable(),
   fitFact: z.string().nullable(),
-}).strict()).max(24) }).strict();
+}).strict();
+export const extractedSignals = z.object({ signals: signalSchema.array().max(24) }).strict();
+export const quotedSignals = z.object({ signals: signalSchema.omit({ quoteStart: true, quoteEnd: true }).array().max(24) }).strict();
 export type ExtractedSignal = z.infer<typeof extractedSignals>["signals"][number];
-export type ValidatedSignal = ExtractedSignal & { id: string; author: string | null };
+export type ValidatedSignal = ExtractedSignal & { id: string; author: string | null; quoteStart: number; quoteEnd: number };
 
-/** No model-generated author/date field is accepted. Exact offsets use JS UTF-16 indices. */
+/** Exact quotations are located in source text; model author/date fields are never accepted. */
 export function validateSignals(raw: unknown, documents: EvidenceDocument[], profile: ProfileSnapshot | null) {
   const { signals } = extractedSignals.parse(raw);
+  const accepted: (ExtractedSignal & { quoteStart: number; quoteEnd: number })[] = [];
+  let firstError: DemandError | undefined;
   for (const signal of signals) {
-    const doc = documents.find((item) => item.id === signal.documentId);
-    if (!doc || doc.purpose !== "demand" || doc.outcome !== "retrieved" || !doc.body ||
-      signal.quoteEnd > doc.body.length || signal.quoteStart >= signal.quoteEnd ||
-      doc.body.slice(signal.quoteStart, signal.quoteEnd) !== signal.quote) throw new DemandError("Unsupported source quotation.");
-    if (!profile && (signal.productFit !== null || signal.fitFact !== null)) throw new DemandError("Topic research cannot claim product fit.");
-    if (profile && signal.productFit === null) throw new DemandError("Product qualification is missing.");
-    if (signal.productFit === "yes" && (!signal.fitFact || ![profile?.pain, profile?.solution, profile?.targetUsers]
-      .some((fact) => fact?.includes(signal.fitFact!)))) throw new DemandError("Product fit needs an exact product fact.");
+    try {
+      const doc = documents.find((item) => item.id === signal.documentId);
+      if (!doc || doc.purpose !== "demand" || doc.outcome !== "retrieved" || !doc.body) throw new DemandError("Unsupported source quotation.");
+      let start = signal.quoteStart, end = signal.quoteEnd;
+      if (start === undefined || end === undefined || start >= end || end > doc.body.length || doc.body.slice(start, end) !== signal.quote) {
+        start = doc.body.indexOf(signal.quote); end = start + signal.quote.length;
+        if (start < 0 || doc.body.indexOf(signal.quote, start + 1) !== -1) throw new DemandError("Unsupported or ambiguous source quotation.");
+      }
+      if (!profile && (signal.productFit !== null || signal.fitFact !== null)) throw new DemandError("Topic research cannot claim product fit.");
+      if (profile && signal.productFit === null) throw new DemandError("Product qualification is missing.");
+      if (signal.productFit === "yes" && (!signal.fitFact || ![profile?.pain, profile?.solution, profile?.targetUsers]
+        .some((fact) => fact?.includes(signal.fitFact!)))) throw new DemandError("Product fit needs an exact product fact.");
+      accepted.push({ ...signal, quoteStart: start, quoteEnd: end });
+    } catch (error) {
+      if (!(error instanceof DemandError)) throw error;
+      firstError ??= error;
+    }
   }
-  return signals;
+  if (!accepted.length && firstError) throw firstError;
+  return accepted;
 }
 
 export const groupedSignals = z.object({ themes: z.array(z.object({ title: chinese, signalIds: z.array(z.uuid()).min(1).max(24) }).strict()).max(12) }).strict();

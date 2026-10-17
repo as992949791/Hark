@@ -51,6 +51,18 @@ describe("demand bounded provider transport (mock network only)", () => {
     const prepared = await (await demandTransport("owner")).prepareData("web.scrape", { url: "https://example.com" }, "test-key");
     await expect(prepared.call(async () => {})).rejects.toThrow(/timeout/); expect(fetch).toHaveBeenCalledTimes(2);
   });
+  it.each(["confirmed", "pending", "foreign", "wrong-sku"])("checks the authoritative request receipt for an unbilled source failure (%s)", async (mode) => {
+    const fetch = vi.fn().mockResolvedValueOnce(response(catalog("web.scrape")))
+      .mockResolvedValueOnce(response({ error: "unreadable source", code: "upstream_error" }, 422))
+      .mockResolvedValueOnce(response({ requestId: mode === "foreign" ? "other-request" : "test-request",
+        sku: mode === "wrong-sku" ? "google.search" : "web.scrape", status: "failed", settlementState: mode === "pending" ? "pending" : "not_required" }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareData("web.scrape", { url: "https://example.com" }, "test-key");
+    if (mode === "confirmed") expect(await prepared.call(async () => {})).toMatchObject({ value: null, error: expect.any(String), charge: { actualMicros: 0, requestId: "test-request" } });
+    else await expect(prepared.call(async () => {})).rejects.toThrow();
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(fetch.mock.calls[2][1]?.method ?? "GET").toBe("GET");
+  });
   it("rechecks the worker fence immediately before the paid POST, after any pacing wait", async () => {
     const fetch = vi.fn().mockResolvedValueOnce(response(catalog("reddit.search")))
       .mockResolvedValue(response({ output: { found: false, data: null }, provider: "AnyAPI", costUsd: 0, items: 0, replayed: false }));

@@ -78,6 +78,13 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
         } catch (error) {
           if (receipt?.costUsd !== undefined) return { value: null, error: `Source request failed (${sku}).`,
             charge: { actualMicros: chargedMicros(receipt.costUsd), requestId: receipt.requestId } };
+          if (receipt?.requestId) {
+            const snapshot = await catalog.requests.get(receipt.requestId).catch(() => null);
+            const unpaid = z.object({ requestId: z.literal(receipt.requestId), sku: z.literal(sku),
+              status: z.literal("failed"), settlementState: z.literal("not_required") }).safeParse(snapshot);
+            if (unpaid.success) return { value: null, error: `Source request failed (${sku}).`,
+              charge: { actualMicros: 0, requestId: receipt.requestId } };
+          }
           throw error;
         }
       } };
