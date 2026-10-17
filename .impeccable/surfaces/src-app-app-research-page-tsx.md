@@ -17,7 +17,7 @@ Mode: Operate. Code-led extension of the existing Research area, approved issue2
 
 **STORY:** Choose product or topic, set a budget, start one manual run, then follow progress and inspect original quotations or supported pain themes. History survives refresh. Missing authors/dates and partial or blocked work remain visible.
 
-**FIRST VIEWPORT:** Title and honest availability lead. On desktop a narrow input/history column sits beside a broad result workspace with run metadata and two views. Mobile stacks input/history before results with no horizontal page scroll. Evidence links are the signature move: theme citations lead back to the exact source quote.
+**FIRST VIEWPORT:** Title and honest availability lead. On desktop a narrow input/history column sits beside a broad result workspace with run metadata and two views. Mobile stacks; selected results lead with an anchor back to inputs, while an empty workspace leads with inputs. No horizontal page scroll. Evidence links are the signature move: theme citations lead back to the exact source quote.
 
 **FORM:** Precisely specified code-led addition in the existing research shell; no concept tournament or seed is applicable. Product selection is optional and topic mode needs no project. Reads never create work. Disabled live controls explain availability without showing fixtures as results.
 

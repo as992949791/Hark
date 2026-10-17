@@ -16,7 +16,7 @@ export function syntheticDemandReport(): DemandReport {
   return {
     canResume: false, documents, signals,
     run: { id: runId, userId: "synthetic-owner", key: "40000000-0000-4000-8000-000000000001", mode: "topic", input: "短视频创作者的自动字幕需求", projectId: null,
-      profileSnapshot: null, status: "partial", error: "One source was unreadable", progress: "已有部分结果；一个网页仍未能读取", budgetMicros: 100_000, reservedMicros: 0, spentMicros: 3150,
+      profileSnapshot: null, status: "partial", error: "read-web: Original page unavailable.", progress: "已有部分结果；一个网页仍未能读取", budgetMicros: 100_000, reservedMicros: 0, spentMicros: 3150,
       maxAttempts: 30, retryVersion: 0, leaseToken: null, leaseExpiresAt: null, createdAt: at, finishedAt: at, expiresAt: new Date("2026-11-16T06:00:00Z"),
       themes: [{ title: "减少手动校对字幕的负担", explanation: signals[0].explanation, signalIds: [signals[0].id], kind: "individual" }],
     },
