@@ -1,0 +1,16 @@
+.research-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 19rem) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.research-history { scrollbar-color: var(--border) transparent; scrollbar-width: thin; }
+.research-signal:target { background: var(--accent-soft); }
+.research-compose :is(input, textarea, select) { width: 100%; min-width: 0; }
+.research-compose button[aria-pressed="true"] { color: var(--fg); }
+
+@media (max-width: 1100px) {
+  .research-layout { grid-template-columns: minmax(0, 1fr); }
+  .research-layout[data-has-run="true"] .research-results { order: -1; }
+}

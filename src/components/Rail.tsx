@@ -106,7 +106,7 @@ export function Rail({ groups, projectId, children }: RailProps) {
             {group.items.map((item) => {
               const active = pathname === item.href;
               const Icon = RAIL_ICONS[item.icon];
-              if (creating) {
+              if (creating && item.href !== "/app/research") {
                 return (
                   <span
                     key={item.href}
@@ -121,7 +121,7 @@ export function Rail({ groups, projectId, children }: RailProps) {
               return (
                 <Link
                   key={item.href}
-                  href={project ? `${item.href}?project=${encodeURIComponent(project)}` : item.href}
+                  href={project && item.href !== "/app/research" ? `${item.href}?project=${encodeURIComponent(project)}` : item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "transition-motion flex items-center justify-between gap-2 rounded-control px-2 py-1.5 text-body transition-colors",
