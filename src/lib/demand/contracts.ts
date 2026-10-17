@@ -47,3 +47,8 @@ export const attemptInput = z.object({
 export type AttemptInput = z.infer<typeof attemptInput>;
 
 export class DemandError extends Error {}
+
+/** A job was reclaimed before the run's independently renewed fence expired. */
+export class DemandLeaseBusyError extends DemandError {
+  readonly code = "DEMAND_LEASE_BUSY";
+}

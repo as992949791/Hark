@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { and, eq } from "drizzle-orm";
 import { afterEach, expect, it, vi } from "vitest";
 import { db } from "@/db";
@@ -99,6 +101,13 @@ describeDb("demand research foundation", () => {
     const userId = await owner();
     for (let i = 0; i < 3; i++) await createDemandRun(userId, { mode: "topic", topic: "video", budgetMicros: 0, key: randomUUID() });
     await expect(createDemandRun(userId, { mode: "topic", topic: "video", budgetMicros: 0, key: randomUUID() })).rejects.toThrow(/Finish existing/);
+  });
+
+  it("does not let a retry bypass the owner's active-run limit", async () => {
+    const { userId, run, lease } = await active();
+    await finishDemandRun(lease, "blocked", "synthetic stop");
+    for (let i = 0; i < 3; i++) await createDemandRun(userId, { mode: "topic", topic: "video", budgetMicros: 0, key: randomUUID() });
+    await expect(retryDemandRun(userId, run.id)).rejects.toThrow(/Finish existing/);
   });
 
   it("does not expose a lease on duplicate creation and does not revive expired inputs", async () => {
@@ -254,5 +263,24 @@ describeDb("demand research foundation", () => {
     const [document] = await db().insert(demandDocuments).values({ runId: run.id, purpose: "demand", source: "web", url: "https://forum.test/1", canonicalUrl: "https://forum.test/1", outcome: "failed" }).returning();
     await expect(db().insert(demandSignals).values({ runId: other.id, documentId: document.id, quoteStart: 0, quoteEnd: 5, quote: "wrong", explanation: "wrong", requestType: "tool" })).rejects.toThrow();
     expect(await db().select().from(usageLedger).where(and(eq(usageLedger.demandRunId, other.id)))).toEqual([]);
+  });
+
+  it("settles house/X data and model attempts in a saturated single-connection pool", async () => {
+    const { lease, run, userId } = await active();
+    const child = spawn(process.execPath, ["--import", "tsx", fileURLToPath(new URL("./fixtures/demand-pool.ts", import.meta.url)), JSON.stringify(lease)], {
+      env: { ...process.env, X_LEADS: "true", HOUSE_X_DATA_CAP_USD_PER_DAY: "100000", HOUSE_X_LLM_CAP_USD_PER_DAY: "100000" },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = ""; let stderr = "";
+    child.stdout.on("data", (chunk: Buffer) => { stdout += chunk.toString(); });
+    child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
+    const code = await new Promise<number | null>((resolve, reject) => {
+      const timer = setTimeout(() => child.kill("SIGKILL"), 5000);
+      child.once("error", (error) => { clearTimeout(timer); reject(error); });
+      child.once("close", (code) => { clearTimeout(timer); resolve(code); });
+    });
+    expect({ code, stderr, ready: stdout.includes("pool-fixture-ready"), finished: stdout.includes("pool-fixture-complete") })
+      .toEqual({ code: 0, stderr: "", ready: true, finished: true });
+    expect((await getDemandRun(userId, run.id))?.spentMicros).toBe(40);
   });
 });

@@ -5,13 +5,19 @@ import { demandAttempts, demandDocuments, demandRuns, demandSignals, jobs, proje
 import { LEASE_MS } from "@/jobs/lease";
 import { RETENTION_DAYS } from "@/lib/tiers";
 import { demandInput, DemandError, type DemandInput, type DemandLease } from "./contracts";
-import { assertLease, demandEnabled, lockBudget, withDemandRun, type DemandRun } from "./store";
+import { assertLease, demandEnabled, lockBudget, withDemandRun, type DemandRun, type Transaction } from "./store";
 
 export const DEMAND_JOB = "demand_research";
 
 function productUrl(value: string) {
   const url = new URL(value); url.hash = "";
   return url.href;
+}
+
+async function assertOwnerCapacity(tx: Transaction, userId: string) {
+  const [active] = await tx.select({ count: sql<number>`count(*)::int` }).from(demandRuns)
+    .where(and(eq(demandRuns.userId, userId), inArray(demandRuns.status, ["queued", "running"]), gt(demandRuns.expiresAt, new Date())));
+  if (active.count >= 3) throw new DemandError("Finish existing research before starting another run.");
 }
 
 /** Only explicit creation queues work. Reads below have no scheduling side effects. */
@@ -31,9 +37,7 @@ export async function createDemandRun(userId: string, raw: DemandInput): Promise
       }
       return visibleRun(existing);
     }
-    const [active] = await tx.select({ count: sql<number>`count(*)::int` }).from(demandRuns)
-      .where(and(eq(demandRuns.userId, userId), inArray(demandRuns.status, ["queued", "running"]), gt(demandRuns.expiresAt, new Date())));
-    if (active.count >= 3) throw new DemandError("Finish existing research before starting another run.");
+    await assertOwnerCapacity(tx, userId);
     let project: typeof projects.$inferSelect | undefined;
     if (input.mode === "product") {
       const owned = await tx.select().from(projects).where(and(eq(projects.userId, userId),
@@ -120,6 +124,7 @@ export async function retryDemandRun(userId: string, runId: string) {
       throw new DemandError("This research run cannot be retried.");
     }
     if (run.reservedMicros) throw new DemandError("Reconcile outstanding charges before retrying.");
+    if (run.status !== "queued") await assertOwnerCapacity(tx, userId);
     const [job] = await tx.select().from(jobs).where(eq(jobs.demandRunId, run.id)).for("update");
     if (!job || (job.startedAt && !job.finishedAt)) throw new DemandError("The previous worker has not finished.");
     await tx.update(demandRuns).set({ status: "queued", error: null, finishedAt: null, leaseToken: null, leaseExpiresAt: null }).where(eq(demandRuns.id, run.id));

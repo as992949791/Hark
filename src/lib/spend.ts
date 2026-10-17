@@ -3,6 +3,8 @@ import { db } from "@/db";
 import { llmUsage, searchRuns, usageLedger } from "@/db/schema";
 import { utcDayStart } from "./time";
 
+type SpendReader = Pick<ReturnType<typeof db>, "select" | "execute">;
+
 /**
  * The spend questions every cap and report asks, each written once. The
  * house's daily caps, X's share of them, a scan's cost and an X run's cost are
@@ -23,9 +25,9 @@ function total(column: AnyColumn) {
  * costs nothing and is stored as no new run, so nothing is counted twice. Both
  * sums are one statement, so a cap check holds one pooled connection.
  */
-export async function houseDataSpend({ skus }: { skus?: readonly string[] } = {}): Promise<number> {
+export async function houseDataSpend({ skus }: { skus?: readonly string[] } = {}, reader: SpendReader = db()): Promise<number> {
   const since = utcDayStart();
-  const runs = db()
+  const runs = reader
     .select({ total: total(searchRuns.costUsd) })
     .from(searchRuns)
     .where(
@@ -35,7 +37,7 @@ export async function houseDataSpend({ skus }: { skus?: readonly string[] } = {}
         gte(searchRuns.fetchedAt, since),
       ),
     );
-  const unshared = db()
+  const unshared = reader
     .select({ total: total(usageLedger.costUsd) })
     .from(usageLedger)
     .where(
@@ -46,7 +48,7 @@ export async function houseDataSpend({ skus }: { skus?: readonly string[] } = {}
         gte(usageLedger.at, since),
       ),
     );
-  const [row] = await db().execute<{ total: string }>(sql`select (${runs}) + (${unshared}) as total`);
+  const [row] = await reader.execute<{ total: string }>(sql`select (${runs}) + (${unshared}) as total`);
   return Number(row?.total ?? 0);
 }
 
@@ -86,8 +88,8 @@ export async function llmSpend({
   since: Date;
   purposes?: readonly string[];
   projectId?: string;
-}): Promise<number> {
-  const [row] = await db()
+}, reader: SpendReader = db()): Promise<number> {
+  const [row] = await reader
     .select({ total: total(llmUsage.costUsd) })
     .from(llmUsage)
     .where(

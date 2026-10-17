@@ -2,12 +2,13 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { jobs, users } from "@/db/schema";
+import { demandRuns, jobs, users } from "@/db/schema";
 import { dispatchJob } from "@/jobs/dispatch";
 import { JOB_HANDLERS, nextRunAt } from "@/jobs/registry";
 import { claimNextJob } from "@/jobs/runner";
 import { runBackgroundRequest } from "@/jobs/serverless";
-import { createDemandRun, getDemandRun, retryDemandRun } from "@/lib/demand/runs";
+import { claimDemandRun, createDemandRun, getDemandRun, retryDemandRun } from "@/lib/demand/runs";
+import { LEASE_MS } from "@/jobs/lease";
 import { describeDb, makeUser } from "./fixtures/db";
 
 const SECRET = "synthetic-worker-secret-32-characters";
@@ -89,5 +90,22 @@ describeDb("demand exact-job worker", () => {
     const { job } = await fixture();
     vi.stubEnv("DEMAND_DISCOVERY_ENABLED", "false");
     expect(await claimNextJob(new Date(), undefined, { projectId: null, jobId: job.id })).toBeNull();
+  });
+
+  it("leaves the exact job unfinished when its run lease outlives the old job lease", async () => {
+    const { job, user, run } = await fixture();
+    await claimDemandRun(user.id, run.id);
+    await db().update(jobs).set({ startedAt: new Date(Date.now() - LEASE_MS - 1000) }).where(eq(jobs.id, job.id));
+    await runBackgroundRequest(request(job.id));
+    let stored = (await db().select().from(jobs).where(eq(jobs.id, job.id)))[0];
+    expect(stored.finishedAt).toBeNull();
+    expect(stored.startedAt).toBeNull();
+    expect(stored.runAt.getTime()).toBeGreaterThan(Date.now());
+    await db().update(demandRuns).set({ leaseExpiresAt: new Date(Date.now() - 1000) }).where(eq(demandRuns.id, run.id));
+    await db().update(jobs).set({ runAt: new Date() }).where(eq(jobs.id, job.id));
+    await runBackgroundRequest(request(job.id));
+    stored = (await db().select().from(jobs).where(eq(jobs.id, job.id)))[0];
+    expect(stored.finishedAt).not.toBeNull();
+    expect((await getDemandRun(user.id, run.id))?.status).toBe("blocked");
   });
 });

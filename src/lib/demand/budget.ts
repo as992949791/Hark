@@ -29,7 +29,7 @@ export async function reserveDemandAttempt(lease: DemandLease, raw: AttemptInput
       throw new DemandError("The research budget or attempt limit cannot cover this request.");
     }
     const cap = input.kind === "data" ? settings.HOUSE_DATA_CAP_USD_PER_DAY : settings.HOUSE_LLM_CAP_USD_PER_DAY;
-    const spent = input.kind === "data" ? await houseDataSpend() : await llmSpend({ since: utcDayStart() });
+    const spent = input.kind === "data" ? await houseDataSpend({}, tx) : await llmSpend({ since: utcDayStart() }, tx);
     const [pending] = await tx.select({ sum: sql<string>`coalesce(sum(${demandAttempts.upperBoundMicros}), 0)` })
       .from(demandAttempts).where(and(eq(demandAttempts.kind, input.kind), ne(demandAttempts.status, "settled")));
     if (Math.round(spent * 1e6) + Number(pending.sum) + input.upperBoundMicros > Math.floor(cap * 1e6)) {
@@ -37,7 +37,7 @@ export async function reserveDemandAttempt(lease: DemandLease, raw: AttemptInput
     }
     if (input.source === "x") {
       const xCap = input.kind === "data" ? settings.HOUSE_X_DATA_CAP_USD_PER_DAY : settings.HOUSE_X_LLM_CAP_USD_PER_DAY;
-      const xSpent = input.kind === "data" ? await houseDataSpend({ skus: X_SKUS }) : await llmSpend({ since: utcDayStart(), purposes: X_PURPOSES });
+      const xSpent = input.kind === "data" ? await houseDataSpend({ skus: X_SKUS }, tx) : await llmSpend({ since: utcDayStart(), purposes: X_PURPOSES }, tx);
       const [xPending] = await tx.select({ sum: sql<string>`coalesce(sum(${demandAttempts.upperBoundMicros}), 0)` })
         .from(demandAttempts).where(and(eq(demandAttempts.kind, input.kind), eq(demandAttempts.source, "x"), ne(demandAttempts.status, "settled")));
       if (Math.round(xSpent * 1e6) + Number(xPending.sum) + input.upperBoundMicros > Math.floor(xCap * 1e6)) {

@@ -183,11 +183,11 @@ export function reasonFor(error: unknown): string {
 }
 
 /**
- * Codes that say the database could not be reached or had no room, not that
- * the work was wrong: Postgres's connection classes and the driver's own. The
- * same job run a minute later would likely succeed.
+ * Recoverable demand-lease contention and database connection/capacity errors.
+ * The same exact job can be released to run again shortly without a successor.
  */
 const TRANSIENT_CODES = new Set([
+  "DEMAND_LEASE_BUSY", // Retry the exact job after its independent run lease can be reclaimed.
   "53300", // too many connections
   "57P01", // admin shutdown, as a failover or restart does
   "57P02",
@@ -205,7 +205,7 @@ const TRANSIENT_CODES = new Set([
   "ECONNRESET",
 ]);
 
-/** Whether anything in the error's chain is a connection failure rather than a real one. */
+/** A recoverable connection failure or the narrow demand-lease handoff. */
 export function isTransient(error: unknown): boolean {
   const seen = new Set<unknown>();
   let current: unknown = error;
