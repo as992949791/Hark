@@ -92,7 +92,8 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
       const row = z.object({ context_length: z.number().int().positive(), pricing: z.record(z.string(), z.unknown()) }).parse(selected);
       const { prompt: promptPrice, completion: completionPrice } = modelPriceCeiling(row.pricing);
       // Reserve the entire context allowance: no unverified character-to-token estimate.
-      const upperBoundMicros = Math.max(1, chargedMicros(row.context_length * promptPrice + request.maxOutputTokens * completionPrice));
+      // BYOK can add a 5% OpenRouter fee above its allowance; reserve it before routing is known.
+      const upperBoundMicros = Math.max(1, chargedMicros((row.context_length * promptPrice + request.maxOutputTokens * completionPrice) * 1.05));
       return { upperBoundMicros, async call(authorize) {
         await authorize();
         const result = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", redirect: "error", signal: AbortSignal.timeout(120_000),
@@ -103,7 +104,11 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
             response_format: { type: "json_schema", json_schema: { name: "research", strict: true, schema: z.toJSONSchema(request.schema) } } }),
         });
         const body = await result.json();
-        const actualMicros = chargedMicros(body.usage?.cost);
+        const usage = z.object({ cost: z.number().nonnegative().finite(), is_byok: z.boolean().optional() }).passthrough().parse(body.usage);
+        if (usage.is_byok === undefined && usage.cost_details !== undefined) throw new DemandError("Model funding receipt is unconfirmed.");
+        const upstreamUsd = usage.is_byok === true
+          ? z.object({ upstream_inference_cost: z.number().nonnegative().finite() }).parse(usage.cost_details).upstream_inference_cost : 0;
+        const actualMicros = chargedMicros(usage.cost + upstreamUsd);
         const tokenCount = (value: unknown) => typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 2_147_483_647 ? value : 0;
         const charge = { actualMicros, requestId: typeof body.id === "string" && body.id.isWellFormed() && !body.id.includes("\u0000") ? body.id : null, model,
           inputTokens: tokenCount(body.usage?.prompt_tokens), outputTokens: tokenCount(body.usage?.completion_tokens) };

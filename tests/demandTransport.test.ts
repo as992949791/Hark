@@ -67,11 +67,69 @@ describe("demand bounded provider transport (mock network only)", () => {
     }));
     vi.stubGlobal("fetch", fetch);
     const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
-    expect(prepared.upperBoundMicros).toBe(1200);
+    expect(prepared.upperBoundMicros).toBe(1260);
     expect(await prepared.call(async () => {})).toMatchObject({ value: { answer: "yes" }, charge: { actualMicros: 200, requestId: "test-model-request", model: "test/model" } });
     const sent = JSON.parse(fetch.mock.calls[1][1].body);
     expect(sent).toMatchObject({ model: "test/model", max_tokens: 100, provider: { allow_fallbacks: false, require_parameters: true, max_price: { prompt: 1, completion: 2, request: 0 } } });
     expect(sent).not.toHaveProperty("models"); expect(sent).not.toHaveProperty("tools");
+  });
+  it.each([0, 0.00001])("includes BYOK upstream charges alongside the platform fee %s", async (cost) => {
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
+      id: "test-byok-request", usage: { cost, is_byok: true, cost_details: { upstream_inference_cost: 0.0002 } },
+      choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }],
+    }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(await prepared.call(async () => {})).toMatchObject({ value: { answer: "yes" }, charge: { actualMicros: cost === 0 ? 200 : 210 } });
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+  it.each([true, false])("counts tiny BYOK bills once and does not double count shared inference (BYOK %s)", async (is_byok) => {
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
+      usage: { cost: is_byok ? 0 : 0.0002, is_byok, cost_details: { upstream_inference_cost: 0.00000195 } },
+      choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }],
+    }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(await prepared.call(async () => {})).toMatchObject({ charge: { actualMicros: is_byok ? 2 : 200 } });
+  });
+  it.each([undefined, null, {}, { upstream_inference_cost: "0.01" }, { upstream_inference_cost: -0.01 }])(
+    "keeps a BYOK response with unconfirmed upstream charges uncertain (%j)", async (cost_details) => {
+      const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
+        usage: { cost: 0, is_byok: true, cost_details }, choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }],
+      }));
+      vi.stubGlobal("fetch", fetch);
+      const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+      await expect(prepared.call(async () => {})).rejects.toThrow();
+      expect(fetch).toHaveBeenCalledTimes(2);
+    },
+  );
+  it("refuses an upstream bill with an unknown funding mode instead of reporting zero", async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
+      usage: { cost: 0, cost_details: { upstream_inference_cost: 0.0002 } },
+    }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    await expect(prepared.call(async () => {})).rejects.toThrow(/funding receipt/);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+  it("rounds the combined BYOK bill once instead of rounding each charge", async () => {
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
+      usage: { cost: 0.0000004, is_byok: true, cost_details: { upstream_inference_cost: 0.0000004 } },
+      choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }],
+    }));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(await prepared.call(async () => {})).toMatchObject({ charge: { actualMicros: 1 } });
+  });
+  it.each([200, 429])("retains BYOK charges on an unusable response (HTTP %s) without a retry", async (status) => {
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [modelRow] })).mockResolvedValueOnce(response({
+      id: "test-byok-failure", usage: { cost: 0.00001, is_byok: true, cost_details: { upstream_inference_cost: 0.0002 } },
+      choices: [{ finish_reason: "length", message: { content: "invalid JSON" } }],
+    }, status));
+    vi.stubGlobal("fetch", fetch);
+    const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
+    expect(await prepared.call(async () => {})).toMatchObject({ error: expect.any(String), charge: { actualMicros: 210, requestId: "test-byok-failure" } });
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
   it("reserves the maximum conditional token prices and sends the same provider ceiling", async () => {
     const fetch = vi.fn().mockResolvedValueOnce(response({ data: [{ ...modelRow, pricing: { ...modelRow.pricing,
@@ -80,7 +138,7 @@ describe("demand bounded provider transport (mock network only)", () => {
     } }] })).mockResolvedValueOnce(response({ usage: { cost: 0.0002 }, choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }] }));
     vi.stubGlobal("fetch", fetch);
     const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
-    expect(prepared.upperBoundMicros).toBe(3400);
+    expect(prepared.upperBoundMicros).toBe(3570);
     await prepared.call(async () => {});
     expect(JSON.parse(fetch.mock.calls[1][1].body).provider.max_price).toEqual({ prompt: 3, completion: 4, request: 0 });
   });
@@ -88,14 +146,14 @@ describe("demand bounded provider transport (mock network only)", () => {
     const fetch = vi.fn().mockResolvedValue(response({ data: [{ ...modelRow, id: "other/model", pricing: { overrides: [{ prompt: "0.1" }] } }, modelRow] }));
     vi.stubGlobal("fetch", fetch);
     const prepared = await (await demandTransport("owner")).prepareModel(modelRequest, "model-key");
-    expect(prepared.upperBoundMicros).toBe(1200); expect(fetch).toHaveBeenCalledOnce();
+    expect(prepared.upperBoundMicros).toBe(1260); expect(fetch).toHaveBeenCalledOnce();
   });
   it("inherits omitted token prices from the base tier for long-context overrides", async () => {
     const fetch = vi.fn().mockResolvedValue(response({ data: [{ ...modelRow, pricing: { ...modelRow.pricing,
       overrides: [{ min_prompt_tokens: 200_000, prompt: "0.000003" }],
     } }] }));
     vi.stubGlobal("fetch", fetch);
-    expect((await (await demandTransport("owner")).prepareModel(modelRequest, "model-key")).upperBoundMicros).toBe(3200);
+    expect((await (await demandTransport("owner")).prepareModel(modelRequest, "model-key")).upperBoundMicros).toBe(3360);
     expect(fetch).toHaveBeenCalledOnce();
   });
   it.each([null, {}, [{ prompt: "NaN" }], [{ request: "0.01" }], [{ input_cache_write: "0.000002" }], [{ new_charge: "0.01" }]])(
