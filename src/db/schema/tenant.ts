@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   doublePrecision,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -13,6 +15,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { redditComments, redditPosts, searchRuns } from "./shared";
+import { demandAttempts, demandRuns } from "./demand";
 
 const id = () =>
   text("id")
@@ -448,9 +451,10 @@ export const usageLedger = pgTable(
   {
     id: id(),
     projectId: text("project_id")
-      .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
     sku: text("sku").notNull(),
+    demandRunId: text("demand_run_id"),
+    demandAttemptId: text("demand_attempt_id"),
     costUsd: numeric("cost_usd", { precision: 12, scale: 6 }).notNull().default("0"),
     requestId: text("request_id"),
     searchRunId: text("search_run_id").references(() => searchRuns.id, { onDelete: "set null" }),
@@ -464,6 +468,10 @@ export const usageLedger = pgTable(
     // The house's spend today, as search_runs_funded_by_fetched_at_idx is.
     index("usage_ledger_funded_by_at_idx").on(t.fundedBy, t.at),
     index("usage_ledger_search_run_idx").on(t.searchRunId),
+    check("usage_ledger_owner", sql`${t.projectId} is not null or ${t.demandRunId} is not null`),
+    check("usage_ledger_demand_pair", sql`(${t.demandRunId} is null) = (${t.demandAttemptId} is null)`),
+    uniqueIndex("usage_ledger_demand_attempt_idx").on(t.demandAttemptId),
+    foreignKey({ columns: [t.demandAttemptId, t.demandRunId], foreignColumns: [demandAttempts.id, demandAttempts.runId] }).onDelete("cascade"),
   ],
 );
 
@@ -484,6 +492,8 @@ export const llmUsage = pgTable(
     id: id(),
     projectId: text("project_id").references(() => projects.id, { onDelete: "cascade" }),
     purpose: text("purpose").notNull(),
+    demandRunId: text("demand_run_id"),
+    demandAttemptId: text("demand_attempt_id"),
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     costUsd: numeric("cost_usd", { precision: 12, scale: 6 }).notNull().default("0"),
@@ -505,6 +515,9 @@ export const llmUsage = pgTable(
   (t) => [
     index("llm_usage_at_idx").on(t.at),
     index("llm_usage_project_purpose_at_idx").on(t.projectId, t.purpose, t.at),
+    check("llm_usage_demand_pair", sql`(${t.demandRunId} is null) = (${t.demandAttemptId} is null)`),
+    uniqueIndex("llm_usage_demand_attempt_idx").on(t.demandAttemptId),
+    foreignKey({ columns: [t.demandAttemptId, t.demandRunId], foreignColumns: [demandAttempts.id, demandAttempts.runId] }).onDelete("cascade"),
   ],
 );
 
@@ -519,6 +532,7 @@ export const jobs = pgTable(
     id: id(),
     kind: text("kind").notNull(),
     projectId: text("project_id").references(() => projects.id, { onDelete: "cascade" }),
+    demandRunId: text("demand_run_id").references(() => demandRuns.id, { onDelete: "cascade" }),
     runAt: timestamp("run_at", { withTimezone: true }).notNull().defaultNow(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
@@ -527,6 +541,8 @@ export const jobs = pgTable(
   },
   (t) => [
     index("jobs_project_kind_idx").on(t.projectId, t.kind),
+    uniqueIndex("jobs_demand_run_idx").on(t.demandRunId),
+    check("jobs_demand_scope", sql`(${t.kind} = 'demand_research' and ${t.demandRunId} is not null and ${t.projectId} is null) or (${t.kind} <> 'demand_research' and ${t.demandRunId} is null)`),
     // What the claim reads on every pump: the jobs still to run, by when.
     index("jobs_unfinished_run_at_idx")
       .on(t.runAt)

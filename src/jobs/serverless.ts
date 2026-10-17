@@ -1,13 +1,14 @@
 import { timingSafeEqual } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { jobs, projects } from "@/db/schema";
+import { jobs } from "@/db/schema";
 import { config } from "@/lib/config";
 import { nextQueuedJob } from "./enqueue";
 import { claimNextJob, runClaimedJob } from "./runner";
 import { handlerFor } from "./registry";
 import { scheduledJobAllowed } from "./scheduled";
+import { ownedWorkerJob } from "./owner";
 
 const requestBody = z.object({ jobId: z.uuid(), scheduled: z.boolean().default(false) });
 
@@ -26,17 +27,15 @@ export async function runBackgroundRequest(request: Request): Promise<void> {
   if (!parsed.success) {
     return;
   }
-  const [row] = await db().select({ job: jobs }).from(jobs)
-    .innerJoin(projects, eq(projects.id, jobs.projectId))
-    .where(and(eq(jobs.id, parsed.data.jobId), eq(projects.userId, settings.BACKGROUND_WORKER_USER_ID)));
-  if (!row?.job.projectId || !handlerFor(row.job.kind) ||
-    ["retention", "alert_invites"].includes(row.job.kind) ||
-    (row.job.kind === "digest" && !parsed.data.scheduled)) {
+  const owned = await ownedWorkerJob(parsed.data.jobId, settings.BACKGROUND_WORKER_USER_ID);
+  if (!owned || !handlerFor(owned.kind) ||
+    ["retention", "alert_invites"].includes(owned.kind) ||
+    (owned.kind === "digest" && !parsed.data.scheduled) || (owned.demandRunId && parsed.data.scheduled)) {
     return;
   }
-  if (parsed.data.scheduled && !(await scheduledJobAllowed(row.job))) return;
-  const projectId = row.job.projectId;
-  const job = await claimNextJob(new Date(), undefined, { projectId, jobId: row.job.id });
+  if (parsed.data.scheduled && !(await scheduledJobAllowed(owned))) return;
+  const projectId = owned.projectId;
+  const job = await claimNextJob(new Date(), undefined, { projectId, jobId: owned.id });
   if (!job) {
     return;
   }
@@ -44,7 +43,7 @@ export async function runBackgroundRequest(request: Request): Promise<void> {
   await runClaimedJob(job);
   // Initial discovery books its backfill. Other due research jobs are not drained.
   const [finished] = await db().select().from(jobs).where(eq(jobs.id, job.id));
-  if (job.kind !== "discovery_initial" || !finished?.finishedAt || finished.error ||
+  if (!projectId || job.kind !== "discovery_initial" || !finished?.finishedAt || finished.error ||
     Date.now() - beganAt >= 12 * 60 * 1000) {
     return;
   }

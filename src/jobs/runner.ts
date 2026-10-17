@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray, isNull, lt, lte, notInArray, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { jobs } from "@/db/schema";
+import { config } from "@/lib/config";
 import { enqueueOnce } from "./enqueue";
 import { HEARTBEAT_MS, LEASE_MS } from "./lease";
 import { handlerFor, nextRunAt, type Job } from "./registry";
@@ -85,6 +86,7 @@ export function claimableJob(now: Date) {
     isNull(jobs.finishedAt), lte(jobs.runAt, now),
     or(isNull(jobs.startedAt), lt(jobs.startedAt, leaseCutoff)),
     noSiblingRunning(leaseCutoff), attendedOrUnheld(now),
+    config().DEMAND_DISCOVERY_ENABLED ? undefined : sql`${jobs.kind} <> 'demand_research'`,
   );
 }
 
@@ -101,12 +103,12 @@ export function claimableJob(now: Date) {
 export async function claimNextJob(
   now = new Date(),
   only?: "watched" | "routine",
-  scope?: { projectId: string; jobId: string },
+  scope?: { projectId: string | null; jobId: string },
 ): Promise<Job | null> {
   return db().transaction(async (tx) => {
     // Independent serverless invocations must serialize sibling lease checks.
     if (scope) {
-      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`worker:${scope.projectId}`}))`);
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`worker:${scope.projectId ?? scope.jobId}`}))`);
     }
     const candidate = tx
       .select({ id: jobs.id })
@@ -116,7 +118,7 @@ export async function claimNextJob(
           claimableJob(now),
           only === "watched" ? inArray(jobs.kind, WATCHED_KINDS) : undefined,
           only === "routine" ? notInArray(jobs.kind, WATCHED_KINDS) : undefined,
-          scope ? eq(jobs.projectId, scope.projectId) : undefined,
+          scope ? scope.projectId === null ? isNull(jobs.projectId) : eq(jobs.projectId, scope.projectId) : undefined,
           scope ? eq(jobs.id, scope.jobId) : undefined,
         ),
       )

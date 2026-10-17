@@ -125,7 +125,7 @@ export const MAX_QUERY_CHARS = 450;
  * the free screen set aside (rescore.ts) is x_rescore, apart from the judge's
  * x_score, so it never spends the day's judged allowance.
  */
-export const X_PURPOSES = ["x_seeds", "x_score", "x_final", "x_reply", "x_rescore"] as const;
+export const X_PURPOSES = ["x_seeds", "x_score", "x_final", "x_reply", "x_rescore", "demand_x"] as const;
 export type XPurpose = (typeof X_PURPOSES)[number];
 /** The twitter.* SKUs X buys. */
 export const X_SKUS = ["twitter.search", "twitter.tweet", "twitter.profile"] as const;

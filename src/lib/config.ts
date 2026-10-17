@@ -38,6 +38,8 @@ const schema = z.object({
   BACKGROUND_WORKER_SECRET: optional(z.string().min(32)),
   BACKGROUND_WORKER_USER_ID: optional(z.uuid()),
   SCHEDULED_WORKER_ENABLED: z.preprocess(blankIsAbsent, bool),
+  DEMAND_DISCOVERY_ENABLED: z.preprocess(blankIsAbsent, bool),
+  DEMAND_LIVE_ENABLED: z.preprocess(blankIsAbsent, bool),
   SCHEDULED_PROJECT_IDS: z.preprocess(
     (value) => typeof value === "string" && value.trim() ? value.split(",").map((id) => id.trim()) : [],
     z.array(z.uuid()).max(3),

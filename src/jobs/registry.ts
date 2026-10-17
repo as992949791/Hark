@@ -23,6 +23,8 @@ import { PRESETS } from "@/lib/settings/presets";
 import { settingsForUser } from "@/lib/settings/resolve";
 import type { ScanCadence } from "@/lib/settings/types";
 import { limitsForUser } from "@/lib/tier";
+import { expireDemandRuns } from "@/lib/demand/runs";
+import { runDemandResearch } from "@/lib/demand/worker";
 import { runDigest } from "./digest";
 import { runInsights } from "./insights";
 import { enqueueOnce } from "./enqueue";
@@ -48,6 +50,7 @@ function perProject(run: (projectId: string, jobId: string) => Promise<unknown>)
 
 /** Every job kind the scheduler knows how to run. */
 export const JOB_HANDLERS: Record<string, JobHandler> = {
+  demand_research: runDemandResearch,
   scan: perProject(runScan),
   /**
    * The one-time year sweep a new project starts with. It queues nothing after
@@ -122,6 +125,7 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
     await enqueueOnce("alert_invites", new Date(Date.now() + CADENCE_MS.hourly));
   },
   retention: async () => {
+    await expireDemandRuns();
     await deleteExpiredPosts();
     await deleteExpiredXData();
     await pruneFinishedJobs();
