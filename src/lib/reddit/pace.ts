@@ -201,7 +201,7 @@ function sleep(ms: number): Promise<void> {
  * the retries is thrown to the caller as it came. Any other error is thrown
  * as it came and does not change the pace.
  */
-export async function paced<T>(fn: () => Promise<T>): Promise<T> {
+export async function paced<T>(fn: () => Promise<T>, options: { retries?: boolean } = {}): Promise<T> {
   for (let attempt = 0; ; attempt += 1) {
     await acquire();
     let result: T;
@@ -214,7 +214,7 @@ export async function paced<T>(fn: () => Promise<T>): Promise<T> {
       }
       refused();
       const wait = RETRY_WAITS_MS[attempt];
-      if (wait === undefined) {
+      if (wait === undefined || options.retries === false) {
         throw error;
       }
       await sleep(wait + Math.random() * 500);

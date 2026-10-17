@@ -74,12 +74,12 @@ describeDb("demand exact-job worker", () => {
     expect(await nextRunAt(job)).toBeNull();
   });
 
-  it("keeps the foundation truthful: blocked until collection exists, no provider call or successor", async () => {
+  it("keeps live admission truthful: disabled means no provider call or successor", async () => {
     const { user, run, job } = await fixture();
     const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
     await runBackgroundRequest(request(job.id));
     expect((await getDemandRun(user.id, run.id))?.status).toBe("blocked");
-    expect((await getDemandRun(user.id, run.id))?.error).toMatch(/not installed yet/);
+    expect((await getDemandRun(user.id, run.id))?.error).toMatch(/disabled/);
     expect(fetch).not.toHaveBeenCalled();
     expect(await db().select().from(jobs).where(eq(jobs.demandRunId, run.id))).toHaveLength(1);
     const retried = await retryDemandRun(user.id, run.id);

@@ -1,0 +1,30 @@
+# Demand source and evidence pipeline
+
+[Issue 19](https://github.com/as992949791/Hark/issues/19), based on `v0.1.29-demand-foundation`. Backend stage only; the research UI remains issue 20.
+
+## Implemented boundary
+
+The exact owned worker now runs bounded preparation, query planning, Google/Reddit/X collection, source reads, extraction and grouping. Topic research has no product fit; ready owned profiles are snapshotted without refresh. A new URL gets at most one page and one fact-reading attempt per explicit invocation. Neither path invokes ordinary project creation, competitors, backfill or scheduling. Profile documents are excluded from demand extraction.
+
+One admitted query-planning model call creates two English web queries plus one native query per enabled platform. Search outputs retain at most ten results per web query and eight per native source. The pipeline admits at most eight web and eight native detail reads, three extraction batches of eight documents, and one grouping call per invocation. Explicit retries remain within the run budget/30-attempt limit and reuse successful receipts, including empty searches and already-analyzed documents. Extra material needs another run. There is no saved-baseline lane in this version; collected native timestamps remain their real publication times, distinct from retrieval time.
+
+Normalized result artifacts and actual charges commit atomically. A confirmed billed but unusable result records a failure and releases its reservation; unknown billing blocks the run and preserves the reservation for reconciliation. Retry versions permit only unsuccessful/incomplete work to be bought again. Settled search/extraction output can recover after lease loss without another purchase. Expiry redacts the new result artifacts along with existing evidence/snapshots; billing tombstones survive.
+
+Google snippets cannot support full-text extraction. Native IDs/URLs must agree; generic scraped author/date remain unknown. Submitted and returned HTTP(S) URLs undergo public-address/DNS admission. All page fetching goes through AnyAPI, never direct server fetching. DNS checks protect the application boundary; the remote scraping service operates its own network/redirect infrastructure. Previously retrieved text stays immutable; a hint may be upgraded to a retrieved snapshot before analysis. Canonical IDs, normalized content and repeated quotes are deduplicated. Theme recurrence requires at least two supported, distinct observed author handles and distinct quotes; equal cross-platform handles count conservatively as one. Theme explanations come from cited signal judgements, not another free-form workaround narrative.
+
+Model text is untrusted structured output. Server checks document membership, purpose, exact UTF-16 quotation spans, topic-fit exclusion, a supporting product fact for a positive fit, allowed request types, Chinese explanation shape and valid theme references. Author/date output fields are rejected. These checks prove reference integrity, not semantic entailment or live-model resistance to prompt injection. Relevance, product-fit quality, Chinese interpretations and theme titles still require the planned human review. No fixture result enters the authenticated application.
+
+## Transport verification and limitations
+
+Read-only authenticated `GET /v1/apis/{sku}` on 2026-10-17 succeeded for google.search, web.scrape, reddit.search/post and twitter.search/tweet. It did not invoke `/v1/run`. Admission reads the current published failover maximum rather than caching these prices. Every billed SDK request additionally carries max_cost_usd, stable run/attempt idempotency, no speed preference and no SDK retry/wait loop; Reddit shares the existing rate limiter with its automatic retry disabled. Existing X price caps and separate budgets remain. Wallet research is explicitly refused pending the deferred wallet scope, with no silent house fallback.
+
+Primary contracts: [AnyAPI introduction and maximum pricing](https://getanyapi.com/docs), [Google contract](https://api.getanyapi.com/v1/apis/google.search), [scrape contract](https://api.getanyapi.com/v1/apis/web.scrape). The official contract states that fallback charges stay under the published maximum. The max_cost_usd behavior of these new non-X routes has **not** been exercised with a live billed request here.
+
+Model transport uses the configured profile/analysis model, an up-to-date model listing, full context allowance for the input-price reservation, an explicit output cap, zero per-request extras, provider max_price and disabled provider fallback. Unknown/nonzero unsupported extra pricing is refused. The deliberately conservative full-context reservation can refuse a small run even when its eventual short prompt would cost less. No guessed character/token conversion or silent cheaper model is used. See [OpenRouter price/provider controls](https://openrouter.ai/docs/guides/routing/provider-selection). A response without a trustworthy actual bill remains uncertain.
+
+Both demand switches remain off by default. Local caps remain zero for acceptance. There were no new paid data/model calls, notifications, wallet exchanges, schedule enablement or public deployment. Real-model quality, actual new-route max_cost behavior and the 20-case/16-pass live acceptance are pending. This backend delivery does not complete parent issue 17 or UI issue 20.
+
+## Checks
+
+- Passed targeted source/evidence, pipeline, foundation and worker suites: 57 tests at the first pass; subsequently added transport and hostile-input boundary coverage. Transport uses the real SDK against mocked HTTP, including 429 with a known bill and exactly one paid POST. Synthetic catalog fixtures initially lacked required schema/latency fields; corrected fixtures passed.
+- Supported TypeScript/ESLint quick verification passed during implementation; final full fresh-database verification, independent reviews, application migration/data preservation, archive and exact-commit CI are recorded after execution below.

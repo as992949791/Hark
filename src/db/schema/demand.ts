@@ -21,6 +21,7 @@ export const demandRuns = pgTable("demand_runs", {
   reservedMicros: integer("reserved_micros").notNull().default(0),
   spentMicros: bigint("spent_micros", { mode: "number" }).notNull().default(0),
   maxAttempts: integer("max_attempts").notNull().default(30),
+  retryVersion: integer("retry_version").notNull().default(0),
   leaseToken: text("lease_token"),
   leaseExpiresAt: timestamp("lease_expires_at", { withTimezone: true }),
   themes: jsonb("themes").$type<DemandTheme[]>(),
@@ -85,6 +86,8 @@ export const demandAttempts = pgTable("demand_attempts", {
   upperBoundMicros: integer("upper_bound_micros").notNull(),
   actualMicros: integer("actual_micros"),
   requestId: text("request_id"),
+  /** Normalized output and its charge commit together; expiry redacts this content. */
+  result: jsonb("result").$type<{ ok: true; value: unknown } | { ok: false; error: string }>(),
   status: text("status", { enum: ["reserved", "settled", "uncertain"] }).notNull().default("reserved"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [

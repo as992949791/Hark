@@ -74,12 +74,14 @@ async function writeCharge(tx: Transaction, run: DemandRun, attempt: Attempt, ch
   return overrun;
 }
 
-export async function settleDemandAttempt(lease: DemandLease, attemptId: string, charge: DemandCharge) {
+export async function settleDemandAttempt(lease: DemandLease, attemptId: string, charge: DemandCharge, result?: Attempt["result"]) {
   return withDemandRun(lease.userId, lease.runId, async (tx, run) => {
     assertLease(run, lease);
     const [attempt] = await tx.select().from(demandAttempts).where(and(eq(demandAttempts.id, attemptId), eq(demandAttempts.runId, run.id)));
     if (!attempt || attempt.status === "uncertain") throw new DemandError("This charge needs explicit reconciliation.");
-    return writeCharge(tx, run, attempt, charge);
+    const overrun = await writeCharge(tx, run, attempt, charge);
+    if (result && attempt.status !== "settled") await tx.update(demandAttempts).set({ result }).where(eq(demandAttempts.id, attempt.id));
+    return overrun;
   });
 }
 
@@ -103,10 +105,10 @@ async function uncertain(lease: DemandLease) {
   });
 }
 
-/** The pipeline's transport boundary. Tests inject inert callbacks; no providers are wired in this release. */
-export async function executeDemandAttempt<T>(lease: DemandLease, input: AttemptInput, call: () => Promise<{ value: T; charge: DemandCharge }>): Promise<T> {
+/** Persist normalized output (including billed failures) in the settlement transaction. */
+export async function executeRecordedDemandAttempt(lease: DemandLease, input: AttemptInput, call: () => Promise<{ result: NonNullable<Attempt["result"]>; charge: DemandCharge }>) {
   const attempt = await reserveDemandAttempt(lease, input);
-  let result: { value: T; charge: DemandCharge };
+  let result: { result: NonNullable<Attempt["result"]>; charge: DemandCharge };
   try {
     result = await call();
     micros.parse(result.charge.actualMicros);
@@ -114,7 +116,17 @@ export async function executeDemandAttempt<T>(lease: DemandLease, input: Attempt
     await uncertain(lease);
     throw error;
   }
-  const overrun = await settleDemandAttempt(lease, attempt.id, result.charge);
+  const overrun = await settleDemandAttempt(lease, attempt.id, result.charge, result.result);
   if (overrun) throw new DemandError("Provider exceeded its admitted ceiling; the actual charge was retained.");
-  return result.value;
+  return result.result;
+}
+
+/** Compatibility entry point for callers whose normalized result is always usable. */
+export async function executeDemandAttempt<T>(lease: DemandLease, input: AttemptInput, call: () => Promise<{ value: T; charge: DemandCharge }>): Promise<T> {
+  const result = await executeRecordedDemandAttempt(lease, input, async () => {
+    const response = await call();
+    return { result: { ok: true, value: response.value }, charge: response.charge };
+  });
+  if (!result.ok) throw new DemandError(result.error);
+  return result.value as T;
 }

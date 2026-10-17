@@ -288,6 +288,13 @@
       "when": 1792214633260,
       "tag": "0040_demand_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1792218378040,
+      "tag": "0041_demand_receipts",
+      "breakpoints": true
     }
   ]
 }

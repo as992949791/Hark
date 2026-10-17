@@ -127,7 +127,7 @@ export async function retryDemandRun(userId: string, runId: string) {
     if (run.status !== "queued") await assertOwnerCapacity(tx, userId);
     const [job] = await tx.select().from(jobs).where(eq(jobs.demandRunId, run.id)).for("update");
     if (!job || (job.startedAt && !job.finishedAt)) throw new DemandError("The previous worker has not finished.");
-    await tx.update(demandRuns).set({ status: "queued", error: null, finishedAt: null, leaseToken: null, leaseExpiresAt: null }).where(eq(demandRuns.id, run.id));
+    await tx.update(demandRuns).set({ status: "queued", retryVersion: run.retryVersion + 1, error: null, finishedAt: null, leaseToken: null, leaseExpiresAt: null }).where(eq(demandRuns.id, run.id));
     const [queued] = await tx.update(jobs).set({ runAt: new Date(), startedAt: null, finishedAt: null, error: null })
       .where(eq(jobs.id, job.id)).returning();
     return queued;
@@ -142,6 +142,7 @@ export async function expireDemandRuns(now = new Date()): Promise<number> {
       .where(and(lte(demandRuns.expiresAt, now), ne(demandRuns.status, "expired"))).limit(500).for("update");
     const ids = expired.map((row) => row.id);
     if (!ids.length) return 0;
+    await tx.update(demandAttempts).set({ result: null }).where(inArray(demandAttempts.runId, ids));
     await tx.delete(demandDocuments).where(inArray(demandDocuments.runId, ids));
     await tx.update(demandAttempts).set({ status: "uncertain" }).where(and(inArray(demandAttempts.runId, ids), eq(demandAttempts.status, "reserved")));
     await tx.update(demandRuns).set({ status: "expired", input: null, profileSnapshot: null, themes: null,
