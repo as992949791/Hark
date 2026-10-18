@@ -4,7 +4,7 @@ import { DemandError, type DemandAssessment, type ProfileSnapshot } from "./cont
 import { validateThemes, type EvidenceDocument, type ValidatedSignal } from "./evidence";
 
 const chinese = z.string().min(1).max(1500).regex(/\p{Script=Han}/u);
-const quotation = z.string().min(8).max(3000);
+const quotation = z.string().min(8).max(3000).describe("Copy a short contiguous substring VERBATIM from document.body, including every space, newline and Markdown character. Never join separate lines, paraphrase or normalize the text.");
 export const reviewedDemand = z.object({
   documents: z.array(z.object({ documentId: z.uuid(), role: z.enum(["seeker", "user_experience", "tutorial", "recommendation", "promotion", "unclear"]), contextQuote: quotation }).strict()).max(72),
   cases: z.array(z.object({

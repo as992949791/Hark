@@ -215,6 +215,8 @@ Controls and working containers use a compact rhythm of (4px), (8px), (16px) and
 
 The homepage has its own broader container (1264px maximum) with (40px) inline padding, reducing to (20px) on narrow screens. Its layout changes at (1120px), (820px) and (600px). Desktop and phone framing belongs to that surface; at the smallest breakpoint the desktop frame is hidden and the phone becomes the readable primary preview. The phone's content scroll region is keyboard focusable. Preserve this surface behavior without applying hardware frames or centered marketing layouts to ordinary application modules.
 
+Research results retain native disclosure controls for all supporting original quotations and product requirements. A merged case is distinct from an observed-author count. Reused-source dates/expiry, unknown requirements and unreviewed history use explicit text within the existing evidence hierarchy; no new visual status is inferred from model confidence.
+
 ## Elevation & Depth
 
 Working screens rely mainly on tonal layers and fine borders. The rail stays navy, content stays opaque, and the shell's blue/cyan wash is atmospheric ground. The homepage adds translucent navigation with blur (18px), CSS cloud layers and soft hardware shadows. Device depth and glass belong to those public presentation components, while selection and keyboard focus stay legible on their own.
