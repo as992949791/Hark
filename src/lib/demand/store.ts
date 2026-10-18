@@ -7,6 +7,12 @@ import { DemandError, type DemandLease } from "./contracts";
 export type DemandRun = typeof demandRuns.$inferSelect;
 export type Transaction = Parameters<Parameters<ReturnType<typeof db>["transaction"]>[0]>[0];
 
+/** Active runs retain their whole ceiling until terminal settlement releases the unused part. */
+export function committedDemandBudget(run: DemandRun) {
+  return ["queued", "running"].includes(run.status) || run.reservedMicros > 0
+    ? Math.max(run.budgetMicros, run.spentMicros + run.reservedMicros) : run.spentMicros;
+}
+
 export function demandEnabled() {
   if (!config().DEMAND_DISCOVERY_ENABLED) throw new DemandError("Demand research is disabled.");
 }

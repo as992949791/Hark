@@ -8,7 +8,7 @@ import { config } from "@/lib/config";
 import { DemandError, micros } from "./contracts";
 import { researchAvailability } from "./report";
 import { createDemandRunInTransaction } from "./runs";
-import { demandEnabled, lockBudget, type Transaction } from "./store";
+import { committedDemandBudget, demandEnabled, lockBudget, type Transaction } from "./store";
 
 export function monitoringAvailable(userId: string) {
   const settings = config();
@@ -58,14 +58,10 @@ export async function listDemandMonitors(userId: string) {
   return monitors.map(monitor => {
     const runs = history.filter(row => row.monitorId === monitor.id);
     return { ...monitor, spentMicros: runs.reduce((sum, row) => sum + row.run.spentMicros, 0),
-      committedMicros: runs.reduce((sum, row) => sum + committedBudget(row.run), 0),
+      committedMicros: runs.reduce((sum, row) => sum + committedDemandBudget(row.run), 0),
       latestRunId: runs[0]?.run.id ?? null, latestStatus: runs[0]?.run.status ?? null,
       deliveryState: runs[0]?.delivery.deliveryState ?? "none", deliveryError: runs[0]?.delivery.deliveryError ?? null };
   });
-}
-
-function committedBudget(run: typeof demandRuns.$inferSelect) {
-  return ["queued", "running"].includes(run.status) || run.reservedMicros > 0 ? Math.max(run.budgetMicros, run.spentMicros + run.reservedMicros) : run.spentMicros;
 }
 
 export async function setDemandMonitorEnabled(userId: string, monitorId: string, enabled: boolean) {
@@ -109,7 +105,7 @@ export async function admitDemandMonitors(userId: string, now = new Date()) {
       const pause = async (reason: string) => { await tx.update(demandMonitors).set({ enabled: false, reason }).where(eq(demandMonitors.id, monitor.id)); };
       if (!(await monitorEmailChannels(userId, tx)).some(row => row.id === monitor.emailChannelId)) { await pause("channel"); continue; }
       if (history.some(({ run, processedAt }) => run.reservedMicros > 0 && !["queued", "running"].includes(run.status) || ["failed", "blocked"].includes(run.status) || run.status === "expired" && !processedAt)) { await pause("review"); continue; }
-      if (history.reduce((sum, row) => sum + committedBudget(row.run), 0) + monitor.perRunBudgetMicros > monitor.totalBudgetMicros) {
+      if (history.reduce((sum, row) => sum + committedDemandBudget(row.run), 0) + monitor.perRunBudgetMicros > monitor.totalBudgetMicros) {
         // An active run already owns its ceiling; do not pause it prematurely.
         if (!history.some(({ run, deliveryState }) => ["queued", "running"].includes(run.status) || ["pending", "sending"].includes(deliveryState))) await pause("budget");
         continue;
@@ -119,7 +115,8 @@ export async function admitDemandMonitors(userId: string, now = new Date()) {
       const active = await tx.select({ id: demandRuns.id }).from(demandRuns).where(and(eq(demandRuns.userId, userId), inArray(demandRuns.status, ["queued", "running"])));
       if (active.length >= 3) break;
       const run = await createDemandRunInTransaction(tx, userId, { key: randomUUID(), budgetMicros: monitor.perRunBudgetMicros,
-        ...(monitor.mode === "product" ? { mode: "product", url: monitor.input, ...(monitor.projectId ? { projectId: monitor.projectId } : {}) } : { mode: "topic", topic: monitor.input }) });
+        // The saved URL stays authoritative even if its former project now has another URL.
+        ...(monitor.mode === "product" ? { mode: "product", url: monitor.input } : { mode: "topic", topic: monitor.input }) });
       await tx.insert(demandMonitorRuns).values({ monitorId: monitor.id, runId: run.id });
       await tx.update(demandMonitors).set({ nextRunAt: new Date(now.getTime() + 86_400_000) }).where(eq(demandMonitors.id, monitor.id));
       const [job] = await tx.update(jobs).set({ runAt: now }).where(eq(jobs.demandRunId, run.id)).returning(); admitted.push(job);

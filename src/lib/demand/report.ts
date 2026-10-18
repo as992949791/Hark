@@ -34,6 +34,10 @@ export const RESEARCH_STATUS = { queued: "等待处理", running: "研究中", p
 
 export function researchFailure(message: string | null) {
   if (!message) return null;
+  if (/monitor budget/i.test(message)) return "监控累计预算不足以重新预留这一轮，本次重试尚未提交。";
+  if (/another monitor run/i.test(message)) return "这项监控还有一轮正在处理，请完成后再重试。";
+  if (/enable this monitor/i.test(message)) return "这项监控已暂停，请先在监控列表开启后再重试。";
+  if (/monitor notification/i.test(message)) return "这轮的提醒尚未发送完成，请先检查监控列表中的邮件状态。";
   if (/uncertain|unconfirmed|reconcil|outstanding charges/i.test(message)) return "有请求的费用尚待确认，已停止重复请求。请先确认账单，再继续研究。";
   if (/budget|limit|cap|ceiling|pric/i.test(message)) return "本轮预算、处理数量或系统每日额度已到上限。成功结果已保留；需要更多材料时请新建研究。";
   if (/disabled|credentials|wallet|configured/i.test(message)) return "检索服务暂未准备好，研究已暂停，已有记录会保留。";

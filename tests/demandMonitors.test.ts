@@ -2,13 +2,13 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { alerts, demandDocuments, demandMonitorRuns, demandMonitors, demandRuns, demandSignals, jobs, users } from "@/db/schema";
+import { alerts, demandDocuments, demandMonitorRuns, demandMonitors, demandRuns, demandSignals, jobs, projects, users } from "@/db/schema";
 import { deliverDemandMonitorRun, processDemandMonitorRun } from "@/lib/demand/monitor-notifications";
 import { sendEmail } from "@/lib/alerts/email";
 import { runScheduledTick, scheduledJobAllowed } from "@/jobs/scheduled";
 import { runBackgroundRequest } from "@/jobs/serverless";
 import * as provider from "@/lib/demand/transport";
-import { createDemandRun } from "@/lib/demand/runs";
+import { createDemandRun, retryDemandRun } from "@/lib/demand/runs";
 import { admitDemandMonitors, deleteDemandMonitor, listDemandMonitors, saveDemandMonitor, setDemandMonitorEnabled } from "@/lib/demand/monitors";
 import { describeDb, makeProject, makeUser } from "./fixtures/db";
 
@@ -33,6 +33,36 @@ function enableRuntime(userId: string) {
   vi.stubEnv("SMTP_URL", "smtp://invalid.example"); vi.stubEnv("ALERTS_FROM_EMAIL", "hark@example.com");
 }
 describeDb("saved demand monitors", () => {
+  it("re-reserves a manual retry's full ceiling and refuses a second active run or exhausted lifetime budget", async () => {
+    const f = await fixture(); enableRuntime(f.user.id);
+    const monitor = await saveDemandMonitor(f.user.id, { ...f.input, totalBudgetMicros: 110_000 }); await setDemandMonitorEnabled(f.user.id, monitor.id, true);
+    const [first] = await admitDemandMonitors(f.user.id);
+    await db().update(demandRuns).set({ status: "partial", spentMicros: 10_000 }).where(eq(demandRuns.id, first.demandRunId!));
+    await db().update(jobs).set({ finishedAt: new Date() }).where(eq(jobs.id, first.id));
+    await processDemandMonitorRun(f.user.id, first.demandRunId!);
+    await db().update(demandMonitors).set({ nextRunAt: new Date(0) }).where(eq(demandMonitors.id, monitor.id));
+    const [second] = await admitDemandMonitors(f.user.id);
+    await expect(retryDemandRun(f.user.id, first.demandRunId!)).rejects.toThrow("monitor");
+    await db().update(demandRuns).set({ status: "complete", spentMicros: 20_000 }).where(eq(demandRuns.id, second.demandRunId!));
+    await expect(retryDemandRun(f.user.id, first.demandRunId!)).rejects.toThrow("monitor budget");
+    await db().update(demandRuns).set({ spentMicros: 5000 }).where(eq(demandRuns.id, second.demandRunId!));
+    expect((await retryDemandRun(f.user.id, first.demandRunId!)).id).toBe(first.id);
+    expect((await listDemandMonitors(f.user.id))[0].committedMicros).toBe(105_000);
+    expect((await db().select().from(demandMonitorRuns).where(eq(demandMonitorRuns.runId, first.demandRunId!)))[0].processedAt).toBeNull();
+  });
+  it("keeps the saved product URL authoritative after the product project's URL changes", async () => {
+    const f = await fixture(); enableRuntime(f.user.id);
+    const product = await makeProject(f.user.id, { url: "https://old.example.com", solution: "Captions" });
+    const source = await createDemandRun(f.user.id, { key: randomUUID(), mode: "product", url: product.url!, projectId: product.id, budgetMicros: 100_000 });
+    await db().update(demandRuns).set({ status: "complete" }).where(eq(demandRuns.id, source.id));
+    const monitor = await saveDemandMonitor(f.user.id, { ...f.input, sourceRunId: source.id }); await setDemandMonitorEnabled(f.user.id, monitor.id, true);
+    await db().update(projects).set({ url: "https://changed.example.com" }).where(eq(projects.id, product.id));
+    const other = await saveDemandMonitor(f.user.id, { ...f.input, key: randomUUID() }); await setDemandMonitorEnabled(f.user.id, other.id, true);
+    const admitted = await admitDemandMonitors(f.user.id); expect(admitted).toHaveLength(2);
+    const [association] = await db().select().from(demandMonitorRuns).where(eq(demandMonitorRuns.monitorId, monitor.id));
+    const [run] = await db().select().from(demandRuns).where(eq(demandRuns.id, association.runId));
+    expect(run).toMatchObject({ input: "https://old.example.com/", projectId: null, profileSnapshot: null });
+  });
   it("holds pending delivery while paused and refuses a removed email channel", async () => {
     const f = await fixture(); enableRuntime(f.user.id);
     const monitor = await saveDemandMonitor(f.user.id, f.input); await setDemandMonitorEnabled(f.user.id, monitor.id, true);

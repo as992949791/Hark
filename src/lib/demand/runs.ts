@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { and, desc, eq, gt, inArray, isNull, lte, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { demandAttempts, demandDocuments, demandRuns, demandSignals, jobs, projects } from "@/db/schema";
+import { demandAttempts, demandDocuments, demandMonitorRuns, demandMonitors, demandRuns, demandSignals, jobs, projects } from "@/db/schema";
 import { LEASE_MS } from "@/jobs/lease";
 import { RETENTION_DAYS } from "@/lib/tiers";
 import { demandInput, DemandError, type DemandInput, type DemandLease } from "./contracts";
-import { assertLease, demandEnabled, lockBudget, withDemandRun, type DemandRun, type Transaction } from "./store";
+import { assertLease, committedDemandBudget, demandEnabled, lockBudget, withDemandRun, type DemandRun, type Transaction } from "./store";
 
 export const DEMAND_JOB = "demand_research";
 
@@ -140,6 +140,7 @@ export async function retryDemandRun(userId: string, runId: string) {
       throw new DemandError("This research run cannot be retried.");
     }
     if (run.reservedMicros) throw new DemandError("Reconcile outstanding charges before retrying.");
+    await reserveMonitorRetry(tx, run);
     if (run.status !== "queued") await assertOwnerCapacity(tx, userId);
     const [job] = await tx.select().from(jobs).where(eq(jobs.demandRunId, run.id)).for("update");
     if (!job || (job.startedAt && !job.finishedAt)) throw new DemandError("The previous worker has not finished.");
@@ -148,6 +149,21 @@ export async function retryDemandRun(userId: string, runId: string) {
       .where(eq(jobs.id, job.id)).returning();
     return queued;
   });
+}
+
+/** A terminal monitor run released its unused ceiling; an explicit retry must reserve it again. */
+async function reserveMonitorRetry(tx: Transaction, run: DemandRun) {
+  const [linked] = await tx.select().from(demandMonitorRuns).where(eq(demandMonitorRuns.runId, run.id));
+  if (!linked) return;
+  const [monitor] = await tx.select().from(demandMonitors).where(and(eq(demandMonitors.id, linked.monitorId), eq(demandMonitors.userId, run.userId)));
+  if (!monitor?.enabled) throw new DemandError("Enable this monitor before retrying its research.");
+  if (["pending", "sending"].includes(linked.deliveryState)) throw new DemandError("Finish the monitor notification before retrying research.");
+  const others = await tx.select({ run: demandRuns }).from(demandMonitorRuns).innerJoin(demandRuns, eq(demandRuns.id, demandMonitorRuns.runId))
+    .where(and(eq(demandMonitorRuns.monitorId, monitor.id), ne(demandMonitorRuns.runId, run.id)));
+  if (others.some(({ run }) => ["queued", "running"].includes(run.status))) throw new DemandError("Another monitor run is already active.");
+  const committed = others.reduce((sum, row) => sum + committedDemandBudget(row.run), 0);
+  if (committed + Math.max(run.budgetMicros, run.spentMicros) > monitor.totalBudgetMicros) throw new DemandError("The monitor budget cannot cover this retry.");
+  await tx.update(demandMonitorRuns).set({ processedAt: null }).where(eq(demandMonitorRuns.runId, run.id));
 }
 
 /** Removes source content; run/attempt/ledger totals remain as billing tombstones. */
