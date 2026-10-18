@@ -64,9 +64,22 @@ describe("contextual demand review", () => {
   });
   it.each(["tutorial", "recommendation", "promotion", "unclear"])("refuses to publish %s material even with an exact first-person quote", (role) => {
     const items = [sample()]; const raw = review(items); raw.documents[0].role = role;
-    expect(() => validate(raw, items)).toThrow("Non-customer source");
+    expect(validate(raw, items)).toMatchObject({ signals: [], themes: [], rejected: [{ signalId: items[0].signal.id }] });
     raw.cases = []; raw.rejected = [{ signalId: items[0].signal.id, reason: "这不是用户自己的未解决需求。" }];
     expect(validate(raw, items)).toMatchObject({ signals: [], themes: [] });
+  });
+  it("keeps grounded customer cases when the model also lists explicitly excluded sources as cases", () => {
+    const items = [sample("alice"), sample("seller", "I built a caption tool and recommend everyone try it.")];
+    const raw = review(items); raw.documents[1].role = "promotion";
+    raw.rejected = [{ signalId: items[1].signal.id, reason: "这是自我推广。" }];
+    const result = validate(raw, items);
+    expect(result.signals.map(signal => signal.id)).toEqual([items[0].signal.id]);
+    expect(result.rejected.map(item => item.signalId)).toEqual([items[1].signal.id]);
+    const mixed = review(items); mixed.documents[1].role = "promotion";
+    mixed.cases[0].signalIds.push(items[1].signal.id); mixed.cases.pop();
+    expect(() => validate(mixed, items)).toThrow("Non-customer source");
+    const duplicateCustomer = review([items[0]]); duplicateCustomer.rejected = [{ signalId: items[0].signal.id, reason: "同时剔除的冲突决定。" }];
+    expect(() => validate(duplicateCustomer, [items[0]])).toThrow("citation");
   });
   it("keeps different authors separate and requires independent evidence for a recurring theme", () => {
     const items = [sample("alice"), sample("bob", "Which editor can generate accurate captions for my clips?")];
