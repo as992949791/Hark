@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { validateDemandReview } from "@/lib/demand/quality";
+import { demandReviewSchema, validateDemandReview } from "@/lib/demand/quality";
 import type { EvidenceDocument, ValidatedSignal } from "@/lib/demand/evidence";
 import type { ProfileSnapshot } from "@/lib/demand/contracts";
 
@@ -24,6 +24,11 @@ function review(items: ReturnType<typeof sample>[], product = false) {
 const validate = (raw: ReturnType<typeof review>, items: ReturnType<typeof sample>[], product = false) => validateDemandReview(raw, items.map(x => x.signal), items.map(x => x.doc), product ? profile : null);
 
 describe("contextual demand review", () => {
+  it("requests a topic-only schema that cannot emit product requirements or exclusion", () => {
+    const items = [sample()];
+    expect(demandReviewSchema("topic").safeParse(review(items)).success).toBe(true);
+    expect(demandReviewSchema("topic").safeParse(review(items, true)).success).toBe(false);
+  });
   it("merges repeat needs from one observed author while preserving both original quotations", () => {
     const items = [sample("u/Alice"), sample("@alice", "I still need a reliable automatic caption editor.")];
     const result = validate(review(items), items);

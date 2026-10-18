@@ -7,7 +7,7 @@ import { executeRecordedDemandAttempt } from "./budget";
 import { DemandError, type DemandLease, type ProfileSnapshot } from "./contracts";
 import { admitSourceUrl, contentHash, deduplicateDocuments, quotedSignals, validateSignals,
   type EvidenceDocument, type Source, type SourceDocument } from "./evidence";
-import { demandCandidateId, reviewedDemand, REVIEW_INSTRUCTIONS, validateDemandReview } from "./quality";
+import { demandCandidateId, demandReviewSchema, REVIEW_INSTRUCTIONS, validateDemandReview } from "./quality";
 import { finishDemandRun, getDemandRun } from "./runs";
 import { normalizeSource, type DataSku } from "./sources";
 import { assertLease, withDemandRun } from "./store";
@@ -247,7 +247,7 @@ export async function executeDemandPipeline(lease: DemandLease, supplied?: Deman
       const reviewKey = `review-v1-${contentHash(signals.map((signal) => signal.id).sort().join(",")).slice(0, 24)}`;
       const review = await attempt("review", () => model(lease, transport, reviewKey,
         { mode: run.mode, profile, documents: documents.filter((doc) => signals.some((signal) => signal.documentId === doc.id)),
-          candidates: signals.map(({ id, documentId, quote, author }) => ({ id, documentId, quote, author })) }, reviewedDemand,
+          candidates: signals.map(({ id, documentId, quote, author }) => ({ id, documentId, quote, author })) }, demandReviewSchema(run.mode),
         (raw) => validateDemandReview(raw, signals, documents, profile), documents.some((doc) => doc.source === "x") ? "x" : "web", REVIEW_INSTRUCTIONS));
       if (review) await publishReview(lease, review);
     } else await publishReview(lease, { signals: [], themes: [], rejected: [] });
