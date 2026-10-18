@@ -10,7 +10,7 @@ export const reviewedDemand = z.object({
   cases: z.array(z.object({
     signalIds: z.array(z.uuid()).min(1).max(72), problem: chinese.max(160), explanation: chinese,
     requestType: z.enum(["pain", "recommendation", "alternative"]),
-    requirements: z.array(z.object({ documentId: z.uuid(), quote: quotation, productFact: z.string().min(8).max(1000).nullable(),
+    requirements: z.array(z.object({ documentId: z.uuid(), quote: quotation, productFact: z.string().min(1).max(1000).nullable(),
       status: z.enum(["supported", "unknown", "contradicted"]) }).strict()).max(12),
     excludedProductQuote: quotation.nullable(), fitReason: chinese.nullable(),
   }).strict()).max(72),

@@ -86,9 +86,9 @@ describe("demand bounded provider transport (mock network only)", () => {
     expect(sent).not.toHaveProperty("models"); expect(sent).not.toHaveProperty("tools");
     expect(sent.response_format.type).toBe("json_schema");
   });
-  it("uses the official DeepSeek JSON endpoint with the requested schema and no provider fallback", async () => {
-    vi.stubEnv("OPENROUTER_PROFILE_MODEL", "deepseek/deepseek-v4.1-flash");
-    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [{ ...modelRow, id: "deepseek/deepseek-v4.1-flash" }] }))
+  it.each(["deepseek/deepseek-v4.1-flash", "deepseek/deepseek-v4.1-flash-1017"])("uses the official DeepSeek JSON endpoint for %s with no provider fallback", async (model) => {
+    vi.stubEnv("OPENROUTER_PROFILE_MODEL", model);
+    const fetch = vi.fn().mockResolvedValueOnce(response({ data: [{ ...modelRow, id: model }] }))
       .mockResolvedValueOnce(response({ usage: { cost: 0, is_byok: true, cost_details: { upstream_inference_cost: 0.0002 } },
         choices: [{ finish_reason: "stop", message: { content: '{"answer":"yes"}' } }],
       }));

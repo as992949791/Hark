@@ -23,7 +23,9 @@ describe("research evidence presentation", () => {
   it("does not certify legacy unreviewed candidates or trust their stored recurring label", () => {
     const report = syntheticDemandReport(); report.run.themes![0].kind = "recurring";
     report.signals.forEach((signal) => { signal.assessment = null; });
+    report.run.mode = "product"; report.signals[0].productFit = "yes";
     expect(render(report)).toContain("历史候选尚未经过新版语境筛选");
+    expect(render(report)).not.toContain("符合产品需求");
     const html = render(report, "themes");
     expect(html).toContain("待复核主题"); expect(html).not.toContain("多位作者的观察");
   });

@@ -92,7 +92,7 @@ export async function demandTransport(userId: string): Promise<DemandTransport> 
     async prepareModel(request) {
       const jsonSchema = z.toJSONSchema(request.schema);
       // The official Flash endpoint supports JSON mode rather than native strict schemas.
-      const deepseekJsonMode = model === "deepseek/deepseek-v4.1-flash";
+      const deepseekJsonMode = ["deepseek/deepseek-v4.1-flash", "deepseek/deepseek-v4.1-flash-1017"].includes(model);
       const system = deepseekJsonMode ? `${request.system}\nReturn a JSON object matching this JSON schema:\n${JSON.stringify(jsonSchema)}` : request.system;
       if (Buffer.byteLength(request.prompt + system) > 120_000) throw new DemandError("Research model input is too large.");
       const response = await fetch("https://openrouter.ai/api/v1/models", { signal: AbortSignal.timeout(15_000), redirect: "error" });

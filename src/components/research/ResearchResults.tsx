@@ -66,7 +66,7 @@ export function ResearchResults({ report, tab, enabled }: { report: DemandReport
             {signal.assessment ? <h3 className="mt-3 text-body font-medium">{signal.assessment.problem}</h3> : null}
             <blockquote lang="en" className="mt-4 max-w-[75ch] whitespace-pre-wrap break-words text-body [overflow-wrap:anywhere]">{signal.quote}</blockquote>
             <p className="mt-4 max-w-[65ch] text-body text-fg-muted">{signal.explanation}</p>
-            {run.mode === "product" && signal.productFit ? <p className="mt-3 text-small font-medium">{fit[signal.productFit]}</p> : null}
+            {run.mode === "product" && signal.assessment && signal.productFit ? <p className="mt-3 text-small font-medium">{fit[signal.productFit]}</p> : null}
             {run.mode === "product" && signal.assessment?.fitReason ? <p className="mt-2 max-w-[65ch] text-small text-fg-muted">{signal.assessment.fitReason}</p> : null}
             {signal.assessment ? <details className="mt-3 text-small"><summary className="min-h-11 cursor-pointer text-primary">保留 {signal.assessment.evidence.length} 处原文</summary>
               <ol className="mt-2 space-y-4">{signal.assessment.evidence.map((evidence, index) => {

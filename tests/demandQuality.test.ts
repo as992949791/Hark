@@ -69,6 +69,12 @@ describe("contextual demand review", () => {
     raw.cases[0].requirements[0].productFact = profile.targetUsers;
     expect(() => validate(raw, items, true)).toThrow("exact capability fact");
   });
+  it("accepts a short exact capability fact from the saved product profile", () => {
+    const items = [sample()]; const raw = review(items, true);
+    raw.cases[0].requirements[0].productFact = "自动字幕";
+    const result = validateDemandReview(raw, items.map(x => x.signal), items.map(x => x.doc), { ...profile, solution: "自动字幕" });
+    expect(result.signals[0].productFit).toBe("yes");
+  });
   it("does not recommend a product the requester explicitly wants to replace", () => {
     const items = [sample("alice", "I need a free alternative to CaptionApp for accurate captions.")];
     const raw = review(items, true); raw.cases[0].excludedProductQuote = items[0].doc.body;
