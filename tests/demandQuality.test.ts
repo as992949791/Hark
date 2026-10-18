@@ -17,13 +17,39 @@ function review(items: ReturnType<typeof sample>[], product = false) {
     documents: items.map(({ doc }) => ({ documentId: doc.id, role: "seeker", contextQuote: doc.body! })),
     cases: items.map(({ doc, signal }) => ({ signalIds: [signal.id], problem: "准确的自动字幕", explanation: "用户明确需要自动字幕。", requestType: "recommendation",
       requirements: product ? [{ documentId: doc.id, quote: doc.body!, productFact: profile.solution, status: "supported" }] : [],
-      fitReason: product ? "已知自动字幕能力支持此需求。" : null, excludedProductQuote: null as string | null })),
+      fitReason: product ? "已知自动字幕能力支持此需求。" : null, excludedProductQuote: null as string | null, analysis: [] })),
     rejected: [] as { signalId: string; reason: string }[],
   };
 }
 const validate = (raw: ReturnType<typeof review>, items: ReturnType<typeof sample>[], product = false) => validateDemandReview(raw, items.map(x => x.signal), items.map(x => x.doc), product ? profile : null);
 
 describe("contextual demand review", () => {
+  it("does not accept a workaround cited from another case, and preserves evidence while merging repeats", () => {
+    const items = [sample("alice", "I manually edit every single caption."), sample("alice", "Manual correction takes two hours per video.")];
+    const raw = review(items);
+    const analysis = [
+      { kind: "workaround", summary: "逐条修正字幕。", documentId: items[0].doc.id, quote: items[0].doc.body! },
+      { kind: "limitation", summary: "校对字幕耗时。", documentId: items[1].doc.id, quote: items[1].doc.body! },
+    ];
+    const reviewed = { ...raw, cases: raw.cases.map((item, index) => ({ ...item, analysis: [analysis[index]] })) };
+    const result = validateDemandReview(reviewed, items.map(x => x.signal), items.map(x => x.doc), null);
+    expect(result.signals[0].assessment.analysis).toHaveLength(2);
+    reviewed.cases[0].analysis = [analysis[1]];
+    expect(() => validateDemandReview(reviewed, items.map(x => x.signal), items.map(x => x.doc), null)).toThrow("pain-analysis quotation");
+  });
+  it("grounds structured workarounds and limitations in the retained case's original text", () => {
+    const items = [sample("alice", "I fix every caption manually. It takes two hours per video.")];
+    const raw = { ...review(items), cases: review(items).cases.map(item => ({ ...item, analysis: [
+      { kind: "workaround", summary: "逐条手动修正字幕。", documentId: items[0].doc.id, quote: "I fix every caption manually." },
+      { kind: "limitation", summary: "每个视频要花两小时。", documentId: items[0].doc.id, quote: "It takes two hours per video." },
+    ] })) };
+    const result = validateDemandReview(raw, items.map(x => x.signal), items.map(x => x.doc), null);
+    expect(result.signals[0].assessment).toMatchObject({ analysis: [
+      { kind: "workaround", quoteStart: 0, quoteEnd: 29 }, { kind: "limitation", quoteStart: 30, quoteEnd: 59 },
+    ] });
+    raw.cases[0].analysis[0].quote = "I use an expensive outsourced editor.";
+    expect(() => validateDemandReview(raw, items.map(x => x.signal), items.map(x => x.doc), null)).toThrow("pain-analysis quotation");
+  });
   it("requests a topic-only schema that cannot emit product requirements or exclusion", () => {
     const items = [sample()];
     expect(demandReviewSchema("topic").safeParse(review(items)).success).toBe(true);

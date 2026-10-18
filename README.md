@@ -30,6 +30,8 @@ Hark 是一个使用 TypeScript / Next.js 构建的 AI 需求研究工作台。�
 | 产品匹配校准 | 逐项核对能力、价格等明确要求；无依据保持未知，求本品替代者不能判为本品匹配 |
 | 原文复用 | 手动选择已有研究的原文重新分析，保留原收集和到期时间，不重复购买同一批搜索资料 |
 | 痛点主题视图 | 把相关线索整理为中文主题，回到支撑材料检查；区分来源数与已观察到的独立作者数 |
+| 深入痛点分析 | 分开展示目前的解决办法和现有方案局限，每项附原文引用；未明确说明时不推断 |
+| 每日持续监控 | 保存研究条件、邮件渠道与单轮／累计预算；默认暂停，首轮建立基线，之后提醒未记录的需求证据 |
 | 产品画像 | 从产品页面提取方案、能力、目标用户和竞品；支持检查及编辑 |
 | Reddit / X 线索 | 配置关键词与来源，AI 判断匹配度和意图；查看原帖、会话、理由和费用 |
 | 线索处理 | 筛选、标记已回复、隐藏、不匹配与屏蔽，保留人工跟进的决定权 |
@@ -83,11 +85,11 @@ flowchart LR
 - 20 条结果中至少 16 条相关的人工质量目标。
 - 更广泛的人工标注评估，以及两种模式的全新完整搜索。
 - Slack / Discord 真实收件和钱包 OAuth；钱包工作暂缓。
-- 新网页来源的持续监控、自动外联和商业效果。当前手动研究不会自动扩展成长期监控。
+- 新网页持续监控的真实付费／邮件验收，以及新增痛点结构的真实模型质量；自动化和页面验证见[监控验收](docs/acceptance/27-demand-monitoring.md)。自动外联和商业效果未实现或验证。
 
-最新版已发布至[公网测试站点](https://hark-as992949791.netlify.app/)，发布身份、数据库迁移和访问检查见[部署验收](docs/acceptance/26-public-research-release.md)。公网保留已有云端数据；本地研究结果未自动同步。付费检索和自动通知继续关闭。
+此前的研究版本已发布至[公网测试站点](https://hark-as992949791.netlify.app/)，发布身份、数据库迁移和访问检查见[部署验收](docs/acceptance/26-public-research-release.md)。本次持续监控和深入分析尚未发布。公网保留已有云端数据；本地研究结果未自动同步。付费检索和自动通知继续关闭。
 
-仓库完整 CI 在专用测试数据库上运行 TypeScript、ESLint、测试和生产构建。最新存档提交的结果请查看上方 Check 状态；本轮本地已通过 124 项相关测试。自动化测试通过不等于模型输出相关或已有用户采用。
+仓库完整 CI 在专用测试数据库上运行 TypeScript、ESLint、测试和生产构建。最新存档提交的结果请查看上方 Check 状态；本轮验证范围见监控验收记录。自动化测试通过不等于模型输出相关或已有用户采用。
 
 ## 技术栈与工程设计
 
@@ -142,6 +144,7 @@ SCHEDULED_WORKER_ENABLED=false
 ALERT_INVITES=false
 DEMAND_DISCOVERY_ENABLED=false
 DEMAND_LIVE_ENABLED=false
+DEMAND_MONITORING_ENABLED=false
 HOUSE_DATA_CAP_USD_PER_DAY=0
 HOUSE_LLM_CAP_USD_PER_DAY=0
 HOUSE_X_DATA_CAP_USD_PER_DAY=0
@@ -165,6 +168,7 @@ npm run dev:local
 | `OPENROUTER_PROFILE_MODEL` | 产品画像、简报及手动研究分析模型；空值回退到通用模型 |
 | `JEV_MODEL` | 现有线索工作流的 Jev 判断模型 |
 | `DEMAND_DISCOVERY_ENABLED` / `DEMAND_LIVE_ENABLED` | 手动研究界面和真实执行开关，两者均需明确开启 |
+| `DEMAND_MONITORING_ENABLED` | 持续监控独立开关，默认关闭；还需定时／后台 worker、指定拥有者、现有邮件渠道、供应商密钥和正数费用上限 |
 | `X_LEADS` | X 来源及已有 X 页面开关 |
 | `HOUSE_*_CAP_USD_PER_DAY` | 实例每天的数据 / 模型费用上限和 X 子额度 |
 | `SMTP_URL` / `ALERTS_FROM_EMAIL` | 可选邮件通知配置 |

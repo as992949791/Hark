@@ -1,12 +1,13 @@
 import { config } from "@/lib/config";
 import type { Job } from "./registry";
 import { ownedWorkerJob } from "./owner";
+import { scheduledDemandJobAllowed } from "./demand-monitors";
 
 /** The existing authenticated action queues first, then wakes only that job. */
 export async function dispatchJob(job: Pick<Job, "id" | "projectId" | "runAt"> & Partial<Pick<Job, "demandRunId">>, scheduled = false): Promise<void> {
   const settings = config();
   if (!settings.BACKGROUND_WORKER_ENABLED || (!job.projectId && !job.demandRunId) || job.runAt.getTime() > Date.now() ||
-    (job.demandRunId && (!settings.DEMAND_DISCOVERY_ENABLED || scheduled))) {
+    (job.demandRunId && (!settings.DEMAND_DISCOVERY_ENABLED || scheduled && !(await scheduledDemandJobAllowed(job.demandRunId))))) {
     return;
   }
   if (!settings.BACKGROUND_WORKER_SECRET || !settings.BACKGROUND_WORKER_USER_ID) {

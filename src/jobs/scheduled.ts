@@ -9,9 +9,11 @@ import { xEnabledFor } from "@/lib/x/enabled";
 import { dispatchJob } from "./dispatch";
 import { claimableJob } from "./runner";
 import { handlerFor, type Job } from "./registry";
+import { dueDemandMonitorJobs, scheduledDemandJobAllowed } from "./demand-monitors";
 
 /** Rechecked by the background worker, including when configuration changes after a tick. */
-export async function scheduledJobAllowed(job: Pick<Job, "kind" | "projectId">): Promise<boolean> {
+export async function scheduledJobAllowed(job: Pick<Job, "kind" | "projectId"> & Partial<Pick<Job, "demandRunId">>): Promise<boolean> {
+  if (job.kind === "demand_research" && job.demandRunId && !job.projectId) return scheduledDemandJobAllowed(job.demandRunId);
   const settings = config();
   if (!settings.SCHEDULED_WORKER_ENABLED || !settings.BACKGROUND_WORKER_ENABLED ||
     !settings.BACKGROUND_WORKER_SECRET || !settings.BACKGROUND_WORKER_USER_ID ||
@@ -42,11 +44,10 @@ export async function runScheduledTick(now = new Date()): Promise<number> {
   const beganAt = Date.now();
   const settings = config();
   if (!settings.SCHEDULED_WORKER_ENABLED || !settings.BACKGROUND_WORKER_ENABLED ||
-    !settings.BACKGROUND_WORKER_SECRET || !settings.BACKGROUND_WORKER_USER_ID ||
-    settings.SCHEDULED_PROJECT_IDS.length === 0) return 0;
+    !settings.BACKGROUND_WORKER_SECRET || !settings.BACKGROUND_WORKER_USER_ID) return 0;
+  const monitorJobs = await dueDemandMonitorJobs(now);
   const owned = await db().select({ id: projects.id }).from(projects)
     .where(and(eq(projects.userId, settings.BACKGROUND_WORKER_USER_ID), inArray(projects.id, settings.SCHEDULED_PROJECT_IDS)));
-  if (owned.length === 0) return 0;
   const channelProjects = await db().selectDistinct({ id: alerts.projectId }).from(alerts)
     .where(inArray(alerts.projectId, owned.map((project) => project.id)));
   for (const project of channelProjects) {
@@ -57,11 +58,11 @@ export async function runScheduledTick(now = new Date()): Promise<number> {
       if (waiting.length === 0) await tx.insert(jobs).values({ kind: "digest", projectId: project.id, runAt: now });
     });
   }
-  const due = await db().select().from(jobs).where(and(
+  const due = owned.length ? await db().select().from(jobs).where(and(
     inArray(jobs.projectId, owned.map((project) => project.id)), claimableJob(now),
-  )).orderBy(sql`(${jobs.kind} = 'digest') desc`, asc(jobs.runAt)).limit(12);
+  )).orderBy(sql`(${jobs.kind} = 'digest') desc`, asc(jobs.runAt)).limit(12) : [];
   let dispatched = 0;
-  for (const job of due) {
+  for (const job of [...monitorJobs, ...due]) {
     if (dispatched === 2 || Date.now() - beganAt >= 18_000) break;
     if (await scheduledJobAllowed(job)) {
       await dispatchJob(job, true);

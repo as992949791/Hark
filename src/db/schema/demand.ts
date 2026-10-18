@@ -1,10 +1,23 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
-import { bigint, check, foreignKey, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
-import { projects, users } from "./tenant";
+import { bigint, boolean, check, foreignKey, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { alerts, projects, users } from "./tenant";
 import type { DemandAssessment, DemandTheme, ProfileSnapshot } from "@/lib/demand/contracts";
 
 const id = () => text("id").primaryKey().$defaultFn(() => randomUUID());
+
+export const demandMonitors = pgTable("demand_monitors", {
+  id: id(), userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  key: text("key").notNull(), mode: text("mode", { enum: ["product", "topic"] }).notNull(), input: text("input").notNull(),
+  projectId: text("project_id").references(() => projects.id, { onDelete: "set null" }),
+  emailChannelId: text("email_channel_id").references(() => alerts.id, { onDelete: "set null" }),
+  enabled: boolean("enabled").notNull().default(false), reason: text("reason"),
+  perRunBudgetMicros: integer("per_run_budget_micros").notNull(), totalBudgetMicros: integer("total_budget_micros").notNull(),
+  nextRunAt: timestamp("next_run_at", { withTimezone: true }).notNull().defaultNow(),
+  baselineAt: timestamp("baseline_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, t => [uniqueIndex("demand_monitors_owner_key_idx").on(t.userId, t.key),
+  check("demand_monitor_budget", sql`${t.perRunBudgetMicros} > 0 and ${t.totalBudgetMicros} >= ${t.perRunBudgetMicros}`),
+  check("demand_monitor_mode", sql`${t.mode} in ('product', 'topic') and (${t.mode} = 'product' or ${t.projectId} is null)`)]);
 
 export const demandRuns = pgTable("demand_runs", {
   id: id(),
@@ -101,3 +114,22 @@ export const demandAttempts = pgTable("demand_attempts", {
   check("demand_attempt_state", sql`${t.status} in ('reserved', 'uncertain', 'settled') and (${t.status} = 'settled') = (${t.actualMicros} is not null)`),
   check("demand_attempt_kind", sql`${t.kind} in ('data', 'model') and ${t.source} in ('reddit', 'x', 'web')`),
 ]);
+
+/** Association survives monitor deletion only through the original research billing rows. */
+export const demandMonitorRuns = pgTable("demand_monitor_runs", {
+  runId: text("run_id").primaryKey().references(() => demandRuns.id, { onDelete: "cascade" }),
+  monitorId: text("monitor_id").notNull().references(() => demandMonitors.id, { onDelete: "cascade" }),
+  processedAt: timestamp("processed_at", { withTimezone: true }),
+  newSignalIds: jsonb("new_signal_ids").$type<string[]>().notNull().default([]),
+  deliveryState: text("delivery_state", { enum: ["none", "pending", "sending", "sent", "expired"] }).notNull().default("none"),
+  deliveryLeaseUntil: timestamp("delivery_lease_until", { withTimezone: true }),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  deliveryError: text("delivery_error"),
+}, t => [index("demand_monitor_runs_monitor_idx").on(t.monitorId),
+  check("demand_monitor_delivery_state", sql`${t.deliveryState} in ('none', 'pending', 'sending', 'sent', 'expired')`)]);
+
+/** Only irreversible hashes; no scraped source content survives its research retention. */
+export const demandMonitorSeen = pgTable("demand_monitor_seen", {
+  id: id(), monitorId: text("monitor_id").notNull().references(() => demandMonitors.id, { onDelete: "cascade" }),
+  fingerprint: text("fingerprint").notNull(),
+}, t => [uniqueIndex("demand_monitor_seen_unique_idx").on(t.monitorId, t.fingerprint)]);

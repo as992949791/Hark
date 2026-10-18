@@ -265,6 +265,10 @@ Single-line fields are (40px) tall with (8px) inline padding, opaque paper, read
 
 The header carries the Hark audio-line mark and existing provider attribution at the left, with theme/account controls at the right. Its surface graduates from opaque paper to cyan wash. The navy rail groups existing destinations, preserving project context and count pills. Items use body text and the control radius; muted resting labels brighten on hover. The selected item uses a pale blue/cyan gradient with dark reading ink and an explicit current-page state in both themes. On mobile the menu trigger remains reachable above the drawer.
 
+### Research monitoring and pain evidence
+
+Daily-monitor conditions and the owner list use collapsed disclosures on the existing opaque paper surfaces. Run/lifetime costs and paused/configuration states sit beside controls. Demand cases and themes separate current workarounds from limitations, disclosing exact quotes/sources and honest missing or legacy extraction states. Preserve existing type, palette, evidence links and mobile stacking. No new visual world or raster assets.
+
 ### Public preview framing
 
 The homepage's laptop and iPhone frames enclose actual DOM illustrations. Their synchronized selection changes the shown fit reason and quote; feature controls change the illustrated module. Each is clearly labelled synthetic/sample content and links into the real workspace. These are code-led examples, not screenshots of a live scan. Do not reuse their fixture state in the authenticated application. The removed prototype-only homepage/workspace switcher is not production navigation.

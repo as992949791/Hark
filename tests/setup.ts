@@ -25,6 +25,7 @@ process.env.SCHEDULER_SEED = "false";
 process.env.SCHEDULED_WORKER_ENABLED = "false";
 process.env.DEMAND_DISCOVERY_ENABLED = "false";
 process.env.DEMAND_LIVE_ENABLED = "false";
+process.env.DEMAND_MONITORING_ENABLED = "false";
 // Local trial settings must not change the business behavior expected by the suites.
 process.env.SWEEP_SCALE = "full";
 for (const key of ["HOUSE_DATA_CAP_USD_PER_DAY", "HOUSE_LLM_CAP_USD_PER_DAY", "HOUSE_X_DATA_CAP_USD_PER_DAY", "HOUSE_X_LLM_CAP_USD_PER_DAY"]) delete process.env[key];

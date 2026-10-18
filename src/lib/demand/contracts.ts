@@ -41,6 +41,8 @@ export type DemandAssessment = {
   fitReason: string | null;
   requirements: { documentId: string; quote: string; productFact: string | null; status: "supported" | "unknown" | "contradicted" }[];
   evidence: { documentId: string; quoteStart: number; quoteEnd: number; quote: string; author: string | null }[];
+  /** Absent in history reviewed before structured pain extraction. */
+  analysis?: { kind: "workaround" | "limitation"; summary: string; documentId: string; quote: string; quoteStart: number; quoteEnd: number }[];
 };
 export type DemandLease = Readonly<{ runId: string; userId: string; token: string }>;
 

@@ -10,6 +10,19 @@ vi.mock("@/components/research/RunControl", () => ({ RunControl: () => createEle
 const render = (report = syntheticDemandReport(), tab: "signals" | "themes" = "signals") => renderToStaticMarkup(createElement(ResearchResults, { report, tab, enabled: false }));
 
 describe("research evidence presentation", () => {
+  it("shows evidenced workarounds and limitations in both case and theme views, without filling missing history", () => {
+    const report = syntheticDemandReport(), signal = report.signals[0], doc = report.documents[0];
+    signal.assessment!.analysis = [{ kind: "workaround", summary: "逐句手动校对字幕。", documentId: doc.id,
+      quote: signal.quote, quoteStart: 0, quoteEnd: signal.quote.length }];
+    for (const tab of ["signals", "themes"] as const) {
+      const html = render(report, tab);
+      expect(html).toContain("目前怎么解决"); expect(html).toContain("现有方案的局限"); expect(html).toContain("逐句手动校对字幕。");
+      expect(html).toContain("原文未明确说明"); expect(html).toContain(doc.url);
+    }
+    signal.assessment!.analysis = undefined;
+    expect(render(report, "themes")).toContain("历史分析尚未提取");
+    expect(render(report, "themes")).not.toContain("逐句手动校对字幕。");
+  });
   it("shows all supporting original sources for one merged demand case", () => {
     const report = syntheticDemandReport(), first = report.signals[0];
     first.assessment = { version: 1, problem: "准确的自动字幕", fitReason: null, requirements: [],

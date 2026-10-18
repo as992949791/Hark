@@ -25,7 +25,8 @@ Users sign in through Clerk, manage product projects and manually start cross-pl
 - Saved real CapCut sources have completed topic analysis and new-URL page/profile preparation through the actual local worker/UI chain. The final topic run has one case with four quotes from two posts by one observed author, labelled an individual theme. This is reused-source analysis, not a fresh full search. Exact-source checks do not establish relevance; broader human 20-result/16-relevant acceptance remains pending.
 - The reviewed research release is published on the existing Netlify/Neon personal test site. Cloud data is preserved; local research runs are not automatically synchronized. Paid/live/background/scheduled controls and automatic notifications remain disabled. Open-source software does not make data/model requests free.
 - Email and generic Webhook have been verified. Slack/Discord receipt and wallet OAuth remain unverified; wallet work is deferred.
-- Preserve Clerk, owner isolation, stored records and existing URLs. No automatic comments, direct messages or new-source continuous monitoring.
+- Preserve Clerk, owner isolation, stored records and existing URLs. No automatic comments or direct messages. Saving a monitor never enables it automatically.
+- Daily monitors save product/topic conditions, an owned email channel and finite run/lifetime budgets. They start paused; a baseline precedes reminders about newly observed source/quotation evidence. Workarounds and limitations reuse the final review call and retain exact source spans; missing evidence stays unknown. These additions are not publicly deployed or validated against live paid providers.
 - Illustrative homepage/device previews remain labelled examples.
 
 ## Brand Commitments

@@ -22,10 +22,14 @@ async function assertOwnerCapacity(tx: Transaction, userId: string) {
 
 /** Only explicit creation queues work. Reads below have no scheduling side effects. */
 export async function createDemandRun(userId: string, raw: DemandInput): Promise<DemandRun> {
+  return db().transaction(tx => createDemandRunInTransaction(tx, userId, raw));
+}
+
+/** Monitor admission and its lifetime budget reservation commit with the ordinary job. */
+export async function createDemandRunInTransaction(tx: Transaction, userId: string, raw: DemandInput): Promise<DemandRun> {
   demandEnabled();
   const input = demandInput.parse(raw);
   const value = input.mode === "product" ? productUrl(input.url) : input.topic;
-  return db().transaction(async (tx) => {
     await lockBudget(tx);
     const [existing] = await tx.select().from(demandRuns)
       .where(and(eq(demandRuns.userId, userId), eq(demandRuns.key, input.key)));
@@ -70,7 +74,6 @@ export async function createDemandRun(userId: string, raw: DemandInput): Promise
     }
     await tx.insert(jobs).values({ kind: DEMAND_JOB, demandRunId: run.id });
     return visibleRun(run);
-  });
 }
 
 function visibleRun(run: DemandRun): DemandRun {

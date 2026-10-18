@@ -3,12 +3,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { eq } from "drizzle-orm";
 import { afterEach, expect, it, vi } from "vitest";
 import { db } from "@/db";
-import { demandAttempts, demandRuns, jobs, projects, users } from "@/db/schema";
+import { alerts, demandAttempts, demandRuns, jobs, projects, users } from "@/db/schema";
+import { saveMonitorAction, updateMonitorAction } from "@/app/app/research/monitor-actions";
+import { listDemandMonitors } from "@/lib/demand/monitors";
 import { createResearchAction, resumeResearchAction, retryResearchAction } from "@/app/app/research/actions";
 import ResearchPage from "@/app/app/research/page";
 import { claimDemandRun, createDemandRun, finishDemandRun } from "@/lib/demand/runs";
 import { getDemandReport } from "@/lib/demand/report";
-import { describeDb, makeUser } from "./fixtures/db";
+import { describeDb, makeProject, makeUser } from "./fixtures/db";
 
 let signedIn = { id: "" };
 const { redirect } = vi.hoisted(() => ({ redirect: vi.fn((url: string) => { throw new Error(`REDIRECT:${url}`); }) }));
@@ -18,6 +20,21 @@ vi.mock("next/navigation", () => ({ redirect, unstable_rethrow: vi.fn(), notFoun
 vi.mock("@/components/ActivityPoll", () => ({ ActivityPoll: () => null }));
 
 describeDb("owned manual research actions and reports", () => {
+  it("saves a paused monitor through authenticated actions without dispatch and rejects invalid budget/foreign changes", async () => {
+    const { user, fetch } = await fixture(); const project = await makeProject(user.id);
+    const [channel] = await db().insert(alerts).values({ projectId: project.id, channel: "email", target: "owner@example.com", cadence: "daily" }).returning();
+    const run = await createDemandRun(user.id, { key: randomUUID(), mode: "topic", topic: "video captions", budgetMicros: 100_000 });
+    const data = new FormData();
+    for (const [key, value] of Object.entries({ key: randomUUID(), sourceRunId: run.id, emailChannelId: channel.id, perRunBudget: "0.1", totalBudget: "0.5" })) data.set(key, value);
+    expect((await saveMonitorAction({ error: null }, data)).error).toBeNull();
+    const [monitor] = await listDemandMonitors(user.id); expect(monitor.enabled).toBe(false); expect(fetch).not.toHaveBeenCalled();
+    expect(renderToStaticMarkup(await ResearchPage({ searchParams: Promise.resolve({ run: run.id }) }))).toContain("每日监控");
+    data.set("totalBudget", "0.0000001"); expect((await saveMonitorAction({ error: null }, data)).error).toBeTruthy();
+    expect((await updateMonitorAction(monitor.id, "enable")).error).toBeTruthy();
+    const other = await makeUser(); owners.push(other.id); signedIn = { id: other.id };
+    expect((await updateMonitorAction(monitor.id, "delete")).error).toBeTruthy();
+    expect(await listDemandMonitors(user.id)).toHaveLength(1);
+  });
   const owners: string[] = [];
   afterEach(async () => {
     for (const id of owners.splice(0)) await db().delete(users).where(eq(users.id, id));

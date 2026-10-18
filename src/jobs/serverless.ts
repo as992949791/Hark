@@ -30,7 +30,7 @@ export async function runBackgroundRequest(request: Request): Promise<void> {
   const owned = await ownedWorkerJob(parsed.data.jobId, settings.BACKGROUND_WORKER_USER_ID);
   if (!owned || !handlerFor(owned.kind) ||
     ["retention", "alert_invites"].includes(owned.kind) ||
-    (owned.kind === "digest" && !parsed.data.scheduled) || (owned.demandRunId && parsed.data.scheduled)) {
+    (owned.kind === "digest" && !parsed.data.scheduled)) {
     return;
   }
   if (parsed.data.scheduled && !(await scheduledJobAllowed(owned))) return;

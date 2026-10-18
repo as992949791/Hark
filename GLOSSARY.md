@@ -19,7 +19,7 @@
 
 **Demand theme**: a recurring problem supported by demand signals from independent people. A single person's feedback remains an individual case.
 
-**Demand run**: One explicitly requested investigation of needs around a product or a topic, together with its collected evidence and results.
+**Demand run**: One manually requested or enabled-monitor investigation of needs around a product or a topic, together with its collected evidence and results.
 _Avoid_: Scan when referring to the separate existing product monitoring workflow.
 
 **Source document**: Public content actually retrieved from its original source. A search snippet is a discovery hint, not the full source document.
@@ -28,3 +28,9 @@ _Avoid_: Google post, when Google only found somebody else's page.
 **Observed author**: The author identity supported by the source material. Distinct observed identities are evidence about the retrieved sample, not verified distinct people or market size.
 
 **Individual case**: A demand finding supported by only one identifiable author, or by material whose authors cannot be distinguished. It does not establish a recurring theme.
+
+**Demand monitor**: Saved product/topic conditions, a daily cadence, an owned email channel and finite run/lifetime budgets. Paused when saved; enabling permits future bounded runs only while deployment controls allow them.
+
+**Newly observed evidence**: A retained case whose supporting canonical sources and quotation fingerprints were not recorded by that monitor. Its first run establishes the baseline. This does not establish publication recency, semantic uniqueness or a new independent person.
+
+**Pain analysis item**: An explicitly stated current workaround or limitation of the current solution, with a Chinese explanation and a validated original-source span. Missing evidence remains unknown.

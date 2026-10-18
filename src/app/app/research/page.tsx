@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { ActivityPoll } from "@/components/ActivityPoll";
 import { ResearchForm } from "@/components/research/ResearchForm";
+import { MonitorSection } from "@/components/research/MonitorSection";
 import { ResearchResults, researchDate } from "@/components/research/ResearchResults";
 import { requireLocalUser } from "@/lib/auth";
 import { getDemandReport, researchAvailability, RESEARCH_STATUS } from "@/lib/demand/report";
 import { listDemandRuns } from "@/lib/demand/runs";
+import { listDemandMonitors, monitorEmailChannels, monitoringAvailable } from "@/lib/demand/monitors";
 import { listProjects } from "@/lib/projects";
 import "./research.css";
 
@@ -16,7 +18,7 @@ export const metadata = { title: "跨平台研究 · Hark" };
 export default async function ResearchPage({ searchParams }: { searchParams: Promise<{ run?: string; tab?: string }> }) {
   const user = await requireLocalUser();
   const params = await searchParams;
-  const [runs, projects] = await Promise.all([listDemandRuns(user.id), listProjects(user.id)]);
+  const [runs, projects, monitors, channels] = await Promise.all([listDemandRuns(user.id), listProjects(user.id), listDemandMonitors(user.id), monitorEmailChannels(user.id)]);
   if (params.run && !z.uuid().safeParse(params.run).success) notFound();
   const runId = params.run ?? runs[0]?.id;
   const report = runId ? await getDemandReport(user.id, runId) : null;
@@ -26,6 +28,7 @@ export default async function ResearchPage({ searchParams }: { searchParams: Pro
   return <div className="research-page flex min-w-0 max-w-[1500px] flex-col gap-6" lang="zh-CN">
     <ActivityPoll busy={busy} />
     <header className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-h2 font-medium">跨平台研究</h1><p className="mt-2 max-w-[65ch] text-body text-fg-muted">从 Reddit、X 和公开网页中，找到真实的需求表达。</p><p className="mt-2 text-small text-fg-muted">{availability.message}</p></div><a href="#research-inputs" className="inline-flex min-h-11 items-center text-small text-primary underline underline-offset-4">输入新的研究问题</a></header>
+    <MonitorSection monitors={monitors} channels={channels} available={monitoringAvailable(user.id)} runId={report?.run.status !== "expired" ? report?.run.id : undefined} requestKey={randomUUID()} />
     <div className="research-layout" data-has-run={!!report}>
       <aside id="research-inputs" className="research-inputs flex min-w-0 scroll-mt-24 flex-col gap-5" aria-label="研究输入与历史">
         <ResearchForm requestKey={randomUUID()} enabled={availability.enabled} projects={projects.map(({ id, name, url }) => ({ id, name, url }))}

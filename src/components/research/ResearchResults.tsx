@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, FileSearch, Layers3 } from "lucide-react";
 import { RunControl } from "./RunControl";
+import { PainAnalysis } from "./PainAnalysis";
 import { observedAuthorCount } from "@/lib/demand/evidence";
 import { researchFailure, researchMoney, researchSourceFailure, RESEARCH_STATUS, type DemandReport } from "@/lib/demand/report";
 
@@ -66,6 +67,7 @@ export function ResearchResults({ report, tab, enabled }: { report: DemandReport
             {signal.assessment ? <h3 className="mt-3 text-body font-medium">{signal.assessment.problem}</h3> : null}
             <blockquote lang="en" className="mt-4 max-w-[75ch] whitespace-pre-wrap break-words text-body [overflow-wrap:anywhere]">{signal.quote}</blockquote>
             <p className="mt-4 max-w-[65ch] text-body text-fg-muted">{signal.explanation}</p>
+            {signal.assessment ? <PainAnalysis assessments={[signal.assessment]} documents={demandDocs} /> : null}
             {run.mode === "product" && signal.assessment && signal.productFit ? <p className="mt-3 text-small font-medium">{fit[signal.productFit]}</p> : null}
             {run.mode === "product" && signal.assessment?.fitReason ? <p className="mt-2 max-w-[65ch] text-small text-fg-muted">{signal.assessment.fitReason}</p> : null}
             {signal.assessment ? <details className="mt-3 text-small"><summary className="min-h-11 cursor-pointer text-primary">保留 {signal.assessment.evidence.length} 处原文</summary>
@@ -92,6 +94,7 @@ export function ResearchResults({ report, tab, enabled }: { report: DemandReport
           return <article key={`${run.id}-${index}`} className="border-b p-5 last:border-b-0 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="max-w-[65ch] break-words text-h3 font-medium">{theme.title}</h3><span className="shrink-0 rounded-control bg-surface-2 px-2 py-1 text-small">{!reviewed ? "待复核主题" : observedAuthorCount(members) >= 2 ? "多位作者的观察" : "个别案例"}</span></div>
           <p className="mt-3 max-w-[65ch] whitespace-pre-line break-words text-body text-fg-muted">{theme.explanation}</p>
+          <PainAnalysis assessments={members.map(signal => signal.assessment)} documents={demandDocs} />
           <p className="mt-3 text-small text-fg-muted">观察到的不同作者：{observedAuthorCount(signals.filter((signal) => theme.signalIds.includes(signal.id)))} 位（未知作者未计入）</p>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">{theme.signalIds.map((id, i) => <Link key={id} className="inline-flex min-h-11 items-center text-small text-primary underline underline-offset-4" href={`/app/research?run=${run.id}&tab=signals#signal-${id}`}>查看证据 {i + 1}</Link>)}</div>
         </article>; }) : <div className="p-6"><h3 className="text-body font-medium">尚未归纳出痛点主题</h3><p className="mt-2 max-w-[65ch] text-small text-fg-muted">主题只引用已保存的需求线索。作者无法区分或只有一个来源时，会保留为个别案例。</p></div>}
