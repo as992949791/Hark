@@ -19,14 +19,14 @@ export type ActionWindow = "day" | "ever";
 
 /**
  * What X leads may buy for one project (src/lib/x). Every tier runs every
- * search lurk writes and judges as much; a wallet buys freshness (hourly, a
+ * search hark writes and judges as much; a wallet buys freshness (hourly, a
  * second page, Scan now), never features. An X search page costs $0.00065
  * whether it holds 20 posts or none, so everything here is counted in pages
  * and calls. Free at every cap is about $0.07 a project-day, typically about
  * a cent, and the house's X sub-caps bound the total whatever the user count.
  */
 export type XLimits = {
-  /** Searches the project runs; null is every one lurk writes for it (usually 4 to 14). */
+  /** Searches the project runs; null is every one hark writes for it (usually 4 to 14). */
   lanes: number | null;
   /** How often a scan runs, and the longest a quiet search may back off to. */
   cadenceHours: number;
@@ -112,7 +112,7 @@ export const TIERS: Record<TierName, TierLimits> = {
     searchPagesPerQuery: 2,
     hydrationPerScan: 40,
     discoveryRefreshDays: 7,
-    // Every search lurk writes, once a day: a search page is $0.00065, so
+    // Every search hark writes, once a day: a search page is $0.00065, so
     // breadth costs the house cents; hourly freshness is what a wallet buys.
     x: {
       lanes: null,

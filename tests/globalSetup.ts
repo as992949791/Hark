@@ -60,9 +60,9 @@ async function migrateDatabase(url: string): Promise<void> {
  * to db() before the passes are loaded, so they only ever see `url`.
  */
 async function trimDatabase(url: string): Promise<void> {
-  const holder = globalThis as typeof globalThis & { __lurkDb?: unknown };
+  const holder = globalThis as typeof globalThis & { __harkDb?: unknown };
   const sql = postgres(url, { max: 1 });
-  holder.__lurkDb = drizzle(sql, { schema });
+  holder.__harkDb = drizzle(sql, { schema });
   try {
     const { deleteExpiredPosts, pruneFinishedJobs } = await import("@/lib/retention");
     const { deleteExpiredXData } = await import("@/lib/x/retention");
@@ -70,7 +70,7 @@ async function trimDatabase(url: string): Promise<void> {
     await pruneFinishedJobs();
     await deleteExpiredXData();
   } finally {
-    delete holder.__lurkDb;
+    delete holder.__harkDb;
     await sql.end();
   }
 }

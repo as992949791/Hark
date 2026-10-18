@@ -758,17 +758,7 @@ export function HomeExperience() {
       </main>
       <footer className="home-footer wrap">
         <Brand />
-        <p>
-          Built from{" "}
-          <a
-            href="https://github.com/getanyapi-com/lurk"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Lurk
-          </a>
-          , under MIT. Data by AnyAPI.
-        </p>
+        <p>MIT licensed. Data by AnyAPI.</p>
         <nav className="home-legal" aria-label="Legal">
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>

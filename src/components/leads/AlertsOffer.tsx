@@ -102,7 +102,7 @@ function EmailPreview({ html, subject, from, to }: EmailPreviewProps) {
         </span>
         <div className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/lurk-mark.svg" alt="" width={32} height={32} className="shrink-0 rounded-full" />
+          <img src="/hark-mark.svg" alt="" width={32} height={32} className="shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col text-[12px] leading-4">
             <span className="truncate">
               <span style={{ fontWeight: 600 }}>{PRODUCT_NAME}</span> <span style={{ color: MAIL.muted }}>&lt;{from}&gt;</span>
@@ -161,7 +161,7 @@ function SlackPreview({ payload }: { payload: OfferPreview["slack"] }) {
   return (
     <div className="flex gap-2.5 rounded-card p-3 text-[13px] leading-[1.45]" style={{ background: SLACK.bg, color: SLACK.fg }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/lurk-mark.svg" alt="" width={36} height={36} className="shrink-0 self-start rounded-[8px]" />
+      <img src="/hark-mark.svg" alt="" width={36} height={36} className="shrink-0 self-start rounded-[8px]" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span className="flex items-baseline gap-1.5">
           <span style={{ fontWeight: 700, color: SLACK.strong }}>{PRODUCT_NAME}</span>
@@ -243,7 +243,7 @@ function DiscordPreview({ payload }: { payload: OfferPreview["discord"] }) {
   return (
     <div className="flex gap-3 rounded-card p-3 text-[13px] leading-[1.4]" style={{ background: DISCORD.bg, color: DISCORD.fg }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/email/lurk-discord.png" alt="" width={36} height={36} className="shrink-0 self-start rounded-full" />
+      <img src="/email/hark-discord.png" alt="" width={36} height={36} className="shrink-0 self-start rounded-full" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span className="flex items-baseline gap-1.5">
           <span style={{ fontWeight: 600, color: DISCORD.strong }}>{payload.username}</span>

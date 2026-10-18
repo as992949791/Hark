@@ -41,7 +41,7 @@ export function readingFrom(answers: Answers, prefix: string, sentences: Spans):
 }
 
 /**
- * lurk's 0-4 fit from five answers. A requirement the product explicitly
+ * hark's 0-4 fit from five answers. A requirement the product explicitly
  * cannot meet is a wrong job whatever else is true, and so is a job the
  * product does not do, unless the person is its audience, which is overlap
  * at best. Wanting a different kind of product is a wrong job too. A person

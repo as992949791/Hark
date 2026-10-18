@@ -877,7 +877,7 @@ describe("the plan the ranking publishes", () => {
    * and no refusal to compile, so every family returned an empty query and the
    * project got no searches at all. Measured 2026-09-13 against getanyapi.com:
    * the five phrasings the profile produced compiled to nothing, and the live
-   * project on lurk.so had 0 of 25 searches. These titles are the ones Google
+   * project on the upstream deployment had 0 of 25 searches. These titles are the ones Google
    * returned that day for "reddit scraper api".
    */
   it("falls back to the phrasing itself when a family carries no constraint", () => {
@@ -976,7 +976,7 @@ describe("the plan the ranking publishes", () => {
 
   /**
    * A refusal word is not a constraint. `(api) AND (without)` asks for every
-   * post about an API, and on lurk.so on 2026-09-14 that search and its two
+   * post about an API, and on the upstream deployment on 2026-09-14 that search and its two
    * siblings produced 0, 0 and 1 leads against 7 for "instagram api".
    */
   it("writes no search when the only constraint the evidence carries is a refusal", () => {

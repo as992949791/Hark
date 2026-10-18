@@ -1,6 +1,6 @@
 # Hark development archive
 
-Hark is based on [Lurk](https://github.com/getanyapi-com/lurk), under its MIT license. The selected upstream commit is `44834c83b8aa34f46f17b93806aa1588240d855e`.
+Hark is based on [the upstream project](../NOTICE), under its MIT license. The selected upstream commit is `44834c83b8aa34f46f17b93806aa1588240d855e`.
 
 ## Version policy
 
@@ -8,7 +8,7 @@ Every completed development version is committed, tagged, and pushed to [as99294
 
 ## v0.1.0-baseline — source and research archive
 
-- Preserved the original upstream commit and code. Added the original site research, 20 screenshots, route inventory, and acceptance checklist under `docs/replica-baseline`.
+- Preserved the original upstream commit and code. Added the original site research, 20 screenshots, route inventory, and acceptance checklist in the initial reference archive (available in Git history through `v0.1.34-capcut-live`).
 - Renamed the personal fork to Hark. Page branding remains upstream until the original behavior is verified.
 - Verified 645 file blobs, the source tree `6eec12d96acdb550c65dd6243a99fb21419ddd52`, and the signed original commit against GitHub records. Git transport stalled; the official archive and Git database objects restored a shallow checkout with the exact original commit.
 - Retained origin and upstream remotes. The full older history can be fetched when Git transport is available.
@@ -195,7 +195,7 @@ Every completed development version is committed, tagged, and pushed to [as99294
 
 ## v0.1.20-frontend-draft — interactive homepage and workspace proposal
 
-- Built an isolated code-first React preview for both requested surfaces on [ticket 15](https://github.com/as992949791/Hark/issues/15). Applied installed design-taste-frontend and Impeccable guidance. After user feedback, added original-Lurk-inspired sky/cloud fields, blue-cyan gradients, six feature preview controls, self-host and cost entries. Main app routes, auth, stored records and public deployment are unchanged.
+- Built an isolated code-first React preview for both requested surfaces on [ticket 15](https://github.com/as992949791/Hark/issues/15). Applied installed design-taste-frontend and Impeccable guidance. After user feedback, added reference-inspired sky/cloud fields, blue-cyan gradients, six feature preview controls, self-host and cost entries. Main app routes, auth, stored records and public deployment are unchanged.
 - Local fixture interactions include project/source/search/status filtering, selection, replied/hidden undo, mobile drawer and detail navigation, theme and loading/empty/error previews. Synthetic content and illustrative research previews are disclosed. The allowlisted loopback preview server loads no environment/database/provider configuration. [Run instructions](../design/first-draft/README.md), [reusable prompts](design/frontend-prompts.md), [acceptance and limits](acceptance/11-frontend-draft.md).
 - Passed TypeScript and ESLint quick verification after unused-import and cleanup-ref warning corrections; bounded Ego Lite desktop/mobile interaction and screenshot checks; one Impeccable detector pass returned no findings. An initial dark capture caught a transition and was replaced after computed-color settlement. No new runtime dependencies. Full local database tests and the production Next build were not repeated for this isolated visual draft; independent reviews, remote archive and exact-commit CI are recorded after execution on ticket 15.
 - Design finish review identified dark text-selection contrast and overlong wide-screen prose; corrected theme selection colors and applied 72ch prose limits before scoring. Initial Astra code-review attempts hit their account usage limit; current-model independent reviews continued without an upgrade. The finish reviewer scored both visual fixes `ship`. Standards then reproduced responsive drawer lock, mobile detail focus loss and malformed-target preview termination; all three were corrected and passed targeted browser/HTTP checks and final TypeScript/ESLint verification. Local preview allowlist/method HTTP checks passed.
@@ -204,14 +204,14 @@ Every completed development version is committed, tagged, and pushed to [as99294
 
 ## v0.1.21-iphone-design — gradient typography and device previews
 
-- Applied the user's supplied Lurk composition and explicit iPhone-style feedback to the local interactive proposal: centered gradient headline, computer/phone frames, phone island/home indicator, frosted homepage navigation and capsule controls. Desktop and phone share selected synthetic leads; the phone screen scrolls and opens the local workspace. [Acceptance and limits](acceptance/12-iphone-design.md), [ticket 15](https://github.com/as992949791/Hark/issues/15).
+- Applied the user's supplied upstream project composition and explicit iPhone-style feedback to the local interactive proposal: centered gradient headline, computer/phone frames, phone island/home indicator, frosted homepage navigation and capsule controls. Desktop and phone share selected synthetic leads; the phone screen scrolls and opens the local workspace. [Acceptance and limits](acceptance/12-iphone-design.md), [ticket 15](https://github.com/as992949791/Hark/issues/15).
 - Desktop/mobile/tablet/user-width and dark captures inspected; selection synchronization, phone keyboard/scroll/workspace action and all six feature controls passed in Ego Lite. No horizontal overflow observed at tested widths. Final TypeScript/ESLint quick verification passed without warnings; design YAML/JSON parsed successfully. A transient evidence-reveal capture was replaced after observable animation settlement. Design finish review returned `ship` and initial Standards review found zero issues. Spec review identified a missing mobile quote; added it to the existing scroll region. Final source review/archive/CI follow execution. Full local database tests and the production Next build were not repeated for this standalone visual change.
 - Detector reports the explicitly requested gradient-text treatment plus advisory comparisons to prior prototype metadata. An initially truncated output was recovered by rerunning the unchanged scan into a private file, then aggregated; no clean-scan claim. Prototype-local design documentation and prompts now preserve the user's newer visual direction. No paid call, data write, send, dependency addition or public deployment; presentation remains deferred.
 - Final independent Standards/Spec delta reviews at `7166266e5d4ce5932e8e07c91d52236213de4a0d` have zero remaining findings; the phone quote/action passed targeted 390px/768px verification and final quick checks. [Review record](reviews/iphone-design.md). Remote archive and exact-commit CI identity follow on ticket 15.
 
 ## v0.1.22-home-nav — remove Open source navigation
 
-- Removed the homepage Open source navigation link at the user's request. Its source href pointed to the Hark fork, whose checked-in README still carries the upstream Lurk title/content. Existing footer attribution, MIT license, self-host/cost links and all other controls remain intact. Updated the reusable frontend prompt so the removed navigation is not reintroduced. No new product feature was implemented while the user explores requirements with grill-me.
+- Removed the homepage Open source navigation link at the user's request. Its source href pointed to the Hark fork, whose checked-in README still carries the upstream upstream project title/content. Existing footer attribution, MIT license, self-host/cost links and all other controls remain intact. Updated the reusable frontend prompt so the removed navigation is not reintroduced. No new product feature was implemented while the user explores requirements with grill-me.
 - Passed supported quick TypeScript/ESLint verification without warnings, Git whitespace and parent diff review. Ego Lite checked 1440px/390px: zero Open source links, the three remaining navigation anchors, retained attribution, no horizontal overflow and working workspace/home switching. No extra test was added for this low-impact deletion. Full local database tests and Next production build were not repeated; exact-commit CI follows after archive on ticket 15.
 - No dependency, style token, app/backend/auth/data/provider setting or public deployment change. No provider call or external notification. Feature interview answers are not implemented or promoted into a committed product specification.
 

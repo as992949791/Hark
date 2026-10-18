@@ -46,7 +46,7 @@ type Held = { key: string; value: Promise<unknown>; at: number };
  * answering from the other. On 2026-09-18 a finished sweep with 39 leads sat
  * over a feed that said "Leads 0" for that reason.
  */
-const HOLDER = Symbol.for("lurk.projectFeedCache");
+const HOLDER = Symbol.for("hark.projectFeedCache");
 const holder = globalThis as { [HOLDER]?: Map<string, Held> };
 const lastRead = (holder[HOLDER] ??= new Map<string, Held>());
 

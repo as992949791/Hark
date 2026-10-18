@@ -7,7 +7,7 @@ related_targets: ["design/first-draft/style.css","design/first-draft/index.html"
 
 # Hark homepage and workspace prototype direction
 
-Status: selected local design reference. On 2026-10-15 the user approved the overall direction for real integration, removing the top prototype-only homepage/workspace switcher. User chose both homepage and workspace, then requested original-Lurk blue sky, white clouds, subtle gradients and fuller feature controls. This contract persists that steering during the revision, after the initial plain draft. Real integration has its own surface brief.
+Status: selected local design reference. On 2026-10-15 the user approved the overall direction for real integration, removing the top prototype-only homepage/workspace switcher. User chose both homepage and workspace, then requested reference blue sky, white clouds, subtle gradients and fuller feature controls. This contract persists that steering during the revision, after the initial plain draft. Real integration has its own surface brief.
 
 Latest refinement: the user explicitly requested gradient lettering, computer/phone screen examples and an overall iPhone-inspired feel, supported by their screenshot. This supersedes earlier solid-heading and side-by-side hero-copy choices; the fixture preview remains an interactive local reference.
 
@@ -15,7 +15,7 @@ Latest refinement: the user explicitly requested gradient lettering, computer/ph
 Make listening feel open and approachable on the homepage; make evidence quick to inspect in the workspace.
 
 ## OWN-WORLD
-Lurk-inspired open blue sky and diffuse white CSS cloud forms, self-hosted software product framing, cool white reading surfaces, navy navigation, blue-to-cyan accents, user-requested blue/violet/rose display lettering, frosted navigation and neutral device bezels. Existing Instrument Sans and JetBrains Mono. Decorative sky is CSS, not a promised photograph or raster illustration.
+reference-inspired open blue sky and diffuse white CSS cloud forms, self-hosted software product framing, cool white reading surfaces, navy navigation, blue-to-cyan accents, user-requested blue/violet/rose display lettering, frosted navigation and neutral device bezels. Existing Instrument Sans and JetBrains Mono. Decorative sky is CSS, not a promised photograph or raster illustration.
 
 ## STORY
 Start with a concrete public request. Show the fit reason. Let the user explore Reddit/X, SEO, competitors, insights and notifications; explain the three-step workflow, integrations, costs and self-hosting without invented commercial claims.

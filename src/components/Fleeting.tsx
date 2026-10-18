@@ -26,7 +26,7 @@ export function Fleeting({ id, children }: { id: string; children: React.ReactNo
 function Notice({ id, children }: { id: string; children: React.ReactNode }) {
   const [phase, setPhase] = useState<"off" | "opening" | "open" | "closing">("off");
   useEffect(() => {
-    const key = `lurk:seen:${id}`;
+    const key = `hark:seen:${id}`;
     let seen = false;
     try {
       seen = window.localStorage.getItem(key) !== null;

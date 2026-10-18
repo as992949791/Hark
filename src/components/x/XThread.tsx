@@ -133,7 +133,7 @@ function ThreadRow({ post, now, joinBelow, context }: { post: XThreadPost; now: 
 /**
  * The post as X draws a thread opened on it: what it answers above, joined by
  * the thread line, the post itself large with its full stamp and counts, and
- * the reply that led lurk to it underneath.
+ * the reply that led hark to it underneath.
  */
 export function XThread({ thread, quote, now = new Date() }: { thread: XThreadData; quote: string | null; now?: Date }) {
   const { post } = thread;

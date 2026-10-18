@@ -6,7 +6,7 @@ import { ALERT_THREAD, MOCK_DETAIL, RULE_THREAD } from "./mockContent";
 import { MENTION_TALLY, SAVED_THEMES } from "./researchContent";
 import { ThreadIdentity } from "./ThreadIdentity";
 
-/** Four quiet tiles: what lurk puts in front of you before you decide to reply. */
+/** Four quiet tiles: what hark puts in front of you before you decide to reply. */
 export function MarketingDecisionTiles() {
   return (
     <section className="decision-section" id="decide">
@@ -15,7 +15,7 @@ export function MarketingDecisionTiles() {
         <h2>Context first. Nothing sends.</h2>
         <p>
           The community rule, the reason it scored and what keeps coming up, all in front of
-          you before you type a word. lurk never posts or DMs on your behalf.
+          you before you type a word. Hark never posts or DMs on your behalf.
         </p>
       </header>
       <div className="four-up">

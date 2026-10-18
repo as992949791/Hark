@@ -62,7 +62,7 @@ export function brandRow(appUrl: string, right?: string): string {
   return `<tr><td style="padding:20px 24px;border-bottom:1px solid ${C.border}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td align="left" style="font-family:${EMAIL_FONT};font-size:15px;font-weight:500;color:${C.fg}">
-<img src="${escapeHtml(appUrl)}/email/lurk.png" width="20" height="20" alt="" style="vertical-align:-4px;margin-right:8px" />${escapeHtml(PRODUCT_NAME)}</td>
+<img src="${escapeHtml(appUrl)}/email/hark.png" width="20" height="20" alt="" style="vertical-align:-4px;margin-right:8px" />${escapeHtml(PRODUCT_NAME)}</td>
 ${aside}</tr></table></td></tr>`;
 }
 

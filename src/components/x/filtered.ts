@@ -93,7 +93,7 @@ export function filteredSentence(card: Pick<XFilteredCard, "kind" | "code" | "re
   return parts.join(" ");
 }
 
-/** The line under Left out: what lurk read and set aside, so the count reads as work done. */
+/** The line under Left out: what hark read and set aside, so the count reads as work done. */
 export function filteredSummary({ items, judged, screened, unfinished, worth, pending }: XFiltered): string {
   const parts = ["Read and set aside. Each row says why; the bar is the judge's score."];
   const listed = items.filter((item) => item.band !== "worth").length;

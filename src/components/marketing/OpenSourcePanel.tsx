@@ -4,7 +4,7 @@ import { REPO_URL } from "@/lib/brand";
 
 const LINES = [
   `$ git clone ${REPO_URL}.git`,
-  "$ cd lurk && cp .env.example .env",
+  "$ cd Hark && cp .env.example .env",
   "$ docker compose up",
   "Applying database migrations",
   "migrations applied",
@@ -18,7 +18,7 @@ export function OpenSourcePanel() {
     <section className="dark-api-panel" id="self-host">
       <div className="api-panel-copy">
         <h2>
-          lurk is open source.
+          Hark is open source.
           <br />
           <span>
             MIT. Run it on your own key,

@@ -103,7 +103,7 @@ export async function offerPreview(projectId: string, projectName: string, now =
     sample: own.length === 0,
     emailHtml: renderDigestHtml(digest),
     emailSubject: digestSubject(digest),
-    emailFrom: config().ALERTS_FROM_EMAIL ?? "alerts@lurk.so",
+    emailFrom: config().ALERTS_FROM_EMAIL ?? "alerts@example.com",
     slack: slackPayload(chat),
     discord: discordPayload(chat),
   };

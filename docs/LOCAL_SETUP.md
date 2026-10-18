@@ -1,6 +1,6 @@
 # Hark local setup
 
-Use Node.js 24 and npm. Hark retains Lurk's Next.js, Clerk, PostgreSQL and Drizzle integration. The UI still follows the original baseline at this stage.
+Use Node.js 24 and npm. Hark uses Next.js, Clerk, PostgreSQL and Drizzle. See the root README for current features and validation status.
 
 ## Dependencies
 

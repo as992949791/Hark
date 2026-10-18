@@ -215,7 +215,7 @@ describe("which plan rows a candidate credits", () => {
 
 /**
  * A scan buys fewer searches than a plan holds rows, and staleness alone gave
- * every row the same claim on them: on lurk.so on 2026-09-14 `instagram api`,
+ * every row the same claim on them: on the upstream deployment on 2026-09-14 `instagram api`,
  * whose Google results the model called relevant six times, took its turn
  * behind `ahrefs api`, which it called relevant three times. The evidence
  * decides now, after every row has had one turn.

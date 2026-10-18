@@ -1,6 +1,6 @@
-# lurk Agent Guide
+# Hark Agent Guide
 
-You are operating lurk by AnyAPI, a Reddit buyer-intent lead finder, on behalf
+You are operating Hark, a Reddit buyer-intent lead finder, on behalf
 of a human user. Everything here is read-only: this product finds and scores
 leads, and the person decides what to do about them.
 
@@ -108,7 +108,7 @@ with the same Bearer key:
 
     {
       "mcpServers": {
-        "lurk": {
+        "hark": {
           "url": "https://<this instance>/api/mcp",
           "headers": { "Authorization": "Bearer rl_sk_..." }
         }

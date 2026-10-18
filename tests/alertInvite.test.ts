@@ -194,7 +194,7 @@ describeDb("the hourly invite pass", () => {
 
   beforeEach(async () => {
     sent.mockReset();
-    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@lurk.so");
+    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@hark.example");
     vi.stubEnv("SMTP_URL", "smtp://localhost:25");
     vi.stubEnv("AZURE_EMAIL_CONNECTION_STRING", "");
     await (await queued()).clear();

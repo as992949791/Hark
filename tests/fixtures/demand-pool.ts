@@ -7,7 +7,7 @@ import type { DemandLease } from "../../src/lib/demand/contracts";
 
 if (!new URL(process.env.DATABASE_URL!).pathname.endsWith("_test")) throw new Error("Fixture requires a test database.");
 const sql = postgres(process.env.DATABASE_URL!, { max: 1 });
-(globalThis as typeof globalThis & { __lurkDb?: unknown }).__lurkDb = drizzle(sql, { schema });
+(globalThis as typeof globalThis & { __harkDb?: unknown }).__harkDb = drizzle(sql, { schema });
 const lease: DemandLease = JSON.parse(process.argv[2]);
 try {
   console.log("pool-fixture-ready");

@@ -808,7 +808,7 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
    * Studio" (2026-09-28). They were bought as the reply's context already, so
    * only judging them costs. The screen's visible-words rule is skipped, since
    * the reply carried the words, and the window is the tab's, since a thread
-   * starts before its replies. A post that is mostly an image, which lurk
+   * starts before its replies. A post that is mostly an image, which hark
    * cannot read, is held for a look rather than judged on a bare link, but only
    * under a reply a person wrote: a vendor's or farm's pitch says nothing about
    * the post it sits under. A thread the product's own account posted in is
@@ -848,7 +848,7 @@ export async function runXScan(projectId: string, jobId: string | null): Promise
         await updateEvaluation(held.id, {
           decision: "review",
           reasonCode: "image_only",
-          reason: `Mostly an image, which lurk can't read. @${reply.authorUsername} replied in its thread using the words lurk searched for (${phrase}), so open it on X to see what they posted.`,
+          reason: `Mostly an image, which Hark can't read. @${reply.authorUsername} replied in its thread using the words Hark searched for (${phrase}), so open it on X to see what they posted.`,
         });
         counts.postsFetched += 1;
         counts.postsNew += 1;

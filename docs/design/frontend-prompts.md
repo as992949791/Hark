@@ -1,6 +1,6 @@
 # Hark frontend reference and reusable prompts
 
-These prompts reproduce the interactive direction selected by the user on 2026-10-15 for real integration. The user's visual requirements are original-Lurk blue sky/white clouds, light gradients, more homepage features/buttons, and a consistent workspace. The top prototype-only homepage/workspace switcher is removed. References: [original Lurk](https://lurk.so), its existing `src/components/marketing/marketing.css`, and the working Hark fork. Use installed design-taste-frontend for marketing and Impeccable for product UI.
+These prompts reproduce the interactive direction selected by the user on 2026-10-15 for real integration. The user's visual requirements are reference blue sky/white clouds, light gradients, more homepage features/buttons, and a consistent workspace. The top prototype-only homepage/workspace switcher is removed. References: the upstream visual reference, its existing `src/components/marketing/marketing.css`, and the working Hark fork. Use installed design-taste-frontend for marketing and Impeccable for product UI.
 
 ## Homepage prompt
 

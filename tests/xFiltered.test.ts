@@ -6,7 +6,7 @@ import { describeDb, makeProject, makeUser, newId } from "./fixtures/db";
 
 /**
  * What the X tab shows of the posts it left out: those the judge passed but
- * lurk never finished, the judged ones with the gates' reason (close calls
+ * hark never finished, the judged ones with the gates' reason (close calls
  * first), then what the free screen set aside, with counts over the whole
  * window so the group reads as the work done.
  */

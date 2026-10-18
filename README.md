@@ -1,354 +1,189 @@
-# lurk
+# Hark
 
-<p align="center">
-  <img src=".github/banner.png" alt="lurk on a MacBook showing X leads for Cal.com and an iPhone showing Reddit leads. Monitor Reddit and X to find customers, get cited by AI, and rank on Google. Powered by AnyAPI." width="900">
-</p>
+**从公开讨论中发现需求，为产品寻找值得了解的人和问题。**
 
-lurk is a Reddit buyer-intent finder you can self-host for free, hosted at
-<https://lurk.so>. It watches the subreddits and keywords your buyers use, scores every post
-and comment against your product, tells you in one sentence why each one scored what it did,
-and shows what the data behind that lead cost, down to the request.
+![Hark — cross-platform demand discovery](docs/assets/hark-cover.svg)
 
-Data comes from [AnyAPI](https://getanyapi.com): one key, pay per request in USD, no
-subscription. "Premium" here means connecting your own AnyAPI wallet, not paying us a monthly
-fee. Self-hosting has no limits at all.
+[![Check](https://github.com/as992949791/Hark/actions/workflows/check.yml/badge.svg?branch=codex%2Flocal-setup)](https://github.com/as992949791/Hark/actions/workflows/check.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## What it does
+[公网测试站](https://hark-as992949791.netlify.app) · [功能与验证记录](docs/DEVELOPMENT.md) · [本地配置](docs/LOCAL_SETUP.md) · [报告问题](https://github.com/as992949791/Hark/issues)
 
-- **Builds your product profile from your URL.** One page read plus one language model call
-  gives you the pain, the solution, who buys, the subreddits they post in and the searches
-  they run. Everything is editable.
-- **Scans on a schedule.** Per keyword and per tracked subreddit, then a title-level triage,
-  then it opens only the threads worth reading, then one product-agnostic reading of each that
-  says whether anybody is asking for anything, then the comments on the best of those. Cost
-  follows quality, not volume.
-- **Scores with a written reason.** 0-100 from fit, intent and how alive the thread is, plus
-  an intent stage, the phrase that matched, and a seller-side flag for the people who are
-  selling rather than buying.
-- **Ranks the feed.** Filter by window, community and stage. Every card carries the poster,
-  the community, the age, the subreddit's own self-promotion rule, and the cost line.
-- **Sends alerts.** A digest email, a Slack or Discord post, or your own webhook.
-- **Finds the Reddit threads Google already ranks** for your keywords, with position, thread
-  age and whether a competitor is named in it or recommended in its replies.
-- **Watches your competitors** on Reddit: which ones are being recommended in the threads
-  your leads sit in, and what new posts naming them say, positive, negative or neutral.
-- **Groups your leads into pain themes**, over data you already paid for.
-- **Answers all of it over a read-only API and MCP**, so an agent can triage for you.
+Hark 是一个使用 TypeScript / Next.js 构建的 AI 需求研究工作台。你可以输入产品网址寻找潜在用户，也可以输入需求主题研究尚未解决的问题。系统从 Reddit、X 和网页搜索发现公开内容，读取可访问的原文，生成需求候选和痛点主题，并保留来源、引用与费用供人检查。
 
-## What it never does
+它也提供围绕产品的持续线索工作流：产品画像、来源配置、AI 筛选、线索处理、竞品提及、Reddit SEO、通知和只读 API。搜索、模型分析和人工判断各自承担不同的工作；AI 分数用于排序注意力，不能解释为购买概率。
 
-Deliberately absent, and not planned:
+> 当前为个人测试项目。公网测试站可能落后于仓库，自动付费任务保持关闭。首页设备预览中的样例不代表实时扫描结果。开源和免费托管额度不等于数据与模型调用免费。
 
-- **No posting.** No comment or DM is ever sent for you.
-- **No reply drafting.** lurk finds and explains the conversation; the words are yours.
-- **No browser extension.**
-- **No conversation inbox.** Once you reply, the conversation belongs to Reddit.
-- **No feedback loop that rewrites your filters.** Marking a lead as not a fit records the
-  reason and shows it in Insights; it does not silently change what you see next.
-- **No archive of Reddit.** Search is the index. A post nobody is being shown is gone 30
-  days after it was written.
-- **No subscription.** There is no plan to buy here, in any tier.
+## 适用场景
 
-## Five-minute self-host
+- **已有产品，寻找潜在用户**：发现正在求推荐、寻找替代工具或表达明确困难的人，查看产品是否真的能解决对方的问题。
+- **尚未确定产品，调查需求**：围绕一个主题收集公开讨论，了解反复出现的困难、现有办法及其局限。
+- **跟踪已有市场**：查看竞品提及、相关社区和 Google 已收录的 Reddit 讨论，再决定值得深入研究的方向。
 
-You need Docker, a free [Clerk](https://clerk.com) application for sign-in, an
-[AnyAPI](https://getanyapi.com) key and an [OpenRouter](https://openrouter.ai) key.
+## 功能
 
-```bash
-git clone <repo> lurk
-cd lurk
+| 模块 | 能做什么 |
+| --- | --- |
+| 跨平台研究 | 手动输入产品网址或需求主题；组合 Reddit、X 与 Google 发现的公开网页来源 |
+| 需求线索视图 | 展示具体需求、原文引用、来源链接、已知作者/时间与匹配解释；未知信息保持未知 |
+| 痛点主题视图 | 把相关线索整理为中文主题，回到支撑材料检查；区分来源数与已观察到的独立作者数 |
+| 产品画像 | 从产品页面提取方案、能力、目标用户和竞品；支持检查及编辑 |
+| Reddit / X 线索 | 配置关键词与来源，AI 判断匹配度和意图；查看原帖、会话、理由和费用 |
+| 线索处理 | 筛选、标记已回复、隐藏、不匹配与屏蔽，保留人工跟进的决定权 |
+| 研究与配置 | 产品简报、竞品提及、Insights、Reddit SEO、来源与过滤设置 |
+| 通知 | 邮件摘要和通用 Webhook；源码也包含 Slack / Discord 接入 |
+| 用量与执行 | 展示请求费用、任务状态、部分失败和显式重试；研究任务先预留预算，再结算实际费用 |
+| API / MCP | 通过用户拥有的只读密钥读取现有项目、Reddit 线索、SEO、主题和用量；不提供自动外联工具 |
+
+跨平台研究默认面向海外英文公开来源，使用中文说明与总结，引用保留原语言。Google 用来找到原网页，不能替代原作者，也不能把搜索摘要当作已读取的完整文章。
+
+## 一次研究怎样完成
+
+```mermaid
+flowchart LR
+  A[产品网址 / 需求主题] --> B[查询规划与预算检查]
+  B --> C[Reddit / X / 网页检索]
+  C --> D[读取原文与去重]
+  D --> E[AI 提取与匹配分析]
+  E --> F[服务端校验引用和来源]
+  F --> G[需求候选 / 痛点主题]
+  G --> H[人工检查与后续决定]
+```
+
+- 产品模式复用当前拥有者的可用画像，或在本次任务内读取新产品页面；不会顺便创建监控项目或启动回填。
+- 各阶段保留实际调用费用。无法确认扣费时保留预算并阻断重复购买，而不是把错误当成免费。
+- 服务端检查引用是否确实出现在本次读取的原文中。无法访问的页面、无依据的事实和不明确的引用不能成为已验证证据。
+- 某个来源失败时保留已成功结果，并明确展示部分失败；重试由用户显式发起并复用成功阶段。
+- 项目、研究任务和读取接口按拥有者隔离。原文可以按保留规则到期，费用记录继续保留。
+
+## 已验证到哪一步
+
+2026-10-17 使用公开产品 **CapCut** 完成了一轮真实产品模式研究：
+
+| 指标 | 实际结果 |
+| --- | --- |
+| 保存的来源文档 | 31 份 |
+| 需求候选 | 13 条：Reddit 8、X 2、其他网页 3 |
+| 痛点主题 | 5 个 |
+| 原文校验 | 13 条引用均匹配保存的原文片段 |
+| 运行状态 | 部分完成：两页无法抓取，其余提取和聚合完成 |
+| 本次主任务费用账本 | $0.027140，按每次调用向上取整至微美元 |
+
+这是一轮小样本执行记录，不是典型成本承诺，也不是获客效果证明。13 条是待判断的需求候选，不能称为 13 个有效客户；网页增量是否有用、主题是否有足够独立作者，仍需人工评估。该主任务费用不包含更早的连接探测、失败准备和其他任务，完整对账见[真实验收记录](docs/acceptance/23-capcut-live.md)。
+
+其他验证包括真实 X 扫描、QQ 邮件收件、通用 Webhook、隔离的云端定时与任务恢复检查。以下项目仍未完成验收：
+
+- 20 条结果中至少 16 条相关的人工质量目标。
+- 需求主题模式、新产品网址准备流程的完整真实调用，以及真实结果的浏览器交互验收。
+- Slack / Discord 真实收件和钱包 OAuth；钱包工作暂缓。
+- 新网页来源的持续监控、自动外联和商业效果。当前手动研究不会自动扩展成长期监控。
+
+仓库完整 CI 在专用测试数据库上运行 TypeScript、ESLint、测试和生产构建。最近一次功能版本通过 **1105 项测试 / 110 个文件**；最新提交的结果请查看上方 Check 状态。自动化测试通过不等于模型输出相关或已有用户采用。
+
+## 技术栈与工程设计
+
+| 层 | 技术 / 设计 |
+| --- | --- |
+| 前端 | Next.js 16、React 19、TypeScript、Tailwind CSS 4、Base UI、Lucide |
+| 认证 | Clerk、服务端拥有者校验 |
+| 数据 | PostgreSQL 17、Drizzle ORM 与迁移 |
+| 公共内容 | AnyAPI TypeScript SDK：Reddit、X、Google 搜索与网页读取 |
+| AI | OpenRouter；产品分析模型与 Jev 线索判断可分别配置；研究传输支持已验证的官方 DeepSeek JSON 模式 |
+| 异步任务 | PostgreSQL 持久化任务、租约与恢复、阶段复用、费用预留及实际结算 |
+| 通知 | SMTP / Azure 邮件、通用 Webhook、Slack / Discord 适配 |
+| 部署 | Netlify + Neon 的个人测试配置，也保留 Docker 自托管入口 |
+| 验证 | Vitest、隔离数据库测试、TypeScript、ESLint、GitHub Actions |
+
+源码结构：
+
+```text
+src/app/                 页面、Server Actions 与 API 路由
+src/components/          首页、工作台和各功能组件
+src/lib/demand/          研究契约、预算、传输、证据校验、流水线与报告
+src/lib/                 产品画像、线索、竞品、SEO、通知及其他领域逻辑
+src/jobs/                持久化任务与调度
+src/db/                  数据表、迁移和数据库连接
+netlify/functions/       可选云端后台任务入口
+tests/                   单元与数据库集成测试
+docs/                    规格、开发记录、配置与验收边界
+```
+
+## 本地运行
+
+需要 Node.js 24、npm、PostgreSQL，以及自己的 Clerk 应用。真实搜索另需 AnyAPI 和 OpenRouter 账号；不要把密钥放入聊天、Issue 或 Git。
+
+```sh
+git clone https://github.com/as992949791/Hark.git
+cd Hark
+npm ci
+npm --prefix tools/local-postgres ci
 cp .env.example .env
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"   # APP_ENCRYPTION_KEY
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-Put that key in `APP_ENCRYPTION_KEY`, paste your Clerk, AnyAPI and OpenRouter keys into
-`.env`, then:
+将生成值填入 `APP_ENCRYPTION_KEY`，配置 Clerk 的两个密钥。可以连接自己的 PostgreSQL；使用仓库可选的本地数据库助手时，按[本地配置](docs/LOCAL_SETUP.md)设置 `127.0.0.1` 的连接地址。已有 `.env` 时不要覆盖它。
 
-```bash
-docker compose up
+先以无付费调用的配置启动：
+
+```dotenv
+RUN_SCHEDULER=false
+SCHEDULER_SEED=false
+BACKGROUND_WORKER_ENABLED=false
+SCHEDULED_WORKER_ENABLED=false
+ALERT_INVITES=false
+DEMAND_DISCOVERY_ENABLED=false
+DEMAND_LIVE_ENABLED=false
+HOUSE_DATA_CAP_USD_PER_DAY=0
+HOUSE_LLM_CAP_USD_PER_DAY=0
+HOUSE_X_DATA_CAP_USD_PER_DAY=0
+HOUSE_X_LLM_CAP_USD_PER_DAY=0
 ```
 
-The app applies its own migrations on start and serves on <http://localhost:3000>. Sign up,
-paste your product's URL, and press Scan now.
-
-To let other people connect their own AnyAPI wallet instead of using your key, register this
-instance as an OAuth client once and paste the printed id into `ANYAPI_OAUTH_CLIENT_ID`:
-
-```bash
-npm run anyapi:register
+```sh
+npm run dev:local
+# http://localhost:3000
 ```
 
-## Environment
+支持的启动命令会检查连接、按需启动本地数据库助手并应用迁移。数据库助手使用持久目录 `.local/postgres`；其他平台的安装说明见[配置文档](docs/LOCAL_SETUP.md)。也可使用 `docker compose`，但启动前务必配置调度和费用上限，不能把镜像启动等同于零成本演示。
 
-| Variable | Required | Default | What it does |
-|---|---|---|---|
-| `DATABASE_URL` | yes | - | Postgres connection string. Compose sets it for you. |
-| `APP_URL` | yes | `http://localhost:3000` | Public origin. Must match the registered OAuth redirect. |
-| `APP_ENCRYPTION_KEY` | yes | - | 32 random bytes, base64. Encrypts stored AnyAPI refresh tokens. |
-| `SELF_HOSTED` | no | `false` | `true` removes every tier limit. |
-| `RUN_SCHEDULER` | no | `false` | `true` on exactly one process runs the every-minute job tick. |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | yes | - | Clerk publishable key. |
-| `CLERK_SECRET_KEY` | yes | - | Clerk secret key. |
-| `ANYAPI_BASE_URL` | no | `https://api.getanyapi.com` | AnyAPI gateway. |
-| `ANYAPI_OAUTH_CLIENT_ID` | no | - | Printed by `npm run anyapi:register`. Needed for wallet connect. |
-| `ANYAPI_HOUSE_API_KEY` | no | - | The key used when a user has not connected a wallet. |
-| `OPENROUTER_API_KEY` | no | - | Pays for judging every title, post and comment the scan reads (TypeSafe's Jev), and for the product profile, competitor classification and clustering. Without it nothing is scored. |
-| `OPENROUTER_MODEL` | no | `meta/muse-spark-1.3-contributor` | Override the model. |
-| `JEV_MODEL` | no | `~typesafe/jev-latest` | Override the judging model on OpenRouter. |
-| `AI_GATEWAY_API_KEY` | no | - | A Vercel AI Gateway key. When set, Jev is asked through the Gateway first and OpenRouter only answers when the Gateway fails. |
-| `JEV_GATEWAY_MODEL` | no | `typesafe-ai/jev` | Override the judging model on the Gateway. |
-| `ALERTS_FROM_EMAIL` | no | - | The From address on a digest. Email needs this and one of the two below. |
-| `AZURE_EMAIL_CONNECTION_STRING` | no | - | Sends the digest through Azure Communication Services. Wins when both are set. |
-| `SMTP_URL` | no | - | Sends the digest through any SMTP server, as `smtps://user:pass@host:465`. |
-| `ALERT_INVITES` | no | `false` | `true` emails each person who has leads and no alert channel, once, asking whether they want new leads by email. Needs email set up as above. |
-| `SLACK_CLIENT_ID` | no | - | With the secret, turns the Slack channel into an Add to Slack button. |
-| `SLACK_CLIENT_SECRET` | no | - | The other half of the Slack app. |
-| `DISCORD_CLIENT_ID` | no | - | With the secret, turns the Discord channel into an Add to Discord button. |
-| `DISCORD_CLIENT_SECRET` | no | - | The other half of the Discord app. |
-| `HOUSE_DATA_CAP_USD_PER_DAY` | no | `50` | Daily ceiling on data spend from the house key. |
-| `HOUSE_LLM_CAP_USD_PER_DAY` | no | `100` (`10` under the Compose file) | Daily ceiling on language model spend. |
-| `X_LEADS` | no | `false` | Turns on the X leads tab and its jobs (beta, off by default). |
-| `X_REPLIES` | no | `true` | Shows X posts worth a reply beside the asks. `false` turns off only that kind. |
-| `HOUSE_X_DATA_CAP_USD_PER_DAY` | no | `5` | X's share of the house data ceiling. |
-| `HOUSE_X_LLM_CAP_USD_PER_DAY` | no | `5` | X's share of the house language model ceiling. |
-| `X_CALLS_IN_FLIGHT` | no | `8` | Paid X calls in flight at once. |
-| `ALERTS_ALLOW_PRIVATE_WEBHOOKS` | no | `false` | Webhooks may only reach public addresses. Set `true` on a self-hosted instance to deliver to your own network. |
+## 接入真实搜索
 
-A variable set to nothing counts as unset, so an empty line in `.env` never half-configures a
-feature.
+| 配置 | 用途 |
+| --- | --- |
+| `ANYAPI_HOUSE_API_KEY` | 实例用于公共内容请求的 AnyAPI 密钥 |
+| `OPENROUTER_API_KEY` | OpenRouter 本身生成的访问密钥 |
+| `OPENROUTER_MODEL` | 通用分析模型 |
+| `OPENROUTER_PROFILE_MODEL` | 产品画像、简报及手动研究分析模型；空值回退到通用模型 |
+| `JEV_MODEL` | 现有线索工作流的 Jev 判断模型 |
+| `DEMAND_DISCOVERY_ENABLED` / `DEMAND_LIVE_ENABLED` | 手动研究界面和真实执行开关，两者均需明确开启 |
+| `X_LEADS` | X 来源及已有 X 页面开关 |
+| `HOUSE_*_CAP_USD_PER_DAY` | 实例每天的数据 / 模型费用上限和 X 子额度 |
+| `SMTP_URL` / `ALERTS_FROM_EMAIL` | 可选邮件通知配置 |
 
-## Tiers
+研究页面位于 `/app/research`。先确认账号额度、模型访问权限和具体扫描预算，再开启对应开关与上限。DeepSeek 官方密钥不能直接填进 `OPENROUTER_API_KEY`；若使用 OpenRouter BYOK，应在 OpenRouter 账号内配置上游密钥。模型是否可用、是否支持格式参数以及实际费率，都取决于所选账号、模型和端点。
 
-A hosted instance has two tiers. Self-hosting is neither: it has no limits at all.
+研究调用使用独立预算预留与 BYOK 费用结算；旧 SDK 调用路径仍有不同的费用控制语义，不能把手动研究的保障推及所有模块。详见[研究流水线](docs/acceptance/19-demand-pipeline.md)与[BYOK 记录](docs/acceptance/22-byok-readiness.md)。
 
-| Setting | Free | Connected wallet |
-|---|---|---|
-| Projects | 2 | unlimited |
-| Keywords per project | 25 | unlimited |
-| Tracked subreddits per project | 10 | unlimited |
-| Scan cadence | daily, at an hour you pick | hourly |
-| Comment scan | top 20 scored threads per scan | every thread over your threshold |
-| Feed window | 30 days | 30 days |
-| Alerts | daily digest, Slack and Discord, + 1 custom webhook | hourly, unlimited custom webhooks |
-| Reddit SEO | 10 keywords, refreshed weekly | unlimited keywords, refreshed daily |
-| Competitors | 3 | unlimited |
-| Insights | full | full |
-| API and MCP | read-only, 1,000 requests a day | read-only, unlimited requests |
+## 开发与接口
 
-Connecting a wallet buys freshness and breadth, not features. Every feature is on in every
-tier.
-
-## How a wallet connection works
-
-Sign in, open Settings, and press Connect AnyAPI wallet. You land on the AnyAPI consent
-screen, where you set the spend cap this app may use, and come back connected. This app never
-sees or stores an AnyAPI key: it holds a refresh token, encrypted with `APP_ENCRYPTION_KEY`,
-and swaps it for a short-lived access token when it needs to make a call. Disconnect deletes
-the token here and revokes it at AnyAPI.
-
-## Alerts
-
-Settings -> Alerts is where new leads land. Add an email digest, a Slack or Discord webhook,
-or a generic webhook that receives the same digest as JSON. Slack and Discord cost nothing to
-post to, so a project may add as many of those as it likes; the generic webhook is the one the
-free tier caps, at one. Email needs `ALERTS_FROM_EMAIL`
-and one carrier: `AZURE_EMAIL_CONNECTION_STRING` or `SMTP_URL`, in that order. On Azure, the local part of `ALERTS_FROM_EMAIL` must also be added as a sender
-username on the domain, or every send is refused. The webhooks need nothing. A digest carries the day's new leads with
-their score, reason, community and link, in the same shapes the feed uses, and sends nothing
-at all when there is nothing new. The scheduler queues one digest pass an hour and each
-channel decides whether its own cadence is due.
-
-Slack takes a pasted webhook URL by default. To let people pick a channel instead, create a
-Slack app at <https://api.slack.com/apps> with Incoming Webhooks on, the `incoming-webhook`
-bot scope, and `https://<your APP_URL>/connect/slack/callback` as a redirect URL. Slack only
-accepts https redirect URLs, so this does not work against `http://localhost`. Put the app's
-client id and secret in `SLACK_CLIENT_ID` and `SLACK_CLIENT_SECRET` and the form shows an Add
-to Slack button; the pasted-URL path stays one click away.
-
-## API and MCP
-
-Settings -> API mints read-only keys prefixed `rl_sk_`. Send one as a bearer token:
-
-```bash
-curl -H "Authorization: Bearer $KEY" http://localhost:3000/api/v1/projects
+```sh
+npm run verify -- --quick          # TypeScript + ESLint
+npm run verify                    # 加上完整测试和生产构建
+npm run profile:replay -- tests/fixtures/profile-trace.json
 ```
 
-Reading costs nothing, and every response says so with `X-Request-Cost-Usd: 0`. The schema is
-served at [`/openapi.json`](public/openapi.json) and the agent guide, which explains what a
-lead is and how to triage one, at [`/agent-guide.md`](public/agent-guide.md). The same reads
-are available to an agent over MCP at `/api/mcp`.
+日常先运行与改动有关的检查，最终以一次完整 CI 验证存档提交，避免重复执行无关流程。测试清除付费密钥并使用专用 `_test` 数据库。更多命令见[开发工具](docs/DEV_TOOLS.md)。
 
-## Costs, measured
+只读 API 使用工作台生成的 Bearer key，入口为 `/api/v1`；MCP 入口为 `/api/mcp`。接口范围见 [OpenAPI](public/openapi.json) 与 [Agent Guide](public/agent-guide.md)。现有只读接口不等于已开放手动研究任务的创建或结果 API。
 
-Real runs on this codebase against tally.so, on 2026-09-05. Data is what AnyAPI billed;
-model is what OpenRouter billed.
+## 当前计划
 
-| Run | AnyAPI requests | Data | Model | What came back |
-|---|---|---|---|---|
-| First scan, 12 keywords and 5 subreddits | 27 | $0.028 | $0.0067 | 4 leads |
-| Reddit SEO refresh, 3 keywords | 27 | $0.028 | - | 24 ranking threads |
-| Competitor scan, 3 competitors | 27 | $0.032 | - | mentions with a sentiment each |
-| Insights over stored leads | 0 | $0 | $0.0004 | pain themes and communities |
-| Daily digest email | 0 | $0 | - | one email |
+1. 人工检查真实候选，记录相关与不相关的原因，验证网页来源实际带来的增量。
+2. 补齐主题 / 新网址模式和真实结果交互验收。
+3. 根据质量评估改进搜索与筛选，再考虑持续监控；钱包暂缓。
+4. 功能和前端稳定后，再整理演示和项目展示材料。
 
-Two things keep the bill this small. Reddit rows are shared: the same search run inside your
-cadence window is reused, billed at zero, and the Data usage screen shows fetched against
-reused. And a scan is a funnel, so full posts and comment threads are only bought for the
-titles that survived triage.
+## 许可证
 
-## Data we store, and for how long
-
-Reddit posts and comments are public facts, so they are stored once and shared across
-projects: two people tracking the same keyword pay for one fetch between them. Scores are
-never shared; the same post can be a 92 for one product and a 12 for another. A shared
-Reddit post is deleted 30 days after it was posted, which is also the feed window, unless
-someone is still being shown it: a post behind a lead or a Reddit SEO thread is kept, with its
-comments, for as long as that lead or thread exists. Deleting the project, or the account,
-removes its leads, and the posts behind them go at the next daily cleanup.
-
-## Built on AnyAPI
-
-Every Reddit and Google call this app makes goes through [AnyAPI](https://getanyapi.com),
-using the published TypeScript SDK. That is the point of giving this away: the whole category
-sells you a subscription and hides what the data costs, and here the cost of a lead is printed
-on the lead.
-
-- One key reaches Reddit search, subreddit listings, posts, comments, profiles and community
-  details, plus Google search for the Reddit SEO screen.
-- You pay per request in USD, from a wallet, with no plan and no minimum.
-- Every call returns its own price, which is what the cost lines in this app are made of.
-- A free trial key with starter credit and no card is a sign-up away at
-  <https://getanyapi.com>.
-
-## Hosting it on Azure
-
-Self-hosting needs none of this. It is how the one hosted instance runs.
-
-### Provision, once
-
-`scripts/azure-provision.sh` creates everything in one resource group and is safe to run
-again: every step checks for the resource first. Secrets are never arguments to it. They
-live in `deploy/env.production`, which is gitignored, and the script generates the ones you
-should not choose yourself.
-
-```bash
-mkdir -p deploy
-cat > deploy/env.production <<'EOF'
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-ANYAPI_HOUSE_API_KEY=
-OPENROUTER_API_KEY=
-AI_GATEWAY_API_KEY=
-ALERTS_FROM_EMAIL=
-AZURE_EMAIL_CONNECTION_STRING=
-SMTP_URL=
-SLACK_CLIENT_ID=
-SLACK_CLIENT_SECRET=
-EOF
-
-RESOURCE_GROUP=reddit-leads-prod scripts/azure-provision.sh --dry-run
-RESOURCE_GROUP=reddit-leads-prod scripts/azure-provision.sh
-```
-
-It writes `PG_ADMIN_PASSWORD`, `APP_ENCRYPTION_KEY`, `DATABASE_URL` and `APP_URL` back into
-that file, and sets the same values as Container App secrets. Nothing else holds them.
-
-What it creates, all in `centralus` by default and all on the smallest sensible tier:
-
-| Resource | Tier |
-|---|---|
-| Container registry | Basic |
-| Postgres flexible server, plus a database and a firewall rule for Azure services | Burstable `Standard_B1ms`, 32 GiB, version 17 |
-| Container Apps environment | Consumption |
-| Container app, one replica, port 3000, external ingress | 0.5 vCPU, 1 GiB |
-| User-assigned managed identity with `AcrPull` on the registry | - |
-
-The app is pinned to exactly one replica because `RUN_SCHEDULER=true` must run on exactly
-one process.
-
-### The custom domain
-
-Set `DOMAIN` and the script prints the records to publish, adds the hostname, asks for a
-managed certificate and binds it. If the records are not visible yet it says so and leaves
-everything else provisioned, so it is safe to run again once DNS has propagated:
-
-```bash
-RESOURCE_GROUP=reddit-leads-prod DOMAIN=lurk.so scripts/azure-provision.sh
-```
-
-An apex domain such as `lurk.so` needs an `A` record to the environment's address, because a
-CNAME cannot sit at the root of a zone; a subdomain gets a `CNAME` to the app instead. The
-script picks the right shape and the matching certificate validation method for you.
-
-Azure resolves those records itself to prove you own the name and to issue the certificate,
-so they must be served as published. Behind a proxying CDN, Cloudflare's orange cloud
-included, Azure sees the proxy's address and its certificate instead and validation never
-passes. Set the records to DNS-only until the certificate is issued.
-
-### Let GitHub deploy
-
-`.github/workflows/deploy.yml` signs in with OpenID Connect, so no Azure password is stored
-on GitHub. `scripts/azure-github-oidc.sh` creates the app registration, the federated
-credential that trusts one repository and branch, and the two role assignments the workflow
-needs:
-
-```bash
-GITHUB_REPO=owner/repo RESOURCE_GROUP=reddit-leads-prod scripts/azure-github-oidc.sh --dry-run
-GITHUB_REPO=owner/repo RESOURCE_GROUP=reddit-leads-prod scripts/azure-github-oidc.sh
-```
-
-Then set these on the repository, with `gh variable set` and `gh secret set` or in the
-repository settings:
-
-| Repository variable | Where it comes from |
-|---|---|
-| `AZURE_RESOURCE_GROUP` | the resource group you provisioned |
-| `AZURE_CONTAINER_REGISTRY` | registry name, printed by the provision script |
-| `AZURE_CONTAINER_APP` | container app name, printed by the provision script |
-| `APP_HEALTH_URL` | `https://<hostname>/api/health`, printed by the provision script |
-
-| Repository secret | Where it comes from |
-|---|---|
-| `AZURE_CLIENT_ID` | printed by `scripts/azure-github-oidc.sh` |
-| `AZURE_TENANT_ID` | printed by `scripts/azure-github-oidc.sh` |
-| `AZURE_SUBSCRIPTION_ID` | printed by `scripts/azure-github-oidc.sh` |
-| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | `openssl rand -base64 32`, once; never rotate it casually |
-
-The encryption key salts every Server Action id. Built without it, each deploy gets a new
-random key, every id changes, and any tab open across the deploy fails on its next click.
-The deploy refuses to build without it.
-
-A deploy builds the image, pushes it, rolls the container app to a revision named after the
-commit, and then polls `APP_HEALTH_URL` until it answers 200. Migrations are not a separate
-job: `docker-entrypoint.sh` applies them before the server starts, and one replica means
-they run once.
-
-`scripts/deploy-manual.sh` does the same from a clean checkout, for when the workflow is
-not an option:
-
-```bash
-RESOURCE_GROUP=reddit-leads-prod scripts/deploy-manual.sh
-```
-
-It pins `--platform linux/amd64`, because an image built on an Apple Silicon Mac without it
-pushes fine and then fails to pull with "not found".
-
-## Development
-
-```bash
-npm install
-docker compose up -d postgres
-cp .env.example .env    # fill in the keys, point DATABASE_URL at localhost:5433
-npm run db:migrate
-npm run dev
-```
-
-`npm run check` runs the typecheck, the linter and the unit tests. The database-backed tests
-skip unless `DATABASE_URL` is set, and never write to that database: they use a sibling named
-`<database>_test` on the same server (or `TEST_DATABASE_URL`), created and migrated on the
-first run. They also drop every paid key from the environment, so a test cannot spend.
-`npm run db:generate` writes a new migration after a schema change.
-
-## Licence
-
-MIT.
+[MIT](LICENSE)。源代码归属、版权与第三方来源说明保留在 [NOTICE](NOTICE) 中。Hark 独立维护，AnyAPI 是数据服务集成方。

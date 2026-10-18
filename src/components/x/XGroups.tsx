@@ -18,7 +18,7 @@ function GroupSummary({ label, count, warm = false }: { label: string; count: nu
 }
 
 /**
- * Everything lurk could not call either way, as one group under Leads and
+ * Everything hark could not call either way, as one group under Leads and
  * open from the start: posts the scan held, then the left-out posts worth a
  * look (close calls, unfinished checks, turned away but still scoring well).
  * To the reader these are the same thing: check them yourself.
@@ -138,7 +138,7 @@ const STATE_WORD: Record<string, string> = {
 };
 
 /**
- * What lurk asks X for this project, as the last group in the list column.
+ * What hark asks X for this project, as the last group in the list column.
  * X matches words exactly, so each search ties a competitor, the category or
  * the job to the words people leave, rebuild or show it in; the exact query is
  * shown.

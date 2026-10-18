@@ -1,5 +1,5 @@
 /**
- * Real public X posts that lurk's X scan listed as leads, read from the local
+ * Public X examples captured in the upstream reference, read from the local
  * pilot Postgres (x_leads + x_posts) on 2026-09-30. The projects were test
  * copies of Cal.com and Clipy. Handles, avatars, dates and counts are as
  * saved. Display names lose their emoji; long posts keep their opening

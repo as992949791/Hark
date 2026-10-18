@@ -1,12 +1,11 @@
 "use client";
 
 import { unstable_isUnrecognizedActionError } from "next/navigation";
-import posthog from "posthog-js";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 /** When this tab last reloaded itself, so a page that keeps failing is not reloaded forever. */
-const RELOADED_AT = "lurk:stale-action-reload";
+const RELOADED_AT = "hark:stale-action-reload";
 
 /**
  * Anything an app page throws. The usual cause is a tab left open across a
@@ -30,9 +29,6 @@ export default function AppError({
         window.location.reload();
         return;
       }
-    }
-    if (posthog.__loaded) {
-      posthog.captureException(error, { digest: error.digest });
     }
   }, [error, stale]);
 

@@ -37,7 +37,7 @@ The database has 22 free_rejected, seven rejected, one review, two lead and elev
 - Desktop result width matched 1710 pixels; mobile list/detail/held views stayed within 390 pixels. Final rebuilt pages show Hark wording and two leads without an app error. Physical-device and exhaustive accessibility checks were not run.
 - CapCut's 24 original Reddit IDs/statuses/reasons and profile/brief versions remain unchanged. X has one project and two leads in its separate tables; no other product received an X run. No reply, direct message, notification or webhook was sent.
 
-Residual visible X explanations still named Lurk. Corrected only those strings in five presentation files and updated four existing exact-text assertions. Comments, internal names, assets, upstream attribution, search templates, model prompts and business rules were retained. The initial scoped test run had four failures due to the old displayed-name assertions; after updating their expected wording, all 194 tests in 14 X/price-cap files passed. An initial read-only preflight probe omitted llmSpend's required options; it was corrected before the paid worker ran.
+Residual visible X explanations still named upstream project. Corrected only those strings in five presentation files and updated four existing exact-text assertions. Comments, internal names, assets, upstream attribution, search templates, model prompts and business rules were retained. The initial scoped test run had four failures due to the old displayed-name assertions; after updating their expected wording, all 194 tests in 14 X/price-cap files passed. An initial read-only preflight probe omitted llmSpend's required options; it was corrected before the paid worker ran.
 
 ## Cost and final state
 

@@ -75,7 +75,7 @@ export function MarketingFree() {
             </span>
             <span role="cell" className="plan-track">
               <motion.span
-                className={plan.name === "lurk" ? "plan-bar accent" : "plan-bar"}
+                className={plan.name === "Hark" ? "plan-bar accent" : "plan-bar"}
                 initial={reduced ? false : { scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}
                 viewport={{ once: true }}

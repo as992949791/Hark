@@ -114,7 +114,7 @@ export function MarketingXTiles() {
         <h2>Buyers on X say it out loud.</h2>
         <p>
           People on <BrandWord name="X" /> ask for recommendations, complain about what they pay,
-          and post that they built their own. lurk searches <BrandWord name="X" /> for those posts
+          and post that they built their own. Hark searches <BrandWord name="X" /> for those posts
           about your competitors and your category, reads each one, and keeps the ones worth a
           reply.
         </p>

@@ -273,7 +273,7 @@ if [ -n "$DOMAIN" ]; then
   # CNAME cannot sit at the root of a zone. A subdomain uses a CNAME instead.
   # The apex certificate validates over HTTP through that A record; TXT
   # validation prints a token that has to be published by hand and left
-  # lurk.so's certificate Pending on 2026-09-05.
+  # the upstream deployment's certificate Pending on 2026-09-05.
   if [ "$(printf '%s' "$DOMAIN" | tr -cd '.' | wc -c)" -le 1 ]; then
     APEX_RECORD="A     $DOMAIN -> $STATIC_IP"
     VALIDATION=HTTP

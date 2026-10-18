@@ -276,7 +276,7 @@ export function rankFamilies(
  * Words that say a demand is a refusal rather than a topic. None of them is a
  * constraint on its own: `(api) AND (without)` means every post about an API,
  * and on 2026-09-14 that search and its two siblings produced 0, 0 and 1 leads
- * on lurk.so against 7 for `instagram api` and 5 for `tiktok scraper`. They are
+ * on the upstream deployment against 7 for `instagram api` and 5 for `tiktok scraper`. They are
  * still kept out of the subject, because a search anchored on "not" finds
  * nothing about anything.
  */

@@ -2,7 +2,7 @@
 
 Ticket: [12](https://github.com/as992949791/Hark/issues/12).
 
-Continue the public-test deployment after `v0.1.13-public-test`. The user deferred wallet OAuth and authorized the other integration work. Preserve the Lurk handlers, Clerk, original projects and upstream attribution. Use existing Netlify Free and Neon Free; no new infrastructure purchase.
+Continue the public-test deployment after `v0.1.13-public-test`. The user deferred wallet OAuth and authorized the other integration work. Preserve the upstream project handlers, Clerk, original projects and upstream attribution. Use existing Netlify Free and Neon Free; no new infrastructure purchase.
 
 ## First version
 

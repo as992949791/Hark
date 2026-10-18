@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/LegalPage";
-import { PRODUCT_NAME, SUPPORT_EMAIL } from "@/lib/brand";
+import { PRODUCT_NAME, SUPPORT_URL } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Terms of Service | ${PRODUCT_NAME}` };
 
@@ -8,48 +8,43 @@ export default function TermsPage() {
   return (
     <LegalPage
       title="Terms of Service"
-      updated="September 18, 2026"
-      intro={
-        <>
-          These terms cover the hosted {PRODUCT_NAME} service at lurk.so, operated by AnyAPI. By creating
-          an account you agree to them. The open-source code is covered separately by its MIT license.
-        </>
-      }
+      updated="October 18, 2026"
+      intro={<>Hark is an independently maintained project for researching public demand signals. The hosted test instance is experimental. The source code is distributed under the MIT license.</>}
       sections={[
         {
           title: "Your account",
           body: [
-            "You must give a real email address you control and keep your sign-in secure. One person or company may not open multiple accounts to get around free-tier limits. You are responsible for what happens under your account.",
+            "Use an account and notification destinations you control. Keep your credentials secure and respect the instance's ownership boundaries and access limits.",
           ],
         },
         {
           title: "Acceptable use",
           body: [
-            "Do not use lurk to spam, harass or deceive people, to break Reddit's rules or any community's rules, to send alerts to addresses or webhooks you do not control, to probe or overload the service, or to resell access to it. How you reply to a lead is your responsibility; follow each community's rules on self-promotion.",
+            "Follow source-platform and community rules. Do not use Hark to spam, harass, deceive, bypass access controls or overload another service. Hark does not automatically contact prospects; you are responsible for any follow-up you choose to make.",
           ],
         },
         {
-          title: "Free tier and connected wallets",
+          title: "Provider costs",
           body: [
-            "The free tier is provided within limits we set and may change. If you connect an AnyAPI wallet, the data requests your scans make are billed to that wallet under AnyAPI's terms at getanyapi.com/terms.",
+            "Data and model requests can incur usage charges on configured provider accounts. Open-source code and free hosting allowances do not make those calls free. Configure budgets before enabling searches or scheduled tasks. Wallet integration exists in the source but has not completed Hark's live acceptance.",
           ],
         },
         {
-          title: "Suspension",
+          title: "Generated research",
           body: [
-            "We may limit, suspend or close accounts that abuse the service, put it at risk, or break these terms. You can stop using the service and ask us to delete your account at any time.",
+            "Candidates, scores and themes can be incomplete or wrong. Check the original evidence before making decisions. A score is not a purchase probability, and repeated discussion does not establish market size or commercial demand.",
           ],
         },
         {
-          title: "No warranty",
+          title: "Availability and license",
           body: [
-            "The service is provided as is. Leads, scores and summaries are generated automatically from public content and may be incomplete or wrong. To the extent the law allows, AnyAPI is not liable for indirect or consequential losses, and our total liability is limited to the amount you paid us in the twelve months before the claim.",
+            "The experimental service may change or be unavailable. Software is provided as is under the warranty and liability terms in LICENSE. Third-party services have their own terms.",
           ],
         },
         {
-          title: "Changes and contact",
+          title: "Project support",
           body: [
-            `We may update these terms; continuing to use the service after a change means you accept it. Contact ${SUPPORT_EMAIL}.`,
+            <>Report reproducible project issues at <a href={SUPPORT_URL}>GitHub Issues</a>, without including secrets or private account data.</>,
           ],
         },
       ]}

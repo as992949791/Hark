@@ -11,7 +11,7 @@ import {
 } from "./constants";
 
 /**
- * Whether X is quiet for a product: lurk has read X for it and not one person
+ * Whether X is quiet for a product: hark has read X for it and not one person
  * asked or posted anything worth a reply. On 2026-09-27 a week of searches
  * found nothing in 134 posts for a freelancers' invoice tool, a pilates-studio
  * system and a medical-tourism directory, while founder and developer tools

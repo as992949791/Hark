@@ -829,17 +829,7 @@ function Home({ openWorkspace }: { openWorkspace: () => void }) {
       </main>
       <footer className="home-footer wrap">
         <Brand />
-        <p>
-          Built from{" "}
-          <a
-            href="https://github.com/getanyapi-com/lurk"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Lurk
-          </a>
-          , under MIT. Data by AnyAPI.
-        </p>
+        <p>MIT licensed. Data by AnyAPI.</p>
         <span>Data and AI requests can incur usage costs.</span>
       </footer>
     </div>

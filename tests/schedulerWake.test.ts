@@ -24,7 +24,7 @@ describe("scheduler wake-ups during an in-flight claim", () => {
   });
 
   afterEach(() => {
-    Reflect.deleteProperty(globalThis, Symbol.for("lurk.scheduler.kick"));
+    Reflect.deleteProperty(globalThis, Symbol.for("hark.scheduler.kick"));
   });
 
   it("remembers a request's kick without issuing concurrent claims", async () => {
@@ -90,7 +90,7 @@ describe("what boot queues", () => {
   });
 
   afterEach(() => {
-    Reflect.deleteProperty(globalThis, Symbol.for("lurk.scheduler.kick"));
+    Reflect.deleteProperty(globalThis, Symbol.for("hark.scheduler.kick"));
   });
 
   it.each([

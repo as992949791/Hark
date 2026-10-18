@@ -513,7 +513,7 @@ describeDb("the X pipeline against a database", () => {
     const held = (await evaluationsOf(project.id)).find((row) => row.tweetId === picture.id);
     expect(held).toMatchObject({ stage: "review", reasonCode: "image_only", llmAttempts: 0 });
     expect(held?.reason).toBe(
-      `Mostly an image, which lurk can't read. @${reply.authorUsername} replied in its thread using the words lurk searched for (${rival} · alternative), so open it on X to see what they posted.`,
+      `Mostly an image, which Hark can't read. @${reply.authorUsername} replied in its thread using the words Hark searched for (${rival} · alternative), so open it on X to see what they posted.`,
     );
     const { listXHeld } = await import("@/lib/x/read");
     const [card] = await listXHeld(project.id);

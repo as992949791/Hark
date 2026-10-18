@@ -333,7 +333,7 @@ describe("chat payloads", () => {
   it("ends every chat message and email with the AnyAPI line, tagged by channel", () => {
     const digest = digestOf(messageLeads([lead({ id: "a" })], SINCE, EMAIL_LEAD_CAP).leads);
     const slack = (payloadFor("slack", digest) as { attachments: unknown[] }).attachments.at(-1);
-    expect(JSON.stringify(slack)).toContain("utm_source=lurk&utm_medium=slack");
+    expect(JSON.stringify(slack)).toContain("utm_source=hark&utm_medium=slack");
     expect(renderDigestHtml(digest)).toContain("utm_medium=email");
     expect(renderDigestText(digest)).toContain("utm_medium=email");
     expect(JSON.stringify(payloadFor("webhook", digest))).not.toContain("AnyAPI");
@@ -563,7 +563,7 @@ describe("delivery", () => {
 
   it("hands Azure the sender, the recipient and both bodies", async () => {
     vi.stubEnv("AZURE_EMAIL_CONNECTION_STRING", "endpoint=https://x.communication.azure.com/;accesskey=k");
-    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@lurk.so");
+    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@hark.example");
     azureSend.mockReset();
     await sendToChannel(
       "email",
@@ -574,7 +574,7 @@ describe("delivery", () => {
     const [connection, message] = azureSend.mock.calls[0];
     expect(connection).toContain("accesskey=k");
     expect(message).toMatchObject({
-      senderAddress: "alerts@lurk.so",
+      senderAddress: "alerts@hark.example",
       recipients: { to: [{ address: "you@company.com" }] },
       content: { subject: "1 new lead for Acme" },
     });
@@ -584,20 +584,20 @@ describe("delivery", () => {
 
   it("hands an SMTP server the same message through its URL", async () => {
     vi.stubEnv("SMTP_URL", "smtps://user:pass@smtp.example.com:465");
-    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@lurk.so");
+    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@hark.example");
     smtpSend.mockReset();
     smtpTransport.mockReset();
     await sendToChannel("email", "you@company.com", digestOf([]));
     expect(smtpTransport).toHaveBeenCalledWith("smtps://user:pass@smtp.example.com:465");
     expect(smtpSend.mock.calls[0][0]).toMatchObject({
-      from: "alerts@lurk.so",
+      from: "alerts@hark.example",
       to: "you@company.com",
       subject: "0 new leads for Acme",
     });
   });
 
   it("prefers Azure over SMTP when both are set", () => {
-    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@lurk.so");
+    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@hark.example");
     vi.stubEnv("SMTP_URL", "smtp://localhost:25");
     expect(emailSender()?.kind).toBe("smtp");
     vi.stubEnv("AZURE_EMAIL_CONNECTION_STRING", "endpoint=https://x/;accesskey=k");
@@ -612,7 +612,7 @@ describe("delivery", () => {
 
   /** A pass marks each person asked before it sends, so with no way to send it must not run. */
   it("asks people to turn alerts on only with ALERT_INVITES on and an email service to send through", () => {
-    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@lurk.so");
+    vi.stubEnv("ALERTS_FROM_EMAIL", "alerts@hark.example");
     vi.stubEnv("SMTP_URL", "smtp://localhost:25");
     vi.stubEnv("ALERT_INVITES", "false");
     expect(alertInvitesOn()).toBe(false);
@@ -628,7 +628,7 @@ describe("add to Slack", () => {
   beforeEach(() => {
     vi.stubEnv("DATABASE_URL", "postgres://reddit_leads@localhost:5433/reddit_leads");
     vi.stubEnv("APP_ENCRYPTION_KEY", Buffer.alloc(32).toString("base64"));
-    vi.stubEnv("APP_URL", "https://lurk.so/");
+    vi.stubEnv("APP_URL", "https://hark.example/");
   });
 
   afterEach(() => {
@@ -654,8 +654,8 @@ describe("add to Slack", () => {
     expect(url.searchParams.get("scope")).toBe("incoming-webhook");
     expect(url.searchParams.get("client_id")).toBe("1.2");
     expect(url.searchParams.get("state")).toBe("state-1");
-    expect(url.searchParams.get("redirect_uri")).toBe("https://lurk.so/connect/slack/callback");
-    expect(chatRedirectUri("slack")).toBe("https://lurk.so/connect/slack/callback");
+    expect(url.searchParams.get("redirect_uri")).toBe("https://hark.example/connect/slack/callback");
+    expect(chatRedirectUri("slack")).toBe("https://hark.example/connect/slack/callback");
   });
 
   // The cookie names are part of an install already under way, and the paths are registered with Slack.
@@ -680,7 +680,7 @@ describe("add to Slack", () => {
     const form = new URLSearchParams(seen[0].body);
     expect(form.get("code")).toBe("code-9");
     expect(form.get("client_secret")).toBe("shh");
-    expect(form.get("redirect_uri")).toBe("https://lurk.so/connect/slack/callback");
+    expect(form.get("redirect_uri")).toBe("https://hark.example/connect/slack/callback");
     expect(install).toEqual({ webhookUrl: "https://hooks.slack.com/services/T/B/x", label: "#leads in AnyAPI" });
   });
 
@@ -698,7 +698,7 @@ describe("add to Discord", () => {
   beforeEach(() => {
     vi.stubEnv("DATABASE_URL", "postgres://reddit_leads@localhost:5433/reddit_leads");
     vi.stubEnv("APP_ENCRYPTION_KEY", Buffer.alloc(32).toString("base64"));
-    vi.stubEnv("APP_URL", "https://lurk.so/");
+    vi.stubEnv("APP_URL", "https://hark.example/");
   });
 
   afterEach(() => {
@@ -724,7 +724,7 @@ describe("add to Discord", () => {
     expect(url.searchParams.get("response_type")).toBe("code");
     expect(url.searchParams.get("client_id")).toBe("123");
     expect(url.searchParams.get("state")).toBe("state-1");
-    expect(url.searchParams.get("redirect_uri")).toBe("https://lurk.so/connect/discord/callback");
+    expect(url.searchParams.get("redirect_uri")).toBe("https://hark.example/connect/discord/callback");
     expect(CHAT_APPS.discord.cookie).toBe("discord_oauth");
   });
 
@@ -742,7 +742,7 @@ describe("add to Discord", () => {
     expect(form.get("grant_type")).toBe("authorization_code");
     expect(form.get("code")).toBe("code-9");
     expect(form.get("client_secret")).toBe("shh");
-    expect(form.get("redirect_uri")).toBe("https://lurk.so/connect/discord/callback");
+    expect(form.get("redirect_uri")).toBe("https://hark.example/connect/discord/callback");
     expect(install).toEqual({ webhookUrl: "https://discord.com/api/webhooks/77/tok" });
   });
 

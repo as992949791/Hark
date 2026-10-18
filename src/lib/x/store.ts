@@ -6,7 +6,7 @@ import type { XAuthor, XPost } from "./map";
 /** The shared X post store. One row per post for every tenant, as reddit/store.ts does for Reddit. */
 
 export type StoredXPost = typeof xPosts.$inferSelect;
-/** The reply that led lurk to a post whose own words the search could not match, and the searched words it used. */
+/** The reply that led hark to a post whose own words the search could not match, and the searched words it used. */
 export type XVia = { tweetId: string; author: string; phrase: string | null };
 export type StoredXAuthor = typeof xAuthors.$inferSelect;
 

@@ -50,7 +50,7 @@ const NOTHING_FILTERED: XFiltered = { items: [], judged: 0, screened: 0, unfinis
 export type XParams = { project?: string; days?: string; status?: string; at?: string; lead?: string };
 
 /**
- * What a row says after its age: how many had seen the post at lurk's last
+ * What a row says after its age: how many had seen the post at hark's last
  * fetch of it (X's count then, never an estimate; the pane says when), for
  * a reply-worthy post whether a reply now still lands, and for a post found
  * through a reply in its thread whose reply that was.

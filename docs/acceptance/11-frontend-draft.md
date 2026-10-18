@@ -1,6 +1,6 @@
 # Frontend interactive draft acceptance
 
-Scope: [issue 15](https://github.com/as992949791/Hark/issues/15), baseline `v0.1.19-worker-recovery`. Homepage and workspace are a local design proposal; no production integration or public deployment is claimed. User feedback replaced the first plain homepage with original-Lurk-inspired blue sky, white clouds, blue/cyan gradients and fuller feature controls.
+Scope: [issue 15](https://github.com/as992949791/Hark/issues/15), baseline `v0.1.19-worker-recovery`. Homepage and workspace are a local design proposal; no production integration or public deployment is claimed. User feedback replaced the first plain homepage with reference-inspired blue sky, white clouds, blue/cyan gradients and fuller feature controls.
 
 ## Implemented and checked
 

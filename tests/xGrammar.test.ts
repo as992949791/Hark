@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { XLaneRefusedError, assertLane } from "@/lib/x/grammar";
 
 /**
- * The X lane grammar: lurk's check refuses everything but the shapes the lane
+ * The X lane grammar: hark's check refuses everything but the shapes the lane
  * compiler writes, before a billed call.
  */
 describe("assertLane", () => {
@@ -47,7 +47,7 @@ describe("assertLane", () => {
     ["-(spam OR scam) (alternative OR pricing)", "a negated group"],
     ["-winklink (alternative OR pricing)", "a negated word"],
     ["(alternative OR pricing) OR", "a dangling OR"],
-    ["(alternative OR pricing) lang:en -filter:links", "an operator lurk does not send"],
+    ["(alternative OR pricing) lang:en -filter:links", "an operator Hark does not send"],
     ["(alternative OR pricing) lang:en from:calendly", "a from: operator"],
     ["(context.dev OR youcanbook.me) (alternative OR pricing)", "a bare dotted name"],
     // Measured on X (AnyAPI threads 94b6f435, 93af4985, aa29340d, 329e92c8):

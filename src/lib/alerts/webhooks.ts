@@ -132,9 +132,9 @@ export function slackPayload(digest: Digest) {
 export function discordPayload(digest: Digest) {
   const more = moreLine(digest, (platform) => `[${MORE_LINK[platform]}](${digest.appUrl}${FEED_PATH[platform]})`);
   return {
-    // A webhook posts under whatever name it was made with; this keeps it lurk.
+    // A webhook posts under whatever name it was made with; this keeps it hark.
     username: PRODUCT_NAME,
-    avatar_url: `${digest.appUrl}/email/lurk-discord.png`,
+    avatar_url: `${digest.appUrl}/email/hark-discord.png`,
     content: headlineOf(digest),
     embeds: [
       ...digest.leads.map((lead) => ({

@@ -12,7 +12,7 @@ const optional = <T extends z.ZodType>(inner: T) => z.preprocess(blankIsAbsent, 
 
 /**
  * A base URL every link is built on as `${base}/path`, held without its
- * trailing slash so "https://lurk.so/" cannot make "https://lurk.so//alerts/on".
+ * trailing slash so "https://hark.example/" cannot make "https://hark.example//alerts/on".
  * The transform sits after the default, so zod runs it on the default too.
  */
 const baseUrl = (fallback: string) =>

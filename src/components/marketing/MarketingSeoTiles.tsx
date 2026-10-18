@@ -29,7 +29,7 @@ export function MarketingSeoTiles() {
           you sell, and <BrandWord name="Google AI Overviews" />, <BrandWord name="ChatGPT" /> and{" "}
           <BrandWord name="Perplexity" /> cite the same threads when they answer.
           <br />
-          lurk finds them, saves the position, and shows which ones name a competitor.
+          Hark finds them, saves the position, and shows which ones name a competitor.
         </p>
       </header>
       <div className="three-up">

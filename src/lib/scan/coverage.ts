@@ -56,7 +56,7 @@ export function byStaleness(rows: PlanRow[]): PlanRow[] {
 /**
  * The order a scan spends its searches in. A scan buys fewer searches than a
  * plan holds rows, and staleness alone gave every row the same claim on them:
- * on lurk.so on 2026-09-14 `instagram api`, whose Google results the model
+ * on the upstream deployment on 2026-09-14 `instagram api`, whose Google results the model
  * called relevant six times, took its turn behind `ahrefs api`, which it called
  * relevant three times. A row nothing has covered yet goes first, so every new
  * row is tried once whatever its evidence; after that the evidence decides, and

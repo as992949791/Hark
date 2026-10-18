@@ -58,13 +58,13 @@ function runSlug(url: string): string | null {
 /** Raised before the request is sent, so nothing is bought. */
 export class SeoEndpointRefusedError extends Error {
   constructor(slug: string) {
-    super(`lurk never buys AnyAPI's seo endpoints, and something asked for ${slug}.`);
+    super(`Hark never buys AnyAPI's seo endpoints, and something asked for ${slug}.`);
     this.name = "SeoEndpointRefusedError";
   }
 }
 
 /**
- * lurk does not buy AnyAPI's `seo.*` endpoints, under any circumstance. One
+ * Hark does not buy AnyAPI's `seo.*` endpoints, under any circumstance. One
  * `seo.search_volume` call was $0.108, more than half of what a whole first
  * sweep costs. Nothing calls them today; this is what keeps it that way, at the
  * one seam every request to the gateway goes through.

@@ -35,7 +35,7 @@ export const REQUIREMENT = ["none_stated", "met", "unmet", "unknown"] as const;
 export const STAGES = ["none", "problem_aware", "solution_seeking", "comparing", "purchase_ready"] as const;
 
 /**
- * lurk's 0-4 fit, in the words a verdict and a card are written in. It sits
+ * hark's 0-4 fit, in the words a verdict and a card are written in. It sits
  * beside the intent levels because both are the rubric's own sentences, and
  * because this file pulls in nothing at runtime: a card that says them has to
  * reach the browser, and derive.ts reaches the database.

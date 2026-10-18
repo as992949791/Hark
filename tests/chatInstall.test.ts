@@ -32,7 +32,7 @@ function setCookie(response: Response, name: string): string | null {
 
 describeDb("adding a chat channel in one click", () => {
   beforeEach(() => {
-    vi.stubEnv("APP_URL", "https://lurk.so/");
+    vi.stubEnv("APP_URL", "https://hark.example/");
     vi.stubEnv("SLACK_CLIENT_ID", "1.2");
     vi.stubEnv("SLACK_CLIENT_SECRET", "shh");
     vi.stubEnv("DISCORD_CLIENT_ID", "123");
@@ -52,7 +52,7 @@ describeDb("adding a chat channel in one click", () => {
 
     const out = await start.GET(
       new NextRequest(
-        `https://lurk.so/connect/slack?project=${project.id}&cadence=hourly&back=${encodeURIComponent("/app/leads?project=x")}`,
+        `https://hark.example/connect/slack?project=${project.id}&cadence=hourly&back=${encodeURIComponent("/app/leads?project=x")}`,
       ),
     );
     const sentTo = new URL(out.headers.get("location") ?? "");
@@ -76,11 +76,11 @@ describeDb("adding a chat channel in one click", () => {
       }),
     );
     const back = await callback.GET(
-      new NextRequest(`https://lurk.so/connect/slack/callback?code=c&state=${stash.state}`, {
+      new NextRequest(`https://hark.example/connect/slack/callback?code=c&state=${stash.state}`, {
         headers: { cookie: `slack_oauth=${cookie}` },
       }),
     );
-    expect(back.headers.get("location")).toBe("https://lurk.so/app/leads?project=x");
+    expect(back.headers.get("location")).toBe("https://hark.example/app/leads?project=x");
     expect(setCookie(back, "slack_oauth")).toBe("");
     const channels = await listChannels(project.id);
     expect(channels.map((one) => [one.channel, one.target, one.label, one.cadence])).toEqual([
@@ -96,7 +96,7 @@ describeDb("adding a chat channel in one click", () => {
     const callback = await import("@/app/connect/discord/callback/route");
     const { listChannels } = await import("@/lib/alerts/channels");
 
-    const out = await start.GET(new NextRequest(`https://lurk.so/connect/discord?project=${project.id}`));
+    const out = await start.GET(new NextRequest(`https://hark.example/connect/discord?project=${project.id}`));
     expect(new URL(out.headers.get("location") ?? "").origin).toBe("https://discord.com");
     const cookie = setCookie(out, "discord_oauth");
     expect(cookie).not.toBeNull();
@@ -104,12 +104,12 @@ describeDb("adding a chat channel in one click", () => {
     const fetched = vi.fn();
     vi.stubGlobal("fetch", fetched);
     const back = await callback.GET(
-      new NextRequest("https://lurk.so/connect/discord/callback?code=c&state=forged", {
+      new NextRequest("https://hark.example/connect/discord/callback?code=c&state=forged", {
         headers: { cookie: `discord_oauth=${cookie}` },
       }),
     );
     expect(back.headers.get("location")).toBe(
-      `https://lurk.so/app/settings/alerts?discord=failed&project=${project.id}`,
+      `https://hark.example/app/settings/alerts?discord=failed&project=${project.id}`,
     );
     expect(fetched).not.toHaveBeenCalled();
     expect(await listChannels(project.id)).toEqual([]);
@@ -121,8 +121,8 @@ describeDb("adding a chat channel in one click", () => {
     const { user, db, schema } = await person();
     const start = await import("@/app/connect/slack/route");
 
-    const out = await start.GET(new NextRequest("https://lurk.so/connect/slack?project=not-mine"));
-    expect(out.headers.get("location")).toBe("https://lurk.so/app/settings/alerts");
+    const out = await start.GET(new NextRequest("https://hark.example/connect/slack?project=not-mine"));
+    expect(out.headers.get("location")).toBe("https://hark.example/app/settings/alerts");
     expect(setCookie(out, "slack_oauth")).toBeNull();
 
     await db().delete(schema.users).where(eq(schema.users.id, user.id));

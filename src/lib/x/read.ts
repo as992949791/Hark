@@ -63,7 +63,7 @@ type XCardCommon = {
   replyingTo: string[];
   /** The phrase of the search that found it, as the post wrote it. */
   foundBy: string | null;
-  /** The reply in its thread that led lurk to it, when its own words did not match the search. */
+  /** The reply in its thread that led hark to it, when its own words did not match the search. */
   via: (XVia & { url: string }) | null;
   reason: string | null;
   fit: number | null;
@@ -96,7 +96,7 @@ export type XHeldCard = XCardCommon & {
 /**
  * How a post came to be left out: `judged`, read by the judge and turned away;
  * `screened`, set aside by the free screen's rules before the judge read it;
- * `unfinished`, passed the judge's first read but aged out before lurk could
+ * `unfinished`, passed the judge's first read but aged out before hark could
  * finish checking it (run.ts expireStale).
  */
 export type XFilteredKind = "judged" | "screened" | "unfinished";
@@ -131,7 +131,7 @@ export type XFiltered = {
   closeCalls: number;
   /** Everything in the worth-a-look band: unfinished, close calls and high-scoring judged-out posts. */
   worth: number;
-  /** Posts from the window lurk is still reading, in no group yet. */
+  /** Posts from the window hark is still reading, in no group yet. */
   pending: number;
 };
 
@@ -469,9 +469,9 @@ export type XThreadPost = {
 };
 
 /**
- * A post with what lurk has stored of the thread around it: the posts above
- * it, oldest first, and the reply that led lurk to it. Buys nothing; `gap`
- * says the thread goes further up than lurk walked.
+ * A post with what hark has stored of the thread around it: the posts above
+ * it, oldest first, and the reply that led hark to it. Buys nothing; `gap`
+ * says the thread goes further up than hark walked.
  */
 export type XThread = { above: XThreadPost[]; gap: boolean; post: XThreadPost; below: XThreadPost | null };
 
@@ -605,7 +605,7 @@ export type XLaneView = {
   createdAt: Date;
 };
 
-/** What lurk searches on X for this project, with what each search found, in rank order. */
+/** What hark searches on X for this project, with what each search found, in rank order. */
 export async function listXLanes(projectId: string): Promise<XLaneView[]> {
   const rows = await db()
     .select()

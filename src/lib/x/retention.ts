@@ -10,7 +10,7 @@ const RUN_HISTORY_DAYS = 90;
 /**
  * Drops X content past the retention window. Unlike Reddit, a lead does not
  * keep its post: the tab shows seven days and an X lead is stale in hours, so
- * nothing is worth holding past thirty, and lurk keeps no archive of X. A post
+ * nothing is worth holding past thirty, and hark keeps no archive of X. A post
  * goes once it was both written and fetched before the cutoff, so a parent
  * bought as context lives thirty days from its purchase. Its evaluations, leads
  * and run links cascade, each found through its own tweet_id index, and the

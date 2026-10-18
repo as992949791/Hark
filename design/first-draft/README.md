@@ -1,6 +1,6 @@
 # Hark interactive frontend draft
 
-Local design reference for [issue 15](https://github.com/as992949791/Hark/issues/15), based on `v0.1.19-worker-recovery`. The user selected homepage + workspace together, code-first preview, then a Lurk-inspired sky/cloud background with subtle gradients and more feature controls. A subsequent user reference requests gradient headline lettering and computer/phone screen framing with an iPhone-inspired appearance. On 2026-10-15 the user selected this direction for real integration and requested removal of the top homepage/workspace switcher. This fixture draft remains separate from the authenticated Next.js application; real integration is tracked in [issue 16](https://github.com/as992949791/Hark/issues/16).
+Local design reference for [issue 15](https://github.com/as992949791/Hark/issues/15), based on `v0.1.19-worker-recovery`. The user selected homepage + workspace together, code-first preview, then a reference-inspired sky/cloud background with subtle gradients and more feature controls. A subsequent user reference requests gradient headline lettering and computer/phone screen framing with an iPhone-inspired appearance. On 2026-10-15 the user selected this direction for real integration and requested removal of the top homepage/workspace switcher. This fixture draft remains separate from the authenticated Next.js application; real integration is tracked in [issue 16](https://github.com/as992949791/Hark/issues/16).
 
 Run from the repository root after `npm ci`:
 
@@ -18,7 +18,7 @@ Use desktop split view or mobile list/detail with Back to leads. The mobile menu
 
 ## References and direction
 
-[Lurk](https://lurk.so) supplies the sky/cloud and product-framing reference; the repository's original marketing CSS informed the CSS-only cloud forms. Hark retains the upstream MIT attribution. Instrument Sans, JetBrains Mono and Lucide reuse installed dependencies. The prototype uses local fonts and no remote image or analytics assets. No new runtime dependency was added.
+The upstream visual reference supplies the sky/cloud and product-framing reference; the repository's original marketing CSS informed the CSS-only cloud forms. Hark retains the upstream MIT attribution. Instrument Sans, JetBrains Mono and Lucide reuse installed dependencies. The prototype uses local fonts and no remote image or analytics assets. No new runtime dependency was added.
 
 The homepage uses the installed design-taste-frontend skill and Impeccable; the workspace follows Impeccable's Operate guidance. [Reusable implementation prompts](../../docs/design/frontend-prompts.md) describe the proposed direction. The surface brief records user steering; the prototype-local DESIGN.md describes the implemented proposal, not an approved production identity.
 

@@ -42,7 +42,7 @@ type BrandWordProps = { label?: string } & (
 /**
  * A platform named in running text always carries its mark: its own from
  * BRAND_MARKS, or the `src` or favicon `domain` given for it, which win when
- * given, so a platform lurk has no file for still gets one.
+ * given, so a platform hark has no file for still gets one.
  */
 export function BrandWord({ name, label, src, domain }: BrandWordProps) {
   const own = name in BRAND_MARKS ? BRAND_MARKS[name as BrandName] : undefined;

@@ -7,7 +7,7 @@ import { REPLY_WINDOW_HOURS } from "./constants";
  * posts over 5k a median of about 230 when made within five hours and under
  * 140 after seven (.context/x-plugs). Views are the post's own count when X
  * gave one, else a guess from its likes, carried forward at the rate the post
- * drew them when lurk saw it, since a post found an hour in shows an hour's
+ * drew them when hark saw it, since a post found an hour in shows an hour's
  * views. This only ranks; the tab shows X's own count.
  */
 

@@ -1,13 +1,13 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "lurk API",
+    "title": "Hark API",
     "version": "1.0.0",
-    "description": "Read-only access to lurk by AnyAPI, scored Reddit buyer-intent leads. Leads are scored output over Reddit posts and comments bought per call from AnyAPI, not raw Reddit access. The score is a sort order for a human's attention, not a probability that the person will buy. Reading this API is free: every response carries X-Request-Cost-Usd: 0.",
+    "description": "Read-only access to Hark, scored Reddit buyer-intent leads. Leads are scored output over Reddit posts and comments bought per call from AnyAPI, not raw Reddit access. The score is a sort order for a human's attention, not a probability that the person will buy. Reading this API is free: every response carries X-Request-Cost-Usd: 0.",
     "license": { "name": "MIT", "identifier": "MIT" }
   },
   "servers": [
-    { "url": "https://lurk.so/api/v1", "description": "The hosted instance" },
+    { "url": "https://hark-as992949791.netlify.app/api/v1", "description": "The hosted instance" },
     { "url": "/api/v1", "description": "This instance" }
   ],
   "security": [{ "apiKey": [] }],
@@ -449,7 +449,7 @@
         "properties": {
           "lanes": {
             "type": ["integer", "null"],
-            "description": "Searches the project runs. Null is every one lurk writes for it."
+            "description": "Searches the project runs. Null is every one Hark writes for it."
           },
           "cadenceHours": { "type": "integer", "description": "How often an X scan runs." },
           "maxBackoffHours": { "type": "integer", "description": "The longest a quiet search may back off to." },

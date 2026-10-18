@@ -8,7 +8,7 @@ import { EyebrowLink } from "./EyebrowLink";
 
 const named = (name: string) => ANYAPI_PLATFORMS.find((platform) => platform.name === name)!;
 
-/** The data under lurk, sold as three product tiles in the same cut as Reddit SEO. */
+/** The data under hark, sold as three product tiles in the same cut as Reddit SEO. */
 export function MarketingAnyapi() {
   return (
     <section id="anyapi" className="anyapi-tiles">
@@ -21,7 +21,7 @@ export function MarketingAnyapi() {
           Need data from Reddit, TikTok or LinkedIn? <span>Use AnyAPI.</span>
         </h2>
         <p>
-          Every thread lurk reads comes through <a href={ANYAPI_URL}>AnyAPI</a>. The same key
+          Every thread Hark reads comes through <a href={ANYAPI_URL}>AnyAPI</a>. The same key
           reads <BrandWord {...named("TikTok")} />, <BrandWord {...named("Instagram")} />,{" "}
           <BrandWord {...named("YouTube")} />, <BrandWord {...named("X")} />,{" "}
           <BrandWord {...named("LinkedIn")} />, <BrandWord {...named("Google Maps")} /> and{" "}
@@ -98,7 +98,7 @@ export function MarketingAnyapi() {
             </div>
           </div>
           <figcaption>
-            <strong>Try it free</strong> The same wallet lurk runs on, for whatever you need to
+            <strong>Try it free</strong> The same wallet Hark runs on, for whatever you need to
             read next.
           </figcaption>
         </figure>

@@ -1,6 +1,6 @@
 # iPhone-inspired frontend refinement
 
-Scope: continued visual feedback on [issue 15](https://github.com/as992949791/Hark/issues/15), baseline `v0.1.20-frontend-draft`. The user explicitly requested gradient lettering, examples framed as computer/phone screens like the supplied Lurk screenshot, and an overall iPhone-inspired appearance. This authorizes those devices even where earlier prototype guidance preferred solid display type or flatter surfaces. This remains a local web proposal, not a native iOS application or approved production identity.
+Scope: continued visual feedback on [issue 15](https://github.com/as992949791/Hark/issues/15), baseline `v0.1.20-frontend-draft`. The user explicitly requested gradient lettering, examples framed as computer/phone screens like the supplied upstream project screenshot, and an overall iPhone-inspired appearance. This authorizes those devices even where earlier prototype guidance preferred solid display type or flatter surfaces. This remains a local web proposal, not a native iOS application or approved production identity.
 
 ## Implementation
 

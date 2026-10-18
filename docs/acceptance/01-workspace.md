@@ -14,7 +14,7 @@ Scope: exercise the existing CapCut workspace against the upstream functional ch
 | Product / Sources / Filters / Usage | Authenticated pages rendered on desktop and mobile without the app error boundary. Product name, URL, solution and audience were filled; unsupported pain remained empty. Usage showed the existing data ledger. |
 | Mobile navigation / theme | Navigation opened and Escape closed it; Back to leads worked. Dark/light theme switched. |
 | Responsive layout | At 390×844, Filters overflowed to 739px. Its scoring grid used an implicit track sized by its contents. Adding an explicit single column reduced page width to 390px; 1710×896 desktop retained two 475px columns. |
-| Branding | Sources explanation still said lurk; changed that visible sentence to Hark. Upstream attribution and asset filenames retained. |
+| Branding | Sources explanation still used the upstream name; changed that visible sentence to Hark. Upstream attribution and asset filenames retained. |
 
 The initial capture reported a stray action label over the mobile pane. DOM bounds confirmed the closed navigation was hidden and positioned outside the viewport; it was not treated as an application layout defect. Raw browser captures remain in ignored `.local/acceptance/` rather than publishing signed-in evidence.
 

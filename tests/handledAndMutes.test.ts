@@ -57,16 +57,16 @@ describe("an alert's act links", () => {
         },
       ],
       "project-1",
-      "https://lurk.example",
+      "https://hark.example",
     );
-    expect(leads[0].repliedUrl).toMatch(/^https:\/\/lurk\.example\/alerts\/act\?t=/);
+    expect(leads[0].repliedUrl).toMatch(/^https:\/\/hark\.example\/alerts\/act\?t=/);
     const digest = {
       projectName: "Formcraft",
       generatedAt: new Date(),
       since: new Date(Date.now() - DAY_MS),
       cadence: "daily" as const,
       leads,
-      appUrl: "https://lurk.example",
+      appUrl: "https://hark.example",
     };
     expect(renderDigestHtml(digest)).toContain("Mark replied");
     expect(renderDigestHtml(digest)).toContain("Mute r/SaaS");

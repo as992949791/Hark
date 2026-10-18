@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/LegalPage";
-import { PRODUCT_NAME, SUPPORT_EMAIL } from "@/lib/brand";
+import { PRODUCT_NAME, SUPPORT_URL } from "@/lib/brand";
 
 export const metadata: Metadata = { title: `Privacy Policy | ${PRODUCT_NAME}` };
 
@@ -8,57 +8,43 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      updated="September 18, 2026"
-      intro={
-        <>
-          {PRODUCT_NAME} (lurk.so) is operated by AnyAPI. This policy says what we collect when you use
-          the hosted service, why, and who else handles it. Questions go to {SUPPORT_EMAIL}.
-        </>
-      }
+      updated="October 18, 2026"
+      intro={<>Hark is an independently maintained, open-source research project. This notice describes the personal test deployment. Self-hosted operators control their own infrastructure and data practices.</>}
       sections={[
         {
-          title: "What we collect",
+          title: "Account and workspace data",
           body: [
-            "Account details: your email address and, if you sign in with Google, the name, email address and profile picture Google shares. We request only the basic profile scopes and never read your Gmail, Drive or contacts.",
-            "What you give the product: the product URLs and descriptions you enter, the profile we build from them, your settings, the alert channels you add (email addresses, Slack and Discord webhooks), and what you do with leads.",
-            "Usage data: pages viewed, actions taken, device and browser information, IP address, and error reports, so we can run and improve the service.",
-            "If you connect an AnyAPI wallet, we store the encrypted access token that lets scans bill your own account. We never see your payment details.",
+            "Clerk handles sign-in. Hark stores your account identifier, product profiles, research inputs, settings, lead decisions and notification destinations to provide your workspace. Provider credentials and webhook URLs must remain private.",
           ],
         },
         {
-          title: "Public Reddit content",
+          title: "Public sources and AI",
           body: [
-            "lurk reads public Reddit posts, comments and public author details to find conversations relevant to your product. This content is public, is stored only as long as it is useful for your leads, and is not combined with private data about those authors.",
+            "Enabled searches retrieve public Reddit, X and web content through AnyAPI. Product descriptions, selected source text and research instructions are sent to configured model providers through OpenRouter for analysis. Source availability and provider data policies vary. Original quotes and source links let you check generated conclusions.",
           ],
         },
         {
-          title: "How we use it",
+          title: "Infrastructure and notifications",
           body: [
-            "To provide the service: finding and scoring leads, sending the alerts you asked for, securing accounts, preventing abuse, and answering support requests. We do not sell personal data and we do not use it for advertising.",
+            "The personal test deployment uses Netlify and Neon; a self-hosted instance uses its operator's chosen services. Email goes through the configured SMTP or Azure carrier. Slack, Discord and generic webhooks receive content only when those channels are configured and a send is initiated or scheduled.",
           ],
         },
         {
-          title: "Who handles it for us",
+          title: "Retention and controls",
           body: [
-            "Clerk (sign-in and accounts), Google (if you choose Google sign-in), Microsoft Azure (hosting, database and email delivery), PostHog (product analytics), AnyAPI (public web and Reddit data), and language-model providers that process product descriptions and public posts to score leads. Slack or Discord receive alerts only if you connect them. Each processes data only to provide its service to us.",
+            "Stored evidence is subject to the application's retention rules. Raw research content can expire while cost records remain. Account, project and channel controls are available in settings. Removing a local record cannot retract content already delivered to a recipient or erase a provider's separate records.",
           ],
         },
         {
-          title: "Retention and your choices",
+          title: "Cookies and analytics",
           body: [
-            `We keep account data while your account is open. Email ${SUPPORT_EMAIL} to access, correct, export or delete your data, or to close your account; we act on these requests within 30 days. You can remove an alert channel or disconnect a wallet or Slack at any time in settings.`,
+            "Clerk uses authentication cookies. Browser storage also keeps interface preferences and temporary notices. Hark does not initialize a product-analytics or session-replay service.",
           ],
         },
         {
-          title: "Cookies",
+          title: "Contact",
           body: [
-            "We use cookies that keep you signed in and a first-party analytics cookie. We do not use advertising cookies.",
-          ],
-        },
-        {
-          title: "Changes",
-          body: [
-            "If this policy changes in a way that matters, we will update the date above and tell account holders by email.",
+            <>For project support, use <a href={SUPPORT_URL}>GitHub Issues</a>. Keep passwords, API keys, private webhook URLs and personal account data out of public issues.</>,
           ],
         },
       ]}

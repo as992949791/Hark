@@ -1,4 +1,4 @@
-/** The most asked-for platforms in the AnyAPI catalog, named wherever lurk sells it. */
+/** The most asked-for platforms in the AnyAPI catalog, named wherever hark sells it. */
 export const ANYAPI_PLATFORMS = [
   { name: "Reddit", src: "/brands/reddit.svg", gets: "Posts, comments, subreddits" },
   { name: "TikTok", domain: "tiktok.com", gets: "Videos, comments, transcripts" },

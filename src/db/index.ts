@@ -10,7 +10,7 @@ type Db = ReturnType<typeof drizzle<typeof schema>>;
  * route handlers, instrumentation - so a module-level cache gave one process a
  * pool per bundle. The global is shared by all of them.
  */
-const holder = globalThis as typeof globalThis & { __lurkDb?: Db };
+const holder = globalThis as typeof globalThis & { __harkDb?: Db };
 
 /**
  * One pooled Drizzle client for the process. The server takes 50 connections
@@ -18,9 +18,9 @@ const holder = globalThis as typeof globalThis & { __lurkDb?: Db };
  * connections go.
  */
 export function db() {
-  if (!holder.__lurkDb) {
+  if (!holder.__harkDb) {
     const sql = postgres(config().DATABASE_URL, { max: 10, idle_timeout: 30 });
-    holder.__lurkDb = drizzle(sql, { schema });
+    holder.__harkDb = drizzle(sql, { schema });
   }
-  return holder.__lurkDb;
+  return holder.__harkDb;
 }

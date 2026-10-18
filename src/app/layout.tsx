@@ -3,11 +3,10 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "@fontsource-variable/instrument-sans";
 import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
-import { PostHogIdentify } from "@/components/PostHogIdentify";
 import { ThemeScript } from "@/components/ThemeScript";
 import { PRODUCT_NAME_WITH_PROVIDER, PRODUCT_URL } from "@/lib/brand";
 
-const DESCRIPTION = "Monitor Reddit and X to find customers, get cited by AI, and rank on Google.";
+const DESCRIPTION = "Discover demand signals across Reddit, X and the public web, with AI analysis, original-source evidence and visible usage costs.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(PRODUCT_URL),
@@ -39,7 +38,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           signInFallbackRedirectUrl="/app/leads"
           signUpFallbackRedirectUrl="/app/leads"
         >
-          <PostHogIdentify />
           {children}
         </ClerkProvider>
       </body>

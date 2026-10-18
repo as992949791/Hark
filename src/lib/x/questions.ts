@@ -8,11 +8,11 @@ import { briefQuestions, judgeQuestions, readingQuestions, signalQuestions } fro
  * gates that turn answers into a verdict live in gates.ts.
  *
  * Reddit's judge does not transfer as is. Its `solves_problem` said yes to 6 of
- * 6 curiosity near-misses, and the first port of lurk's judge to X published
+ * 6 curiosity near-misses, and the first port of hark's judge to X published
  * about 11 real leads of 39 (AnyAPI xleads, 2026-09-24). So the questions that
  * decide are xleads' measured rubric (xleads/qualify/questions.go), generalized
  * from AnyAPI's one product to any product, with product-neutral examples.
- * lurk's own questions are reused verbatim wherever their wording names no
+ * hark's own questions are reused verbatim wherever their wording names no
  * Reddit venue; `can_use` names "the subreddit", so X asks its own copy.
  */
 
@@ -166,7 +166,7 @@ function canUse(): Question {
 
 /**
  * The questions for one post. `complete` adds the one only a bio can answer.
- * The brief's questions and three of lurk's judge questions ride along only to
+ * The brief's questions and three of hark's judge questions ride along only to
  * be stored: the gates do not read them until the pilot's dev week shows they
  * help, and replaying stored answers costs nothing.
  */

@@ -196,7 +196,7 @@ async function seedProject(row: SeedRow, stale: boolean): Promise<void> {
  * Next bundles instrumentation apart from the routes, so a Server Action that
  * imported this file would find its own copy, which never started.
  */
-const KICK = Symbol.for("lurk.scheduler.kick");
+const KICK = Symbol.for("hark.scheduler.kick");
 type Kickable = { [KICK]?: () => void };
 
 /**

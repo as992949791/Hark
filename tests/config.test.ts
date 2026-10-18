@@ -5,7 +5,7 @@ import { config } from "@/lib/config";
 
 /**
  * Every link the app sends is built as `${APP_URL}/path`, so an APP_URL
- * written with a trailing slash makes "https://lurk.so//alerts/on" wherever a
+ * written with a trailing slash makes "https://hark.example//alerts/on" wherever a
  * link is built without trimming it. The config trims it once, and nothing
  * after it has to.
  */
@@ -20,9 +20,9 @@ describe("the base URLs the config hands out", () => {
   });
 
   it("drops a trailing slash from APP_URL and ANYAPI_BASE_URL", () => {
-    vi.stubEnv("APP_URL", "https://lurk.so/");
+    vi.stubEnv("APP_URL", "https://hark.example/");
     vi.stubEnv("ANYAPI_BASE_URL", "https://api.getanyapi.com//");
-    expect(config().APP_URL).toBe("https://lurk.so");
+    expect(config().APP_URL).toBe("https://hark.example");
     expect(config().ANYAPI_BASE_URL).toBe("https://api.getanyapi.com");
   });
 
@@ -34,12 +34,12 @@ describe("the base URLs the config hands out", () => {
   });
 
   it("builds an email's links with one slash after the host", () => {
-    vi.stubEnv("APP_URL", "https://lurk.so/");
+    vi.stubEnv("APP_URL", "https://hark.example/");
     const digest = sampleDigest("Acme");
     const html = renderDigestHtml(digest);
-    expect(html).toContain('src="https://lurk.so/email/lurk.png"');
-    expect(html).not.toContain("lurk.so//");
-    expect(renderDigestText(digest)).not.toContain("lurk.so//");
+    expect(html).toContain('src="https://hark.example/email/hark.png"');
+    expect(html).not.toContain("hark.example//");
+    expect(renderDigestText(digest)).not.toContain("hark.example//");
   });
 
   it("reads ALERTS_ALLOW_PRIVATE_WEBHOOKS as a switch that is off unless set true", () => {

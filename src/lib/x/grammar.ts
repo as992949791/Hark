@@ -5,9 +5,9 @@
  * work email)` is word soup, not two phrases, and it binds an operator
  * trailing an unbracketed OR list to the last alternative only; AnyAPI's
  * gateway refuses both at no charge. `assertLane` is stricter, and refuses
- * them before the call: a lane lurk sends is one to three AND groups, each a
+ * them before the call: a lane Hark sends is one to three AND groups, each a
  * single word or quoted phrase or a parenthesized OR of them, plus the tail
- * operators lurk adds, and nothing else. Anything the compiler did not mean to
+ * operators Hark adds, and nothing else. Anything the compiler did not mean to
  * write is refused here, because on X a malformed query is not an error, it
  * is a billed page of the wrong posts.
  */
@@ -85,7 +85,7 @@ function tokenize(text: string): string[] {
   return tokens;
 }
 
-/** Raised before any spend when a lane is not the shape lurk writes. */
+/** Raised before any spend when a lane is not the shape Hark writes. */
 export class XLaneRefusedError extends Error {
   constructor(
     readonly query: string,
@@ -119,7 +119,7 @@ const BARE_WORD = /^[\p{L}\p{N}][\p{L}\p{N}'-]*$/u;
 
 /**
  * Throws unless the query is one to three AND groups followed only by the tail
- * lurk adds (`lang:xx`, `-filter:retweets`, `-filter:replies`,
+ * Hark adds (`lang:xx`, `-filter:retweets`, `-filter:replies`,
  * `min_faves:<n>`, `since_time:<unix>`, in that order). A group is one alternative, or a parenthesized OR of alternatives;
  * an alternative is one bare word or one quoted phrase of at most six words.
  * That shape rules out, by construction, every trap the research found:
@@ -156,7 +156,7 @@ export function assertLane(query: string): void {
   }
   const tail = tokens.slice(index).join(" ");
   if (!TAIL.test(tail ? ` ${tail}` : "")) {
-    throw new XLaneRefusedError(query, "an operator lurk does not send");
+    throw new XLaneRefusedError(query, "an operator Hark does not send");
   }
 }
 
@@ -185,7 +185,7 @@ function assertAlternatives(query: string, text: string, grouped: boolean): void
     const quoted = alternative.startsWith('"') && alternative.endsWith('"') && alternative.length > 2;
     const phrase = quoted ? alternative.slice(1, -1).trim() : alternative;
     if (!quoted && (KEYWORDS.has(phrase) || !BARE_WORD.test(phrase))) {
-      throw new XLaneRefusedError(query, `a bare token lurk does not write: ${alternative}`);
+      throw new XLaneRefusedError(query, `a bare token Hark does not write: ${alternative}`);
     }
     if (quoted && /[A-Za-z0-9_]+:/u.test(phrase)) {
       throw new XLaneRefusedError(query, "an operator inside a phrase");

@@ -166,7 +166,7 @@ type Query = { text: string; rows: PlanRow[] };
  * was the whole cost of the sweep.
  *
  * A page that fails ends this walk and nothing else. Measured 2026-09-14 on
- * lurk.so: 13 of 380 paged searches in two days came back "all providers
+ * the upstream deployment: 13 of 380 paged searches in two days came back "all providers
  * failed", a transient upstream error, and each one threw away a whole sweep
  * of dozens of walks and made its person wait a scan interval for the retry.
  * The pages before it are kept; the true answer is whether it was cut short.

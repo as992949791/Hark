@@ -11,7 +11,7 @@ import { describeDb, makeProject, makeUser, newId } from "./fixtures/db";
 const NOW = new Date("2010-01-01T00:00:00Z");
 
 /**
- * lurk keeps no archive of X. A post goes thirty days after it was both
+ * hark keeps no archive of X. A post goes thirty days after it was both
  * written and fetched, whether or not a lead points at it (the tab shows a
  * week), and its evaluations and leads go with it. Search runs stay, as
  * Reddit's do: they hold a query and a cost, no X content.

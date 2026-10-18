@@ -1,0 +1,18 @@
+Hark — source attribution
+
+This project includes software derived from Lurk:
+https://github.com/getanyapi-com/lurk
+Initial source baseline: 44834c83b8aa34f46f17b93806aa1588240d855e
+Copyright (c) 2026 AnyAPI
+Licensed under the MIT License; the original copyright and permission notice
+are preserved in LICENSE.
+
+Hark-specific frontend, cross-platform research, provider compatibility,
+verification and development-tool changes are recorded in this repository's
+commit history. Hark is independently maintained and is not operated or
+endorsed by the upstream authors. AnyAPI is a data provider integration.
+
+Earlier source-reference captures and promotional materials were removed from
+the current tree during Hark branding cleanup. Their historical versions remain
+available through v0.1.34-capcut-live. Git history and GitHub fork provenance are
+retained; the project is not represented as wholly authored from scratch.
