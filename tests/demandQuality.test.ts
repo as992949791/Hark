@@ -56,8 +56,8 @@ describe("contextual demand review", () => {
     const duplicate = [sample("alice"), sample("bob")];
     expect(validate(review(duplicate), duplicate).themes[0].kind).toBe("individual");
   });
-  it("keeps distinct problems as separate individual cases even when both authors are known", () => {
-    const items = [sample("alice"), sample("bob", "My editor crashes every time I export a long video.")];
+  it("keeps one author's distinct problems in the same workflow as separate cases", () => {
+    const items = [sample("alice"), sample("alice", "My editor crashes every time I export a long video.")];
     const raw = review(items); raw.cases[1].problem = "长视频导出崩溃";
     expect(validate(raw, items).themes.map(x => x.kind)).toEqual(["individual", "individual"]);
   });
