@@ -7,7 +7,7 @@ import { createResearchAction, type ResearchActionState } from "@/app/app/resear
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
 
-export function ResearchForm({ requestKey, enabled, projects }: { requestKey: string; enabled: boolean; projects: { id: string; name: string; url: string | null }[] }) {
+export function ResearchForm({ requestKey, enabled, projects, sourceRunId }: { requestKey: string; enabled: boolean; projects: { id: string; name: string; url: string | null }[]; sourceRunId?: string }) {
   const [mode, setMode] = useState<"product" | "topic">("product");
   const [url, setUrl] = useState("");
   const [key] = useState(requestKey);
@@ -46,6 +46,8 @@ export function ResearchForm({ requestKey, enabled, projects }: { requestKey: st
         <Field label="本轮预算（美元）" hint="测试版单次最多 $1。数据与模型费用合计计入预算，失败请求也可能计费。">
           <Input name="budget" type="number" min="0" max="1" step="0.000001" defaultValue="0.10" required inputMode="decimal" />
         </Field>
+        {sourceRunId ? <div className="text-small"><label className="flex min-h-11 items-center gap-2"><input type="checkbox" name="sourceRunId" value={sourceRunId} className="size-4 accent-primary" />复用当前记录的原文</label>
+          <p className="mt-1 text-fg-muted">不重新搜索或补抓缺页，保留原收集时间和到期时间。仍需模型费用；新产品网址可能另需读取产品页面。</p></div> : null}
       </fieldset>
       {state.error ? <p role="alert" className="text-small text-score-warm">{state.error}</p> : null}
       <Button type="submit" disabled={pending || !enabled} className="min-h-11 w-full gap-2">{pending ? "正在提交研究…" : "开始研究"}<ArrowRight className="size-4" aria-hidden="true" /></Button>

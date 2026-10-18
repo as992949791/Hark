@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { bigint, check, foreignKey, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { projects, users } from "./tenant";
-import type { DemandTheme, ProfileSnapshot } from "@/lib/demand/contracts";
+import type { DemandAssessment, DemandTheme, ProfileSnapshot } from "@/lib/demand/contracts";
 
 const id = () => text("id").primaryKey().$defaultFn(() => randomUUID());
 
@@ -12,6 +12,8 @@ export const demandRuns = pgTable("demand_runs", {
   key: text("key").notNull(),
   mode: text("mode", { enum: ["product", "topic"] }).notNull(),
   input: text("input"),
+  /** Historical provenance: do not null this and accidentally turn reuse into new purchases. */
+  sourceRunId: text("source_run_id"),
   projectId: text("project_id").references(() => projects.id, { onDelete: "set null" }),
   profileSnapshot: jsonb("profile_snapshot").$type<ProfileSnapshot>(),
   status: text("status", { enum: ["queued", "running", "partial", "complete", "blocked", "failed", "expired"] }).notNull().default("queued"),
@@ -70,6 +72,7 @@ export const demandSignals = pgTable("demand_signals", {
   requestType: text("request_type").notNull(),
   author: text("author"),
   productFit: text("product_fit", { enum: ["yes", "no", "unknown"] }),
+  assessment: jsonb("assessment").$type<DemandAssessment>(),
 }, (t) => [
   index("demand_signals_run_idx").on(t.runId),
   foreignKey({ columns: [t.documentId, t.runId], foreignColumns: [demandDocuments.id, demandDocuments.runId] }).onDelete("cascade"),

@@ -43,7 +43,7 @@ export async function createResearchAction(_previous: ResearchActionState, form:
       url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(input) ? input : `https://${input}`).href;
       canonicalUrl(url);
     }
-    const raw = { key: form.get("key"), budgetMicros: Math.round(Number(budget) * 1e6), ...(mode === "product" ? { mode, url } : { mode, topic: input }) };
+    const raw = { key: form.get("key"), budgetMicros: Math.round(Number(budget) * 1e6), ...(form.get("sourceRunId") ? { sourceRunId: form.get("sourceRunId") } : {}), ...(mode === "product" ? { mode, url } : { mode, topic: input }) };
     const parsed = demandInput.safeParse(raw);
     if (!parsed.success || input.includes("\u0000") || !input.isWellFormed()) return { error: "请检查产品网址或需求主题（最多 500 字），然后重试。" };
     runId = (await createDemandRun(user.id, parsed.data)).id;

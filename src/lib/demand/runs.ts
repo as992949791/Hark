@@ -32,12 +32,21 @@ export async function createDemandRun(userId: string, raw: DemandInput): Promise
     if (existing) {
       if (existing.status === "expired" || existing.expiresAt.getTime() <= Date.now()) throw new DemandError("This request expired; start with a new key.");
       if (existing.mode !== input.mode || existing.input !== value || existing.budgetMicros !== input.budgetMicros ||
+        existing.sourceRunId !== (input.sourceRunId ?? null) ||
         (input.mode === "product" && input.projectId && input.projectId !== existing.projectId)) {
         throw new DemandError("This request key already belongs to another input.");
       }
       return visibleRun(existing);
     }
     await assertOwnerCapacity(tx, userId);
+    let source: DemandRun | undefined;
+    let savedDocuments: (typeof demandDocuments.$inferSelect)[] = [];
+    if (input.sourceRunId) {
+      [source] = await tx.select().from(demandRuns).where(and(eq(demandRuns.id, input.sourceRunId), eq(demandRuns.userId, userId))).for("share");
+      if (!source || !["complete", "partial", "blocked", "failed"].includes(source.status) || source.expiresAt.getTime() <= Date.now()) throw new DemandError("Saved research is unavailable for reuse.");
+      savedDocuments = await tx.select().from(demandDocuments).where(and(eq(demandDocuments.runId, source.id), eq(demandDocuments.purpose, "demand")));
+      if (!savedDocuments.some((doc) => doc.outcome === "retrieved" && doc.body)) throw new DemandError("Saved research has no original text to reuse.");
+    }
     let project: typeof projects.$inferSelect | undefined;
     if (input.mode === "product") {
       const owned = await tx.select().from(projects).where(and(eq(projects.userId, userId),
@@ -53,8 +62,12 @@ export async function createDemandRun(userId: string, raw: DemandInput): Promise
     const [run] = await tx.insert(demandRuns).values({
       userId, key: input.key, mode: input.mode, input: value, projectId: project?.id ?? null,
       profileSnapshot, budgetMicros: input.budgetMicros,
-      expiresAt: new Date(Date.now() + RETENTION_DAYS * 86_400_000),
+      sourceRunId: source?.id ?? null,
+      expiresAt: source?.expiresAt ?? new Date(Date.now() + RETENTION_DAYS * 86_400_000),
     }).returning();
+    for (const doc of savedDocuments) {
+      await tx.insert(demandDocuments).values({ ...doc, id: randomUUID(), runId: run.id });
+    }
     await tx.insert(jobs).values({ kind: DEMAND_JOB, demandRunId: run.id });
     return visibleRun(run);
   });

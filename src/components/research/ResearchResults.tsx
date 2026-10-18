@@ -32,12 +32,14 @@ export function ResearchResults({ report, tab, enabled }: { report: DemandReport
       <h2 id="research-run-title" className="mt-3 break-words text-h3 font-medium [overflow-wrap:anywhere]">{run.profileSnapshot?.name ?? run.input ?? "已到期的研究"}</h2>
       {run.mode === "product" && run.profileSnapshot && run.input ? <p className="mt-1 break-all text-small text-fg-muted">{run.input}</p> : null}
       <p role="status" className="mt-3 text-small text-fg-muted">{run.status === "expired" ? "原文和分析已按保留规则移除，费用记录仍保留。" : run.progress ?? (run.status === "queued" ? "研究已保存，等待后台开始处理。" : "结果来自本轮保存的资料。")}</p>
+      {run.sourceRunId && run.status !== "expired" ? <p className="mt-3 max-w-[65ch] text-small text-fg-muted">本轮复用已保存原文，没有重新搜索或补抓缺页；收集时间和到期时间沿用原记录。<Link className="ml-1 text-primary underline underline-offset-4" href={`/app/research?run=${run.sourceRunId}`}>查看来源研究</Link></p> : null}
       <dl className="mt-5 flex flex-wrap gap-x-6 gap-y-3 border-t pt-4 text-small tabular-nums">
         {[["本轮预算", researchMoney(run.budgetMicros)], ["实际费用", researchMoney(run.spentMicros)], ["尚未结算", researchMoney(run.reservedMicros)], ["内容保留至", researchDate(run.expiresAt)]].map(([label, value]) => <div key={label}><dt className="text-fg-muted">{label}</dt><dd className="mt-1 font-medium">{value}</dd></div>)}
       </dl>
       {problem ? <p role="alert" className="mt-4 max-w-[65ch] text-small text-score-warm">{problem}</p> : null}
       {retryable || resumable ? <div className="mt-4"><RunControl runId={run.id} mode={retryable ? "retry" : "resume"} enabled={enabled} /></div> : null}
       {!enabled && run.status !== "expired" ? <p className="mt-3 text-small text-fg-muted">新检索已暂停；已保存结果仍可阅读。</p> : null}
+      {signals.some((signal) => !signal.assessment) ? <p className="mt-3 max-w-[65ch] text-small text-score-warm">历史候选尚未经过新版语境筛选，不能直接视为有效需求或独立潜客；查看记录不会自动重新分析。</p> : null}
     </header>
     {run.status !== "expired" ? <>
       <div className="flex flex-wrap gap-x-5 gap-y-2 border-b bg-surface-2 px-5 py-3 text-small text-fg-muted sm:px-6" aria-label="本轮来源读取情况">
@@ -54,27 +56,45 @@ export function ResearchResults({ report, tab, enabled }: { report: DemandReport
         </Link>)}
       </nav>
       {tab === "signals" ? <div>
+        {signals.some((signal) => signal.assessment) ? <p className="border-b px-5 py-3 text-small text-fg-muted sm:px-6">以下为筛选、合并后的需求案例；多处原文不等于多位用户。</p> : null}
         {signals.length ? signals.map((signal) => {
           const doc = demandDocs.find((item) => item.id === signal.documentId);
           if (!doc) return null;
           const author = signal.author?.startsWith("x-id:") ? `X 账号 ID ${signal.author.slice(5)}` : signal.author ?? "作者未知";
           return <article key={signal.id} id={`signal-${signal.id}`} className="research-signal scroll-mt-24 border-b p-5 last:border-b-0 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2 text-small"><span className="font-medium">{sources[doc.source]} · {author}</span><span className="text-fg-muted">{request[signal.requestType as keyof typeof request] ?? "需求表达"}</span></div>
+            {signal.assessment ? <h3 className="mt-3 text-body font-medium">{signal.assessment.problem}</h3> : null}
             <blockquote lang="en" className="mt-4 max-w-[75ch] whitespace-pre-wrap break-words text-body [overflow-wrap:anywhere]">{signal.quote}</blockquote>
             <p className="mt-4 max-w-[65ch] text-body text-fg-muted">{signal.explanation}</p>
             {run.mode === "product" && signal.productFit ? <p className="mt-3 text-small font-medium">{fit[signal.productFit]}</p> : null}
+            {run.mode === "product" && signal.assessment?.fitReason ? <p className="mt-2 max-w-[65ch] text-small text-fg-muted">{signal.assessment.fitReason}</p> : null}
+            {signal.assessment ? <details className="mt-3 text-small"><summary className="min-h-11 cursor-pointer text-primary">保留 {signal.assessment.evidence.length} 处原文</summary>
+              <ol className="mt-2 space-y-4">{signal.assessment.evidence.map((evidence, index) => {
+                const source = demandDocs.find((item) => item.id === evidence.documentId);
+                return source ? <li key={`${evidence.documentId}-${evidence.quoteStart}`}><p className="text-fg-muted">证据 {index + 1} · {sources[source.source]}</p>
+                  <blockquote lang="en" className="mt-1 max-w-[75ch] whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{evidence.quote}</blockquote>
+                  <a href={source.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary underline underline-offset-4">打开这处原文<span className="sr-only">（新窗口）</span></a></li> : null;
+              })}</ol>
+            </details> : null}
+            {run.mode === "product" && signal.assessment?.requirements.length ? <details className="mt-2 text-small"><summary className="min-h-11 cursor-pointer text-fg-muted">核对产品要求</summary>
+              <ul className="mt-2 space-y-3">{signal.assessment.requirements.map((requirement, index) => <li key={index}><blockquote lang="en" className="whitespace-pre-wrap break-words">{requirement.quote}</blockquote>
+                <p className="mt-1 text-fg-muted">{requirement.status === "supported" ? "已有产品事实支持" : requirement.status === "contradicted" ? "与已知产品事实冲突" : "产品资料不足，尚不能确认"}{requirement.productFact ? `：${requirement.productFact}` : ""}</p></li>)}</ul>
+            </details> : null}
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-small text-fg-muted"><span>发布：{researchDate(doc.publishedAt)} · 收集：{researchDate(doc.retrievedAt)}</span>
               <a href={doc.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 text-primary underline-offset-4 hover:underline">打开原文 <ArrowUpRight className="size-4" aria-hidden="true" /><span className="sr-only">（新窗口）</span></a>
             </div>
           </article>;
         }) : <div className="p-6"><h3 className="text-body font-medium">{run.status === "running" || run.status === "queued" ? "等待可核对的原文证据" : "这轮暂未形成有依据的需求线索"}</h3><p className="mt-2 max-w-[65ch] text-small text-fg-muted">搜索摘要和无法读取的页面不会被当作完整需求。没有结果，也不代表这个需求不存在。</p></div>}
       </div> : <div>
-        {run.themes?.length ? run.themes.map((theme, index) => <article key={`${run.id}-${index}`} className="border-b p-5 last:border-b-0 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="max-w-[65ch] break-words text-h3 font-medium">{theme.title}</h3><span className="shrink-0 rounded-control bg-surface-2 px-2 py-1 text-small">{theme.kind === "recurring" ? "多位作者的观察" : "个别案例"}</span></div>
+        {run.themes?.length ? run.themes.map((theme, index) => {
+          const members = signals.filter((signal) => theme.signalIds.includes(signal.id));
+          const reviewed = members.length === theme.signalIds.length && members.every((signal) => signal.assessment);
+          return <article key={`${run.id}-${index}`} className="border-b p-5 last:border-b-0 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-2"><h3 className="max-w-[65ch] break-words text-h3 font-medium">{theme.title}</h3><span className="shrink-0 rounded-control bg-surface-2 px-2 py-1 text-small">{!reviewed ? "待复核主题" : observedAuthorCount(members) >= 2 ? "多位作者的观察" : "个别案例"}</span></div>
           <p className="mt-3 max-w-[65ch] whitespace-pre-line break-words text-body text-fg-muted">{theme.explanation}</p>
           <p className="mt-3 text-small text-fg-muted">观察到的不同作者：{observedAuthorCount(signals.filter((signal) => theme.signalIds.includes(signal.id)))} 位（未知作者未计入）</p>
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">{theme.signalIds.map((id, i) => <Link key={id} className="inline-flex min-h-11 items-center text-small text-primary underline underline-offset-4" href={`/app/research?run=${run.id}&tab=signals#signal-${id}`}>查看证据 {i + 1}</Link>)}</div>
-        </article>) : <div className="p-6"><h3 className="text-body font-medium">尚未归纳出痛点主题</h3><p className="mt-2 max-w-[65ch] text-small text-fg-muted">主题只引用已保存的需求线索。作者无法区分或只有一个来源时，会保留为个别案例。</p></div>}
+        </article>; }) : <div className="p-6"><h3 className="text-body font-medium">尚未归纳出痛点主题</h3><p className="mt-2 max-w-[65ch] text-small text-fg-muted">主题只引用已保存的需求线索。作者无法区分或只有一个来源时，会保留为个别案例。</p></div>}
         <p className="border-t px-5 py-4 text-small text-fg-muted sm:px-6">这些是样本中观察到的身份和表达，不代表市场规模或已核实的独立人数。</p>
       </div>}
       {demandDocs.some((doc) => !doc.body) ? <details className="border-t px-5 py-4 sm:px-6"><summary className="min-h-11 cursor-pointer text-small text-fg-muted">仅有摘要或暂未读取的来源（{demandDocs.filter((doc) => !doc.body).length}）</summary>

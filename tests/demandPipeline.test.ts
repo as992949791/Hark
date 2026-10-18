@@ -14,7 +14,7 @@ const plan = { web: ["video captions problems forum", "video editor alternative 
 const body = "I need a video editor with accurate captions.";
 const productBody = "CapCut makes accurate captions for video creators. Manual captions take too long.";
 
-function fixtureTransport(options: { fail?: string; invalid?: boolean; uncertain?: boolean; unknownProfileFacts?: boolean } = {}) {
+function fixtureTransport(options: { fail?: string; invalid?: boolean; uncertain?: boolean; unknownProfileFacts?: boolean; webBody?: string } = {}) {
   const data: string[] = []; const models: string[] = []; const prompts: ModelRequest[] = [];
   const transport: DemandTransport = {
     async prepareData(sku, input) {
@@ -24,7 +24,7 @@ function fixtureTransport(options: { fail?: string; invalid?: boolean; uncertain
         const charge = { actualMicros: 10, requestId: `test-${randomUUID()}` };
         if (sku === options.fail) return { value: null, charge, error: "Synthetic billed source failure." };
         if (sku === "google.search") return { value: { results: [{ link: "https://forum.example.com/help", title: "Need help", snippet: "accurate captions" }] }, charge };
-        if (sku === "web.scrape") return { value: { url: input.url, markdown: input.url === "https://capcut.com/" ? productBody : body }, charge };
+        if (sku === "web.scrape") return { value: { url: input.url, markdown: input.url === "https://capcut.com/" ? productBody : options.webBody ?? body }, charge };
         if (sku === "reddit.search") return { value: { posts: [{ id: "abc123", title: "Recommendations", selftext: "Which editor has reliable auto subtitles?", author: "alice", createdUtc: 1750000000, permalink: "/r/video/comments/abc123/help" }] }, charge };
         if (sku === "twitter.search") return { value: { items: [{ id: "123", text: "Manual captions waste my time; I need automatic subtitles.", authorUsername: "bob", createdUtc: 1750000100, url: "https://x.com/bob/status/123" }] }, charge };
         return { value: null, charge };
@@ -45,6 +45,18 @@ function fixtureTransport(options: { fail?: string; invalid?: boolean; uncertain
           explanation: "用户明确表达了字幕处理的需求。", requestType: "recommendation", relevant: true,
           productFit: payload.mode === "product" ? "unknown" : null, fitFact: null,
         })) }, charge };
+        if (request.stage.startsWith("review-")) {
+          const documents = payload.documents as { id: string; body: string }[];
+          const candidates = payload.candidates as { id: string; documentId: string; quote: string }[];
+          const rejected = candidates.filter((item) => documents.find((doc) => doc.id === item.documentId)!.body.startsWith("I built"));
+          return { value: {
+            documents: documents.map((doc) => ({ documentId: doc.id, role: doc.body.startsWith("I built") ? "promotion" : "seeker", contextQuote: doc.body })),
+            cases: candidates.filter((item) => !rejected.includes(item)).map((item) => ({ signalIds: [item.id], problem: "自动字幕处理需求", explanation: "用户明确表达了字幕处理的需求。", requestType: "recommendation",
+              requirements: payload.mode === "product" ? [{ documentId: item.documentId, quote: item.quote, productFact: null, status: "unknown" }] : [],
+              fitReason: payload.mode === "product" ? "产品是否满足具体要求仍待确认。" : null, excludedProductQuote: null })),
+            rejected: rejected.map((item) => ({ signalId: item.id, reason: "来源在推广自己的工具，不是求助者。" })),
+          }, charge };
+        }
         return { value: { themes: [{ title: "自动字幕处理需求", signalIds: payload.map((item: { id: string }) => item.id) }] }, charge };
       } };
     },
@@ -86,6 +98,28 @@ describeDb("bounded cross-platform demand pipeline", () => {
     expect(saved?.spentMicros).toBe(attempts.length * 10); expect(attempts.every((attempt) => attempt.result?.ok && attempt.status === "settled")).toBe(true);
     expect(await db().select().from(jobs).where(eq(jobs.demandRunId, run.id))).toHaveLength(1);
     expect(fetch).not.toHaveBeenCalled();
+  });
+  it("does not publish a tool seller's first-person promotion as a customer need", async () => {
+    const { user, run, lease } = await start();
+    const f = fixtureTransport({ webBody: "I built CaptionMaker to add captions. Try my new product today." });
+    await executeDemandPipeline(lease, f.transport);
+    const evidence = await getDemandEvidence(user.id, run.id);
+    const web = evidence.documents.find((doc) => doc.source === "web" && doc.body)!;
+    expect(evidence.signals.some((signal) => signal.documentId === web.id)).toBe(false);
+    expect(evidence.signals).toHaveLength(2);
+  });
+  it.each(["topic", "product"] as const)("reanalyses saved originals in %s mode without purchasing source searches again", async (mode) => {
+    const { user, run, lease } = await start();
+    await executeDemandPipeline(lease, fixtureTransport().transport);
+    const second = await createDemandRun(user.id, { key: randomUUID(), budgetMicros: 100_000, sourceRunId: run.id,
+      ...(mode === "topic" ? { mode, topic: "video captions" } : { mode, url: "https://capcut.com/" }) });
+    const f = fixtureTransport();
+    await executeDemandPipeline((await claimDemandRun(user.id, second.id))!, f.transport);
+    expect((await getDemandRun(user.id, second.id))?.status).toBe("complete");
+    expect(f.models).not.toContain("query-plan");
+    expect(f.data).toEqual(mode === "topic" ? [] : ["web.scrape:https://capcut.com/"]);
+    expect((await getDemandEvidence(user.id, second.id)).signals).toHaveLength(3);
+    expect(await db().select().from(projects).where(eq(projects.userId, user.id))).toEqual([]);
   });
   it("prepares a new product with one page and one profile call inside the run, excluding preparation from demand", async () => {
     const { user, run, lease } = await start("product"); const f = fixtureTransport();
@@ -189,7 +223,7 @@ describeDb("bounded cross-platform demand pipeline", () => {
     const { user, run, lease } = await start(); const first = fixtureTransport();
     const prepare = first.transport.prepareModel;
     first.transport.prepareModel = async (request, key) => {
-      if (request.stage.startsWith("group-")) throw new Error("Synthetic interruption before grouping");
+      if (request.stage.startsWith("review-")) throw new Error("Synthetic interruption before review");
       return prepare(request, key);
     };
     await executeDemandPipeline(lease, first.transport);
@@ -198,7 +232,7 @@ describeDb("bounded cross-platform demand pipeline", () => {
     await db().delete(demandSignals).where(eq(demandSignals.runId, run.id));
     const second = fixtureTransport();
     await executeDemandPipeline(await retry(user.id, run.id), second.transport);
-    expect(second.data).toEqual([]); expect(second.models).toHaveLength(1); expect(second.models[0]).toMatch(/^group-/);
+    expect(second.data).toEqual([]); expect(second.models).toHaveLength(1); expect(second.models[0]).toMatch(/^review-/);
     expect((await getDemandEvidence(user.id, run.id)).signals).toHaveLength(3);
     expect((await getDemandRun(user.id, run.id))?.status).toBe("complete");
   });
@@ -210,7 +244,7 @@ describeDb("bounded cross-platform demand pipeline", () => {
       charge: { actualMicros: 10, requestId: randomUUID() },
     }) } : data(sku, input, key);
     first.transport.prepareModel = async (request, key) => {
-      if (request.stage.startsWith("group-")) throw new Error("Synthetic grouping outage");
+      if (request.stage.startsWith("review-")) throw new Error("Synthetic review outage");
       return model(request, key);
     };
     await executeDemandPipeline(lease, first.transport);

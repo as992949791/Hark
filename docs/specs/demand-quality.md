@@ -1,0 +1,21 @@
+# Demand quality and remaining live acceptance
+
+User authorized all four follow-ups on 2026-10-18 without further confirmation: filter tutorial/recommendation/promotion content, merge repeated needs and calibrate product qualification, validate theme quality, and complete real research-path checks. Baseline: v0.1.35-hark-identity. Existing ownership, budget, source, retry and retention rules remain in force.
+
+## Required behavior
+
+- Read source context before classifying a quote. Recommendations given to others, instructional content, product promotion and unclear voices cannot be published as first-person customer demand. Concrete user-experience complaints may inform research without qualifying as customers. Keep original source documents and rejection audit privately.
+- Combine repeat expressions of the same concrete need from the same observed author; preserve every accepted supporting original quote and source link. Unknown-author documents cannot be merged across documents on assumed identity. Different needs or different authors remain separate cases. A merge is not an independent-person count.
+- Product qualification must address concrete requirements using known product capabilities/facts, not a matching target audience alone. Missing support remains unknown. Explicit incompatibilities, including looking to replace the supplied product, prevent a positive match. Topic mode makes no product-fit claim.
+- Themes derive from the reviewed cases' concrete problems and retain case/evidence links. Two independent observed authors are required for recurring; otherwise show an individual case. Unknown authors, duplicate text and repeated identities cannot inflate counts. Generated summaries still require relevance evaluation.
+- Reuse the existing final grouping call for contextual review, duplicate adjudication, qualification and problem labels; do not add automatic calls/retries. Validate document/candidate membership, exact context/requirement quotes, full classification coverage and merge identity on the server. Publish reviewed cases and themes atomically under the lease. Model errors retain known charges.
+- Preserve source receipts and explicit retry reuse. Existing unreviewed history remains identifiable as legacy rather than silently certified. Assessment/supporting quotes follow the same content expiry and ownership boundaries as the existing evidence.
+- The provider data balance at preflight is only $0.002610, so add an explicit saved-original reuse option for repeatable real-content analysis. Clone only an owned nonexpired terminal run's demand documents, preserving original collection and expiry times; never copy old scores or charges. A new product can still need its own bounded profile-page preparation. Label reuse as reuse, not fresh retrieval. This supports the requested quality and live-path verification without repurchasing the same source corpus.
+
+## Verification
+
+Use the existing public pipeline/report/actions/results boundaries and the new contextual-review validator. Reproduce observed seller promotion before correction; then verify tutorial/recommendation rejection, positive true requests/complaints, same-author repeat merges, distinct-author preservation, unknown identity, capability/price/replacement qualification and recurring versus individual cases. Real data stays private; checked-in cases are synthetic.
+
+Run saved CapCut content through the current analysis without presenting replay as fresh source collection. Verify topic input and new-product preparation as well as owned-profile reuse, real saved-result navigation/refresh/tabs/quotes, partial failures and explicit retry/progress as access and provider balances permit. Record exact achieved paths, source reuse, unavailable services and spending; do not substitute offline fixtures for live acceptance or user manual judgements.
+
+Live calls remain within the original cumulative $1 authorization and actual provider balance; no refill, recurring enabled work, notifications or deployment. No request for additional user permission is needed within that scope. Complete relevant checks, independent Standards/Spec source review, annotated Git archive and one exact-archive full CI. Do not repeat unchanged UI audits, full local tests/build and documentation-only review rounds.

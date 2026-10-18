@@ -9,6 +9,7 @@ const productUrl = z.url().max(2048).refine((value) => {
 export const demandInput = z.intersection(z.object({
   key: z.uuid(),
   budgetMicros: micros,
+  sourceRunId: z.uuid().optional(),
 }), z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("topic"), topic: z.string().trim().min(1).max(500) }),
   z.object({ mode: z.literal("product"), url: productUrl, projectId: z.uuid().optional() }),
@@ -34,6 +35,13 @@ export const demandTheme = z.object({
   kind: z.enum(["recurring", "individual"]),
 });
 export type DemandTheme = z.infer<typeof demandTheme>;
+export type DemandAssessment = {
+  version: 1;
+  problem: string;
+  fitReason: string | null;
+  requirements: { documentId: string; quote: string; productFact: string | null; status: "supported" | "unknown" | "contradicted" }[];
+  evidence: { documentId: string; quoteStart: number; quoteEnd: number; quote: string; author: string | null }[];
+};
 export type DemandLease = Readonly<{ runId: string; userId: string; token: string }>;
 
 export const attemptInput = z.object({

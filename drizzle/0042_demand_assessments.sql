@@ -1,0 +1,1 @@
+ALTER TABLE "demand_signals" ADD COLUMN "assessment" jsonb;

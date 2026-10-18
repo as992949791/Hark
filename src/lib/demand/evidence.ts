@@ -106,7 +106,7 @@ export function validateSignals(raw: unknown, documents: EvidenceDocument[], pro
   return accepted;
 }
 
-export const groupedSignals = z.object({ themes: z.array(z.object({ title: chinese, signalIds: z.array(z.uuid()).min(1).max(24) }).strict()).max(12) }).strict();
+export const groupedSignals = z.object({ themes: z.array(z.object({ title: chinese, signalIds: z.array(z.uuid()).min(1).max(72) }).strict()).max(72) }).strict();
 
 /** Equal handles across platforms are conservatively treated as one observed identity. */
 function authorKey(author: string | null) {

@@ -36,6 +36,27 @@ describeDb("demand research foundation", () => {
   const attempt = (key = randomUUID(), upperBoundMicros = 60_000) => ({ key, kind: "data" as const, source: "web" as const, operation: `test.demand.${randomUUID()}`, upperBoundMicros });
   const result = (actualMicros = 20_000) => ({ value: "source text", charge: { actualMicros, requestId: randomUUID() } });
 
+  it("reuses only owned unexpired originals without extending collection or retention", async () => {
+    const { userId, run, lease } = await active();
+    const [doc] = await db().insert(demandDocuments).values({ runId: run.id, purpose: "demand", source: "web",
+      url: "https://forum.example.com/captions", canonicalUrl: "https://forum.example.com/captions", body: "I need automatic captions for my videos.",
+      contentHash: "synthetic", author: "alice", retrievedAt: new Date("2026-10-17T00:00:00Z"), outcome: "retrieved" }).returning();
+    await finishDemandRun(lease, "complete");
+    const input = { mode: "topic" as const, topic: "captioning problems", key: randomUUID(), budgetMicros: 100_000, sourceRunId: run.id };
+    const reused = await createDemandRun(userId, input);
+    expect(reused.sourceRunId).toBe(run.id); expect(reused.expiresAt).toEqual(run.expiresAt);
+    const originals = await getDemandEvidence(userId, reused.id);
+    expect(originals.documents).toHaveLength(1);
+    expect(originals.documents[0]).toMatchObject({ body: doc.body, retrievedAt: doc.retrievedAt, author: "alice" });
+    expect(originals.signals).toEqual([]);
+    expect((await createDemandRun(userId, input)).id).toBe(reused.id);
+    await expect(createDemandRun(userId, { ...input, sourceRunId: undefined })).rejects.toThrow("another input");
+    const other = await owner();
+    await expect(createDemandRun(other, { ...input, key: randomUUID() })).rejects.toThrow("unavailable");
+    await db().update(demandRuns).set({ expiresAt: new Date(Date.now() - 1000) }).where(eq(demandRuns.id, run.id));
+    await expect(createDemandRun(userId, { ...input, key: randomUUID() })).rejects.toThrow("unavailable");
+  });
+
   it("owns topic runs without creating a product and keeps reads isolated", async () => {
     const userId = await owner();
     const otherId = await owner();

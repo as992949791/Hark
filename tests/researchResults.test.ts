@@ -10,6 +10,23 @@ vi.mock("@/components/research/RunControl", () => ({ RunControl: () => createEle
 const render = (report = syntheticDemandReport(), tab: "signals" | "themes" = "signals") => renderToStaticMarkup(createElement(ResearchResults, { report, tab, enabled: false }));
 
 describe("research evidence presentation", () => {
+  it("shows all supporting original sources for one merged demand case", () => {
+    const report = syntheticDemandReport(), first = report.signals[0];
+    first.assessment = { version: 1, problem: "准确的自动字幕", fitReason: null, requirements: [],
+      evidence: report.signals.map((signal) => ({ documentId: signal.documentId, quoteStart: signal.quoteStart, quoteEnd: signal.quoteEnd, quote: signal.quote, author: first.author })) };
+    report.signals = [first];
+    const html = render(report);
+    expect(html).toContain("保留 2 处原文");
+    expect(html).toContain("Which video editor has reliable subtitles");
+    expect(html).toContain(report.documents[1].url);
+  });
+  it("does not certify legacy unreviewed candidates or trust their stored recurring label", () => {
+    const report = syntheticDemandReport(); report.run.themes![0].kind = "recurring";
+    report.signals.forEach((signal) => { signal.assessment = null; });
+    expect(render(report)).toContain("历史候选尚未经过新版语境筛选");
+    const html = render(report, "themes");
+    expect(html).toContain("待复核主题"); expect(html).not.toContain("多位作者的观察");
+  });
   it("preserves recorded charge precision even above one cent", () => {
     expect(researchMoney(12_345)).toBe("$0.012345");
   });
