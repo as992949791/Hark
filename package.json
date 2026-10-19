@@ -20,6 +20,7 @@
     "preview:local": "tsx scripts/dev-tools.ts preview",
     "verify": "tsx scripts/dev-tools.ts verify",
     "profile:replay": "tsx scripts/profile-replay.ts",
+    "research:audit": "tsx scripts/research-audit.ts",
     "archive": "python3 scripts/archive.py"
   },
   "dependencies": {

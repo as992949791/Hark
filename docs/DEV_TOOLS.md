@@ -30,6 +30,21 @@ Local startup captures each fast/full page and its model attempts under ignored 
 
 Replay uses the current profile analysis with saved responses, including its grounding and one content retry. It removes provider keys, blocks `fetch`, performs no scrape/generation requests and makes no project writes. It saves the resulting reading privately and prints the output path. A failed captured attempt is replayed as a failure; validation failures retain retry behavior. This reproduces analysis logic, not model quality or an older prompt implementation. Format version 1 requires `mode`, `page`, and ordered `calls` with `purpose` and a `response` or `error`. The checked-in fixture is synthetic; do not add real traces to Git. The original failed CapCut call predates capture and cannot be reconstructed from these tools.
 
+## Audit saved research without providers
+
+```sh
+npm run research:audit -- .local/discovery/<owned-saved-report>.json
+npm run research:audit -- .local/discovery/<owned-saved-report>.json .local/research-audits/<audit-id>/review.json
+```
+
+Input is an existing owner-scoped `DemandReport` JSON snapshot (run, documents, signals and presented attempts), such as an operator's saved acceptance result. This command does not obtain new data, load environment files, open a database or contact providers. It checks exact primary/supporting/pain/requirement source quotes, case membership, observed theme identities and settled run accounting. Expired snapshots are refused before export. It cannot determine whether the model understood the source correctly.
+
+Each execution creates ignored `.local/research-audits/<audit-id>/` (0700) containing `evidence.md`, `review.json` and `summary.json` (0600). The packet contains the original research input, product facts, quoted context and theme membership. Do not commit these private files. They are static copies: delete them when the recorded source retention expires; application database cleanup cannot delete a developer's exported files.
+
+The judgement sheet uses the first 20 saved cases in their existing order, without padding a smaller run. Supplementary cases remain visible for theme context. Fill true/false for relevance, customer context, distinct need, pain interpretation, original citations and product fit (product mode only; topic mode leaves it null). Check each theme's interpretation too. These are manual judgements, not AI-generated labels. Grading binds IDs and a normalized content fingerprint to the same original snapshot; changing the sample or original content requires a new sheet. Passing needs 20 fully judged cases, at least 16 acceptable cases, all citations checked, checked themes and no structural/accounting failures. It does not measure rejected-source recall or establish incremental web value over Reddit/X.
+
+First-time packet generation exits 0 when structural checks pass, even if human review is pending or the sample is too small. Explicit grading exits 1 until the quality gate passes. Malformed/expired inputs and integrity failures also exit 1; no database acceptance state is written. Always read `humanAcceptancePassed`, not just the packet-generation exit status. Synthetic fixtures test the tool only, never count toward real-result acceptance.
+
 ## Archive a reviewed version
 
 ```sh
