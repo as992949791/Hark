@@ -87,6 +87,8 @@ flowchart LR
 - Slack / Discord 真实收件和钱包 OAuth；钱包工作暂缓。
 - 新网页持续监控的真实付费／邮件验收，以及深入痛点分析的更广泛质量评估；已完成一次真实保存原文的分析，见[公网与真实分析验收](docs/acceptance/28-monitoring-public-live.md)。自动外联和商业效果未实现或验证。
 
+暂时没有数据服务额度时，可用 `npm run research:audit -- <已保存报告.json>` 核对原文引用、痛点证据与账目，并生成私有人工验收清单。工具不访问数据库或付费服务，也不会把机器校验当作相关性评分。产品／主题监控另有本地 SMTP 与虚拟日期的完整链路测试，覆盖基线、去重、定时和邮件失败恢复；这些检查不能代替真实平台搜索、跨日观察或人工质量验收。见[离线验收记录](docs/acceptance/29-offline-research.md)和[操作说明](docs/DEV_TOOLS.md#audit-saved-research-without-providers)。
+
 持续监控与深入分析界面已发布至[公网测试站点](https://hark-as992949791.netlify.app/)，最新身份、迁移与真实分析记录见[验收报告](docs/acceptance/28-monitoring-public-live.md)。公网保留已有云端数据；本地研究结果未自动同步。付费检索、持续监控和自动通知继续关闭。
 
 仓库完整 CI 在专用测试数据库上运行 TypeScript、ESLint、测试和生产构建。最新存档提交的结果请查看上方 Check 状态；本轮验证范围见监控验收记录。自动化测试通过不等于模型输出相关或已有用户采用。

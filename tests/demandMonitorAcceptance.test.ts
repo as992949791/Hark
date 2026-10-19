@@ -103,16 +103,14 @@ describeDb("provider-free scheduled monitoring acceptance", () => {
         } }; },
       };
       vi.spyOn(provider, "demandTransport").mockResolvedValue(transport);
-      const requests: string[] = [];
+      const requests: Request[] = [];
       vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
         if (url !== "https://hark.example.com/.netlify/functions/queue-worker") throw new Error("External network forbidden");
-        requests.push(String(init.body)); return new Response(null, { status: 202 });
+        requests.push(new Request(url, init)); return new Response(null, { status: 202 });
       }));
       const tick = async () => {
         const before = requests.length, count = await runScheduledTick();
-        for (const body of requests.slice(before)) await runBackgroundRequest(new Request("https://hark.example.com/.netlify/functions/queue-worker", {
-          method: "POST", headers: { authorization: `Bearer ${"s".repeat(32)}` }, body,
-        }));
+        for (const request of requests.slice(before)) await runBackgroundRequest(request);
         return count;
       };
       for (round = 0; round < 3; round++) {

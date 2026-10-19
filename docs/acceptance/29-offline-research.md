@@ -15,7 +15,8 @@ Two new isolated integration scenarios run both projectless product and topic mo
 - Initial 17 audit checks:16 passed; one command fixture could not resolve the tsx loader from its temporary working directory. Corrected the fixture to use the installed absolute CLI and explicit repository tsconfig. No application startup dependency changed.
 - Initial supported TypeScript/ESLint passed with one unused-import warning in the new acceptance test; the import was removed.
 - Combined41 checks initially found MIME body encoding varied between base64 and quoted-printable. Corrected the test's captured-message decoding; production email formatting was unchanged. This is a test assertion correction, not a live delivery defect.
-- Final scoped checks, complete verification, independent review and archive identities are recorded below/at issue26 after execution. No external paid call, production deployment, original data mutation or environment change is part of this release.
+- Full supported verification passed TypeScript, ESLint without warnings,1161 tests/114 files and the production build on a newly created dedicated test database; the database was removed afterward. Independent review subsequently strengthened only the dispatch test, forwarding the actual captured Request rather than rebuilding known-good credentials. Final19 related tests passed after this correction; the final quick static checks passed. No production application code changed after the full build.
+- Independent Astra Standards and Spec reviews have zero remaining actionable findings. See [review record](../reviews/offline-research-acceptance.md). Git archive/remote identity and exact-archive CI are recorded on issue26 after upload. No external paid call, production deployment, original data mutation or environment change is part of this release.
 
 ## Boundaries still pending
 
